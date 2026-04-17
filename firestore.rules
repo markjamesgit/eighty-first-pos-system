@@ -1,0 +1,92 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc(uid) {
+      return get(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function isAdmin() {
+      return isSignedIn() && userDoc(request.auth.uid).data.role == "admin";
+    }
+
+    // Bootstrap rule:
+    // - allow a signed-in user to create their own profile only once
+    // - lock role to "admin" so app bootstrapping can complete
+    match /users/{uid} {
+      allow create: if isSignedIn()
+        && request.auth.uid == uid
+        && !exists(/databases/$(database)/documents/users/$(uid))
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.role == "admin";
+
+      allow read, update: if isAdmin() || (isSignedIn() && request.auth.uid == uid);
+      allow delete: if isAdmin();
+    }
+
+    // POS core collections (admin only)
+    match /products/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    match /orders_active/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    match /orders_history/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    match /sales_summary/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    match /stock_history/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    // New admin feature collections (admin only)
+    match /maintenance_categories/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    match /maintenance_variants/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    match /maintenance_addons/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    match /maintenance_modifiers/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    match /audit_trail/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    match /alerts/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    match /alert_emails/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    match /ingredients/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    match /product_recipes/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    match /ingredient_stock_history/{doc} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
