@@ -2,7 +2,7 @@ export type UserRole = "admin";
 
 export type OrderStatus = "pending" | "completed";
 
-export type StockHistoryType = "sale" | "manual_add" | "manual_remove" | "edit";
+export type StockHistoryType = "sale" | "manual_add" | "manual_remove" | "edit" | "manual_restock" | "manual_correction";
 
 export interface AppUser {
   uid: string;

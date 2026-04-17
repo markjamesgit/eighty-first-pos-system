@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { Plus, Edit2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,13 +21,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createIngredient } from "@/services/firebase/ingredients";
+import { createIngredient, updateIngredient } from "@/services/firebase/ingredients";
+import type { IngredientItem } from "@/lib/types/domain";
 
 interface IngredientDialogProps {
   onSaved: () => void;
+  ingredient?: IngredientItem;
+  triggerLabel?: string;
 }
 
-export function IngredientDialog({ onSaved }: IngredientDialogProps) {
+export function IngredientDialog({ onSaved, ingredient, triggerLabel }: IngredientDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -38,19 +41,43 @@ export function IngredientDialog({ onSaved }: IngredientDialogProps) {
     isActive: true,
   });
 
+  useEffect(() => {
+    if (ingredient && open) {
+      setForm({
+        name: ingredient.name,
+        unit: ingredient.unit,
+        stockQty: ingredient.stockQty,
+        lowStockThreshold: ingredient.lowStockThreshold,
+        isActive: ingredient.isActive,
+      });
+    } else if (!ingredient && open) {
+      setForm({
+        name: "",
+        unit: "pcs",
+        stockQty: 0,
+        lowStockThreshold: 10,
+        isActive: true,
+      });
+    }
+  }, [ingredient, open]);
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return toast.error("Name is required.");
     
     setLoading(true);
     try {
-      await createIngredient(form);
-      toast.success("Ingredient added to warehouse.");
+      if (ingredient) {
+        await updateIngredient(ingredient.id, form);
+        toast.success("Ingredient updated.");
+      } else {
+        await createIngredient(form);
+        toast.success("Ingredient added to warehouse.");
+      }
       setOpen(false);
-      setForm({ name: "", unit: "pcs", stockQty: 0, lowStockThreshold: 10, isActive: true });
       onSaved();
     } catch (e) {
-      toast.error("Failed to add ingredient.");
+      toast.error(ingredient ? "Failed to update ingredient." : "Failed to add ingredient.");
     } finally {
       setLoading(false);
     }
@@ -59,17 +86,26 @@ export function IngredientDialog({ onSaved }: IngredientDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="font-bold gap-2">
-          <Plus className="h-4 w-4" />
-          Add Ingredient
-        </Button>
+        {ingredient ? (
+          <Button variant="ghost" size="icon" className="h-9 w-9 text-stone-300 hover:text-stone-900 transition-colors rounded-xl bg-white border border-stone-200 shadow-sm">
+            <Edit2 className="h-4 w-4" />
+          </Button>
+        ) : (
+          <Button className="font-bold gap-2">
+            <Plus className="h-4 w-4" />
+            {triggerLabel || "Add Ingredient"}
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSave}>
           <DialogHeader>
-            <DialogTitle>New Ingredient</DialogTitle>
+            <DialogTitle>{ingredient ? "Edit Ingredient" : "New Ingredient"}</DialogTitle>
             <DialogDescription>
-              Add a raw material or consumable to your global inventory stock.
+              {ingredient 
+                ? "Update details for this raw material in your inventory."
+                : "Add a raw material or consumable to your global inventory stock."
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -126,7 +162,7 @@ export function IngredientDialog({ onSaved }: IngredientDialogProps) {
           </div>
           <DialogFooter>
             <Button type="submit" disabled={loading} className="w-full font-bold">
-              {loading ? "Adding..." : "Confirm Addition"}
+              {loading ? (ingredient ? "Updating..." : "Adding...") : (ingredient ? "Save Changes" : "Confirm Addition")}
             </Button>
           </DialogFooter>
         </form>

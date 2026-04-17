@@ -317,6 +317,7 @@ export async function createOrder(params: {
         beforeQty: entry.beforeQty,
         afterQty: entry.afterQty,
         referenceOrderId: entry.referenceOrderId,
+        type: "sale",
         createdAt: serverTimestamp(),
         performedBy: "admin",
       })),

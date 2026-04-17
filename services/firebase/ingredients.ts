@@ -72,3 +72,9 @@ export async function updateIngredientStock(id: string, stockQty: number) {
     updatedAt: serverTimestamp(),
   });
 }
+export async function updateIngredient(id: string, input: Partial<Omit<IngredientItem, "id" | "createdAt" | "updatedAt">>) {
+  await updateDoc(doc(getFirestoreDb(), INGREDIENTS_COLLECTION, id), {
+    ...input,
+    updatedAt: serverTimestamp(),
+  });
+}
