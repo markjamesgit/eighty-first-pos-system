@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,25 +13,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TablePagination } from "@/components/ui/table-pagination";
 import type { AlertRecord, AlertLevel } from "@/lib/types/domain";
-import { queueAlertEmailSafe, syncAlertRecordsSafe, subscribeToAlerts, type SystemAlert } from "@/services/firebase/alerts";
-import { listIngredients } from "@/services/firebase/ingredients";
+import { wipeAllAlerts, markAlertsAsRead, subscribeToAlerts, type SystemAlert } from "@/services/firebase/alerts";
 import { useAuthStore } from "@/store/auth-store";
 import { useProductsStore } from "@/store/products-store";
-import { BellRing, Search, SlidersHorizontal } from "lucide-react";
+import { BellRing, Search, SlidersHorizontal, CheckCheck, Trash2 } from "lucide-react";
 import { formatDateTime, cn } from "@/lib/utils";
 
 export function AlertsView() {
   const user = useAuthStore((state) => state.user);
   const fetchProducts = useProductsStore((state) => state.fetchProducts);
   
-  const [ingredients, setIngredients] = useState<
-    Array<{ id: string; name: string; stockQty: number; lowStockThreshold: number }>
-  >([]);
   const [realtimeAlerts, setRealtimeAlerts] = useState<SystemAlert[]>([]);
-  const emailedAlertIdsRef = useRef<Set<string>>(new Set());
   const alertMountTimeRef = useRef<number | null>(null);
   const [search, setSearch] = useState("");
   const [levelFilter, setLevelFilter] = useState<"all" | SystemAlert["level"]>("all");
@@ -43,91 +38,14 @@ export function AlertsView() {
   useEffect(() => {
     alertMountTimeRef.current = Date.now();
     void fetchProducts();
-    void listIngredients()
-      .then((rows) =>
-        setIngredients(
-          rows.map((row) => ({
-            id: row.id,
-            name: row.name,
-            stockQty: row.stockQty,
-            lowStockThreshold: row.lowStockThreshold,
-          })),
-        ),
-      )
-      .catch(() => setIngredients([]));
-      
+    
     // Subscribe to system alerts
-    return subscribeToAlerts(setRealtimeAlerts, 200);
+    const unsubAlerts = subscribeToAlerts(setRealtimeAlerts, 200);
+
+    return () => {
+      unsubAlerts();
+    };
   }, [fetchProducts]);
-
-  const logicAlerts = useMemo<AlertRecord[]>(() => {
-    const lowStockIngredients = ingredients.filter(
-      (item) => item.stockQty <= item.lowStockThreshold,
-    );
-    const criticalIngredients = lowStockIngredients.filter((item) => item.stockQty <= 0);
-    const recipient = user?.email ?? "";
-
-    if (!recipient) return [];
-
-    return [
-      {
-        id: "ingredient_warning",
-        level: "warning" as AlertLevel,
-        module: "Inventory",
-        message: `${lowStockIngredients.length} items reaching threshold.`,
-        recipientEmail: recipient,
-      },
-      {
-        id: "ingredient_critical",
-        level: "critical" as AlertLevel,
-        module: "Inventory",
-        message: `${criticalIngredients.length} items completely out of stock.`,
-        recipientEmail: recipient,
-      },
-    ].filter(a => a.message.split(" ")[0] !== "0");
-  }, [ingredients, user?.email]);
-
-  useEffect(() => {
-    if (!logicAlerts.length || !user?.email) return;
-    void syncAlertRecordsSafe(logicAlerts);
-  }, [logicAlerts, user?.email]);
-
-  useEffect(() => {
-    if (!user?.email) return;
-    const newEmailAlerts = realtimeAlerts.filter((alert) => {
-      const isNewSessionAlert =
-        alertMountTimeRef.current === null || alert.createdAt.getTime() >= alertMountTimeRef.current;
-      return (
-        alert.level !== "good" &&
-        isNewSessionAlert &&
-        !emailedAlertIdsRef.current.has(alert.id)
-      );
-    });
-    if (!newEmailAlerts.length) return;
-
-    void Promise.allSettled(
-      newEmailAlerts.map(async (alert) => {
-        const normalizedLevel = `${alert.level.charAt(0).toUpperCase()}${alert.level.slice(1)}`;
-        const subject = `${normalizedLevel} Alert: ${alert.module}`;
-        const message = `[${alert.module}] ${alert.message}\nSeverity: ${normalizedLevel}\nObserved at: ${formatDateTime(alert.createdAt)}`;
-        await queueAlertEmailSafe({
-          recipientEmail: user.email,
-          subject,
-          message,
-        });
-        emailedAlertIdsRef.current.add(alert.id);
-      }),
-    )
-      .then((results) => {
-        const rejected = results.filter((result) => result.status === "rejected").length;
-        if (rejected === 0) {
-          toast.success("Alert emails queued successfully.");
-        } else {
-          toast.error("Some alert emails failed to queue.");
-        }
-      })
-      .catch(() => toast.error("Failed to queue automated alert email."));
-  }, [realtimeAlerts, user?.email]);
 
   const filteredAlerts = useMemo(() => {
     const needle = search.toLowerCase().trim();
@@ -245,115 +163,118 @@ export function AlertsView() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="rounded-xl border border-stone-200 bg-white p-3">
-              <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Email delivery</p>
-              <p className="mt-1 text-xs font-medium text-stone-600">New warning and critical alerts are queued to your account email.</p>
+              {filteredAlerts.some((a) => !a.isRead) ? (
+                <Button
+                  onClick={() =>
+                    void markAlertsAsRead(filteredAlerts.filter((a) => !a.isRead).map((a) => a.id))
+                  }
+                  className="w-full gap-2 rounded-xl bg-stone-950 font-bold text-white shadow hover:bg-stone-800"
+                >
+                  <CheckCheck className="h-4 w-4" />
+                  Mark All as Read
+                </Button>
+              ) : null}
+              {filteredAlerts.length > 0 ? (
+                <Button
+                  variant="outline"
+                  className="w-full gap-2 rounded-xl border-stone-200 text-red-600 hover:bg-red-50 hover:text-red-700 shadow-sm transition-all"
+                  onClick={() => {
+                    void wipeAllAlerts().then(() => toast.success("All alert data wiped successfully."));
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Clear All Alerts
+                </Button>
+              ) : null}
             </div>
           </aside>
           <div>
-          <div className="space-y-3 p-4 lg:hidden">
-            {filteredAlerts.length === 0 ? (
-              <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-stone-100 bg-white opacity-40">
-                <BellRing className="mb-2 h-10 w-10 text-stone-300" />
-                <p className="text-[10px] font-black uppercase tracking-widest">Sky is Clear</p>
-              </div>
-            ) : (
-              paginatedAlerts.map((alert) => (
-                <article
-                  key={alert.id}
-                  className={cn(
-                    "space-y-3 rounded-xl border border-stone-100 bg-white p-4 shadow-sm",
-                    alert.level === "critical" && "border-red-100 bg-red-50/20",
-                  )}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <Badge
-                      variant={
-                        alert.level === "critical"
-                          ? "destructive"
-                          : alert.level === "warning"
-                            ? "warning"
-                            : alert.level === "good"
-                              ? "good"
-                              : "informational"
-                      }
-                      className="rounded-full px-3 text-[8px] font-black uppercase tracking-widest"
-                    >
-                      {alert.level}
-                    </Badge>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
-                      {formatDateTime(alert.createdAt)}
-                    </span>
-                  </div>
-                  <p className="text-sm font-bold leading-snug text-stone-900">{alert.message}</p>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-stone-500">{alert.module}</p>
-                </article>
-              ))
-            )}
-          </div>
-          <div className="hidden overflow-x-auto lg:block">
-          <Table>
-            <TableHeader className="bg-stone-50/30">
-              <TableRow className="hover:bg-transparent border-stone-100 h-14">
-                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 pl-8">Severity</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Component</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Message Payload</TableHead>
-                <TableHead className="text-right text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 pr-8">Time Observed</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <div className="flex flex-col p-4 w-full h-full bg-stone-50/30">
+            <div className="space-y-4">
               {filteredAlerts.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="h-64 text-center">
-                    <div className="flex flex-col items-center justify-center opacity-40">
-                        <BellRing className="h-12 w-12 mb-3 text-stone-300" />
-                        <p className="text-[10px] font-black uppercase tracking-widest">Sky is Clear</p>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-stone-100 bg-white opacity-60 shadow-sm">
+                  <div className="bg-stone-50 p-4 rounded-full mb-3">
+                     <BellRing className="h-8 w-8 text-stone-300" />
+                  </div>
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-stone-400">System is Stable</p>
+                  <p className="text-xs font-medium text-stone-500 mt-1">No alerts to display at this moment.</p>
+                </div>
               ) : (
                 paginatedAlerts.map((alert) => (
-                  <TableRow key={alert.id} className={cn("group hover:bg-stone-50/50 transition-all border-stone-100 h-20", alert.level ==='critical' && "bg-red-50/10 hover:bg-red-50/20")}>
-                    <TableCell className="pl-8">
-                      <Badge 
-                        variant={
-                          alert.level === "critical"
-                            ? "destructive"
-                            : alert.level === "warning"
-                              ? "warning"
-                              : alert.level === "good"
-                                ? "good"
-                                : "informational"
-                        }
-                        className="rounded-full text-[8px] font-black uppercase tracking-widest px-3 h-5 shadow-sm ring-2 ring-white"
-                      >
-                        {alert.level}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-stone-400 group-hover:text-stone-900 transition-colors">
-                          {alert.module}
-                        </span>
-                    </TableCell>
-                    <TableCell>
-                        <p className="font-bold text-stone-900 text-sm tracking-tight leading-snug">
-                            {alert.message}
+                  <article
+                    key={alert.id}
+                    className={cn(
+                      "flex flex-col gap-3 rounded-2xl border bg-white p-5 shadow-sm transition-all hover:shadow-md sm:flex-row sm:items-center sm:justify-between",
+                      alert.level === "critical"
+                        ? "border-red-200/60 bg-red-50/30 hover:bg-red-50/50"
+                        : alert.level === "warning"
+                          ? "border-amber-200/50 hover:bg-amber-50/20"
+                          : "border-stone-100 hover:bg-stone-50/50"
+                    )}
+                  >
+                    <div className="flex flex-grow flex-col gap-3 sm:flex-row sm:items-center">
+                      <div className="flex shrink-0 items-center gap-3">
+                        {!alert.isRead && (
+                          <span className="flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 ring-4 ring-red-50" />
+                        )}
+                        <Badge
+                          variant={
+                            alert.level === "critical"
+                              ? "destructive"
+                              : alert.level === "warning"
+                                ? "warning"
+                                : alert.level === "good"
+                                  ? "good"
+                                  : "informational"
+                          }
+                          className="h-7 items-center justify-center rounded-full px-4 text-[10px] font-black uppercase tracking-widest shadow-sm ring-2 ring-white"
+                        >
+                          {alert.level}
+                        </Badge>
+                      </div>
+
+                      <div className="flex flex-col justify-center sm:pl-2">
+                        <div className="flex items-center gap-2 mb-0.5">
+                           <span className="text-[10px] font-black uppercase tracking-wider text-stone-400">
+                             {alert.module}
+                           </span>
+                           <span className="hidden sm:inline text-stone-300">&bull;</span>
+                           <span className="text-[10px] sm:hidden font-bold tracking-wider text-stone-400 uppercase">
+                              {formatDateTime(alert.createdAt)}
+                           </span>
+                        </div>
+                        <p className={cn("text-sm font-bold leading-relaxed tracking-tight", alert.level === "critical" ? "text-red-950" : "text-stone-900")}>
+                          {alert.message}
                         </p>
-                    </TableCell>
-                    <TableCell className="text-right pr-8">
-                        <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+                      </div>
+                    </div>
+
+                    <div className="hidden shrink-0 items-center justify-end text-right sm:flex sm:min-w-[140px] gap-4">
+                      {!alert.isRead ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Acknowledge Alert"
+                          onClick={() => void markAlertsAsRead([alert.id])}
+                          className="h-8 w-8 rounded-full border border-stone-200 text-stone-400 hover:bg-stone-900 hover:text-white transition-all shadow-sm"
+                        >
+                          <CheckCheck className="h-4 w-4" />
+                        </Button>
+                      ) : null}
+                      <div className="flex flex-col items-end">
+                        <span className="text-xs font-bold text-stone-500">Recorded at</span>
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 mt-0.5">
                           {formatDateTime(alert.createdAt)}
                         </span>
-                    </TableCell>
-                  </TableRow>
+                      </div>
+                    </div>
+                  </article>
                 ))
               )}
-            </TableBody>
-          </Table>
+            </div>
           </div>
           
-          <div className="bg-stone-50/30 border-t border-stone-100 py-3">
+          <div className="bg-stone-50/30 border-t border-stone-100 py-3 rounded-b-3xl">
             <TablePagination
               currentPage={safeCurrentPage}
               totalPages={totalPages}

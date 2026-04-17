@@ -135,7 +135,8 @@ export interface AlertRecord {
   module: string;
   level: AlertLevel;
   message: string;
-  recipientEmail: string;
+  recipientEmail?: string;
+  isRead?: boolean;
   emailQueued?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

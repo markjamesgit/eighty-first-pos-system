@@ -8,6 +8,7 @@ import {
   getDocs,
   orderBy,
   query,
+  onSnapshot,
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
@@ -43,6 +44,13 @@ export async function listIngredients() {
     query(collection(getFirestoreDb(), INGREDIENTS_COLLECTION), orderBy("name")),
   );
   return snapshot.docs.map(mapIngredient);
+}
+
+export function subscribeToIngredients(callback: (items: IngredientItem[]) => void) {
+  const q = query(collection(getFirestoreDb(), INGREDIENTS_COLLECTION), orderBy("name"));
+  return onSnapshot(q, (snapshot) => {
+    callback(snapshot.docs.map(mapIngredient));
+  });
 }
 
 export async function createIngredient(input: {

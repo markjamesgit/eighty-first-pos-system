@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { subscribeToAlerts, syncAlertRecordsSafe, type SystemAlert } from "@/services/firebase/alerts";
+import { subscribeToIngredients } from "@/services/firebase/ingredients";
+import { subscribeToActiveOrders } from "@/services/firebase/orders";
+import type { AlertRecord, IngredientItem, OrderRecord } from "@/lib/types/domain";
 import {
   BarChart3,
   BellRing,
@@ -22,7 +26,6 @@ import { logoutAdmin } from "@/services/firebase/auth";
 import { useAuthStore } from "@/store/auth-store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { subscribeToAlerts } from "@/services/firebase/alerts";
 
 const navigation = [
   { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
@@ -33,7 +36,7 @@ const navigation = [
   { href: "/orders", label: "Orders", icon: ClipboardList },
   { href: "/reports", label: "Reports", icon: FileSpreadsheet },
   { href: "/audit-trail", label: "Audit Trail", icon: FileClock },
-  { href: "/alerts", label: "Alerts", icon: BellRing, isAlert: true },
+  { href: "/alerts", label: "Alerts", icon: BellRing },
 ];
 
 const maintenanceItems = [
@@ -46,12 +49,85 @@ const maintenanceItems = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
-  const [alertCount, setAlertCount] = useState(0);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [alerts, setAlerts] = useState<SystemAlert[]>([]);
+  const [ingredients, setIngredients] = useState<IngredientItem[]>([]);
+  const [activeOrders, setActiveOrders] = useState<OrderRecord[]>([]);
 
   useEffect(() => {
-    return subscribeToAlerts((alerts) => setAlertCount(alerts.length), 10);
+    return subscribeToAlerts(setAlerts, 50);
   }, []);
+
+  useEffect(() => {
+    return subscribeToIngredients(setIngredients);
+  }, []);
+
+  useEffect(() => {
+    return subscribeToActiveOrders(setActiveOrders, 100);
+  }, []);
+
+  // Global Alerts Engine
+  useEffect(() => {
+    const activeAlerts: AlertRecord[] = [];
+    
+    // Inventory
+    if (ingredients.length > 0) {
+      ingredients.forEach((item) => {
+        const baseId = `inv_alert_${item.id}`;
+        
+        if (item.stockQty <= 0) {
+          activeAlerts.push({
+            id: baseId,
+            level: "critical",
+            module: "Inventory",
+            message: `${item.name} is out of stock.`,
+          });
+        } else if (item.stockQty <= item.lowStockThreshold) {
+          activeAlerts.push({
+            id: baseId,
+            level: "warning",
+            module: "Inventory",
+            message: `${item.name} has reached low stock threshold (${item.stockQty} remaining).`,
+          });
+        } else {
+          activeAlerts.push({
+            id: baseId,
+            level: "good",
+            module: "Inventory",
+            message: `${item.name} optimal stock restored (${item.stockQty} available).`,
+          });
+        }
+      });
+    }
+
+    // Orders
+    const pendingOrders = activeOrders.filter(o => o.status === "pending");
+    if (pendingOrders.length > 0) {
+      activeAlerts.push({
+        id: `orders_pending_alert`,
+        level: "informational",
+        module: "Orders",
+        message: `${pendingOrders.length} pending order(s) remain to be fulfilled.`,
+      });
+    } else if (activeOrders.length >= 0) { // Push a 'good' alert to clear any previous pending alert
+      activeAlerts.push({
+        id: `orders_pending_alert`,
+        level: "good",
+        module: "Orders",
+        message: `All current orders have been fulfilled.`,
+      });
+    }
+
+    if (activeAlerts.length > 0) {
+      void syncAlertRecordsSafe(activeAlerts);
+    }
+  }, [ingredients, activeOrders]);
+
+  const unreadAlertIds = alerts.filter(a => !a.isRead).map(a => a.id);
+  const unreadCount = unreadAlertIds.length;
+
+  // Optional auto-clear on visit - but user requested manual "Mark as Read" UI too,
+  // so we won't auto-clear the whole database. We just let the badge react to unreadCount.
 
   const sidebarContent = (
     <>
@@ -77,19 +153,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 active && "bg-stone-950 text-white hover:bg-stone-900 hover:text-white",
               )}
             >
-              <span className="flex items-center gap-3">
+              <div className="flex items-center gap-3">
                 <Icon className="h-4 w-4" />
                 {item.label}
-              </span>
-              {item.isAlert && alertCount > 0 && (
-                <span
-                  className={cn(
-                    "flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold",
-                    active ? "bg-white text-stone-950" : "bg-red-600 text-white",
-                  )}
-                >
-                  {alertCount}
-                </span>
+              </div>
+              
+              {item.href === "/alerts" && unreadCount > 0 && (
+                 <span className="flex h-5 items-center justify-center rounded-full bg-red-500 px-2 text-[10px] font-black text-white shadow-sm">
+                   {unreadCount}
+                 </span>
               )}
             </Link>
           );
@@ -161,11 +233,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   {user?.email ?? "Admin"}
                 </p>
               </div>
-              {alertCount > 0 ? (
-                <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-600 px-2 text-xs font-bold text-white">
-                  {alertCount}
-                </span>
-              ) : null}
             </div>
           </header>
           {mobileNavOpen ? (

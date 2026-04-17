@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { subscribeToAlerts, type SystemAlert } from "@/services/firebase/alerts";
+import { subscribeToAlerts, markAlertsAsRead, type SystemAlert } from "@/services/firebase/alerts";
 import { formatDateTime } from "@/lib/utils";
 import Link from "next/link";
 
@@ -24,6 +24,16 @@ export function AppHeader() {
     return subscribeToAlerts(setAlerts, 5);
   }, []);
 
+  const unreadAlertIds = alerts.filter(a => !a.isRead).map(a => a.id);
+  const unreadCount = unreadAlertIds.length;
+
+  const handleOpenChange = (open: boolean) => {
+    setAlertsOpen(open);
+    if (open && unreadAlertIds.length > 0) {
+      void markAlertsAsRead(unreadAlertIds);
+    }
+  };
+
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-stone-200 bg-white/80 px-6 backdrop-blur-md">
       <div className="flex items-center gap-4">
@@ -31,10 +41,17 @@ export function AppHeader() {
       </div>
 
       <div className="flex items-center gap-4">
-        <DropdownMenu open={alertsOpen} onOpenChange={setAlertsOpen}>
+        <DropdownMenu open={alertsOpen} onOpenChange={handleOpenChange}>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="relative flex items-center gap-2 rounded-full px-3">
-              <BellRing className="h-4 w-4 text-stone-600" />
+              <div className="relative">
+                <BellRing className="h-4 w-4 text-stone-600" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white ring-2 ring-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </div>
               <span className="hidden text-xs font-semibold text-stone-600 lg:inline-block">Alerts</span>
               <ChevronDown className="h-3 w-3 text-stone-400" />
             </Button>
@@ -54,7 +71,9 @@ export function AppHeader() {
                 alerts.map((alert) => (
                   <DropdownMenuItem key={alert.id} className="flex flex-col items-start gap-1 border-b border-stone-50 p-4 last:border-0 hover:bg-stone-50 focus:bg-stone-50">
                     <div className="flex w-full items-center justify-between">
-                      <Badge 
+                      <div className="flex items-center gap-2">
+                        {!alert.isRead && <span className="h-2 w-2 rounded-full bg-red-500" />}
+                        <Badge 
                         variant={
                           alert.level === "critical"
                             ? "destructive"

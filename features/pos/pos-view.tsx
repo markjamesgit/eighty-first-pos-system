@@ -29,7 +29,7 @@ export function PosView() {
     resetCart,
     setCashReceived,
   } = usePosStore();
-  
+
   const [loading, setLoading] = useState(false);
   const [variants, setVariants] = useState<any[]>([]);
   const [addons, setAddons] = useState<any[]>([]);
@@ -140,53 +140,53 @@ export function PosView() {
         </div>
 
         <div className="flex-1 overflow-y-auto pb-6 pr-1 lg:pb-20 lg:pr-2 custom-scrollbar">
-             {mtLoading ? (
-               <div className="py-20 text-center text-stone-400 font-medium">Syncing store data...</div>
-             ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {filteredProducts.map((product) => {
-                    const isInactive = !product.isActive;
-                    return (
-                      <Card 
-                        key={product.id} 
-                        onClick={() => handleProductClick(product)}
-                        className={cn(
-                          "cursor-pointer transition-all border-stone-200 overflow-hidden group",
-                          isInactive ? "opacity-60 grayscale cursor-not-allowed" : "hover:border-stone-400 hover:shadow-md"
-                        )}
-                      >
-                        <div className="relative aspect-video bg-stone-50 border-b border-stone-100 flex items-center justify-center text-stone-200">
-                           {product.imageUrl ? (
-                             <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-                           ) : <ImageIcon className="h-8 w-8" />}
-                           {isInactive && (
-                            <div className="absolute inset-0 bg-stone-900/10 flex items-center justify-center">
-                              <Badge variant="outline" className="bg-white/90 text-[10px] font-black uppercase">Inactive</Badge>
-                            </div>
-                           )}
-                           {(product.maintenanceLinkIds || []).length > 0 && (
-                              <div className="absolute top-2 right-2">
-                                <Badge className="bg-stone-950/80 text-[10px] font-black">Options</Badge>
-                              </div>
-                           )}
+          {mtLoading ? (
+            <div className="py-20 text-center text-stone-400 font-medium">Syncing store data...</div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredProducts.map((product) => {
+                const isInactive = !product.isActive;
+                return (
+                  <Card
+                    key={product.id}
+                    onClick={() => handleProductClick(product)}
+                    className={cn(
+                      "cursor-pointer transition-all border-stone-200 overflow-hidden group",
+                      isInactive ? "opacity-60 grayscale cursor-not-allowed" : "hover:border-stone-400 hover:shadow-md"
+                    )}
+                  >
+                    <div className="relative aspect-video bg-stone-50 border-b border-stone-100 flex items-center justify-center text-stone-200">
+                      {product.imageUrl ? (
+                        <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                      ) : <ImageIcon className="h-8 w-8" />}
+                      {isInactive && (
+                        <div className="absolute inset-0 bg-stone-900/10 flex items-center justify-center">
+                          <Badge variant="outline" className="bg-white/90 text-[10px] font-black uppercase">Inactive</Badge>
                         </div>
-                        <CardContent className="p-4">
-                           <div className="flex justify-between items-start">
-                              <div className="min-w-0">
-                                <p className="font-bold text-stone-900 truncate leading-tight">{product.name}</p>
-                                <p className="text-[10px] uppercase font-black tracking-widest text-stone-400 mt-1">{product.category}</p>
-                              </div>
-                              <p className="font-black text-stone-950 text-sm">{formatCurrency(product.price)}</p>
-                           </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-             )}
-             {!filteredProducts.length && !mtLoading && (
-               <div className="py-20 text-center text-stone-400 font-medium bg-white rounded-xl border border-stone-100">No products found here.</div>
-             )}
+                      )}
+                      {(product.maintenanceLinkIds || []).length > 0 && (
+                        <div className="absolute top-2 right-2">
+                          <Badge className="bg-white text-[11px] font-black">Options</Badge>
+                        </div>
+                      )}
+                    </div>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="min-w-0">
+                          <p className="font-bold text-stone-900 truncate leading-tight">{product.name}</p>
+                          <p className="text-[10px] uppercase font-black tracking-widest text-stone-400 mt-1">{product.category}</p>
+                        </div>
+                        <p className="font-black text-stone-950 text-sm">{formatCurrency(product.price)}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+          {!filteredProducts.length && !mtLoading && (
+            <div className="py-20 text-center text-stone-400 font-medium bg-white rounded-xl border border-stone-100">No products found here.</div>
+          )}
         </div>
       </div>
 

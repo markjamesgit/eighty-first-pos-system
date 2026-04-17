@@ -8,8 +8,10 @@ import {
   limit,
   setDoc,
   doc,
-  addDoc,
+  getDoc,
+  getDocs,
   serverTimestamp,
+  writeBatch,
   type Unsubscribe,
 } from "firebase/firestore";
 import { getFirestoreDb } from "./client";
@@ -20,6 +22,7 @@ export type SystemAlert = {
   module: string;
   level: AlertLevel;
   message: string;
+  isRead: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -42,6 +45,7 @@ export function subscribeToAlerts(
           module: d.data().module,
           level: d.data().level,
           message: d.data().message,
+          isRead: d.data().isRead || false,
           createdAt: d.data().createdAt?.toDate?.() || new Date(),
           updatedAt: d.data().updatedAt?.toDate?.() || new Date(),
         })),
@@ -53,35 +57,69 @@ export function subscribeToAlerts(
 export async function syncAlertRecordsSafe(alerts: AlertRecord[]) {
   const firestore = getFirestoreDb();
   const alertsCol = collection(firestore, "alerts");
+  const batch = writeBatch(firestore);
 
-  for (const alert of alerts) {
+  // Run all reads in parallel
+  const docSnaps = await Promise.all(
+    alerts.map((alert) => getDoc(doc(alertsCol, alert.id)))
+  );
+
+  alerts.forEach((alert, index) => {
+    const docSnap = docSnaps[index];
     const alertDoc = doc(alertsCol, alert.id);
-    await setDoc(alertDoc, {
-      ...alert,
-      updatedAt: serverTimestamp(),
-      createdAt: serverTimestamp(), // Firestore set with merge/doc ID usually behaves like this
-    }, { merge: true });
-  }
-}
 
-export async function queueAlertEmailSafe(payload: {
-  recipientEmail: string;
-  subject: string;
-  message: string;
-}) {
-  const firestore = getFirestoreDb();
-  const normalizedEmail = payload.recipientEmail.trim();
-  if (!normalizedEmail) {
-    throw new Error("Recipient email is required.");
-  }
+    const isNew = !docSnap.exists();
+    const existingData = isNew ? null : docSnap.data();
 
-  // Firebase "Trigger Email" extension default payload.
-  await addDoc(collection(firestore, "mail"), {
-    to: [normalizedEmail],
-    message: {
-      subject: payload.subject,
-      text: payload.message,
-    },
-    createdAt: serverTimestamp(),
+    if (isNew && (alert.level === "good" || alert.level === "informational")) {
+      return; // Skip creating a fresh green alert out of nowhere. Only use green alerts to resolve existing red/yellow ones.
+    }
+
+    const needsUpdate =
+      isNew ||
+      existingData?.message !== alert.message ||
+      existingData?.level !== alert.level;
+
+    if (needsUpdate) {
+      batch.set(
+        alertDoc,
+        {
+          ...alert,
+          isRead: false,
+          updatedAt: serverTimestamp(),
+          ...(isNew ? { createdAt: serverTimestamp() } : {}),
+        },
+        { merge: true },
+      );
+    }
   });
+
+  await batch.commit();
 }
+
+export async function markAlertsAsRead(alertIds: string[]) {
+  if (!alertIds.length) return;
+  const firestore = getFirestoreDb();
+  const batch = writeBatch(firestore);
+  const alertsCol = collection(firestore, "alerts");
+
+  for (const id of alertIds) {
+    batch.update(doc(alertsCol, id), { isRead: true });
+  }
+
+  await batch.commit();
+}
+
+export async function wipeAllAlerts() {
+  const firestore = getFirestoreDb();
+  const alertsCol = collection(firestore, "alerts");
+  const snapshot = await getDocs(alertsCol);
+  
+  if (snapshot.empty) return;
+
+  const batch = writeBatch(firestore);
+  snapshot.docs.forEach((d) => batch.delete(d.ref));
+  await batch.commit();
+}
+
+
