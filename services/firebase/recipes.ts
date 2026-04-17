@@ -46,7 +46,7 @@ export async function getProductRecipe(productId: string) {
     return null;
   }
 
-  const data = snapshot.data() as Record<string, unknown>;
+  const data = snapshot.data();
   return {
     id: snapshot.id,
     productId: String(data.productId ?? ""),
@@ -54,7 +54,7 @@ export async function getProductRecipe(productId: string) {
     items: Array.isArray(data.items) ? (data.items as ProductRecipeItem[]) : [],
     createdAt: data.createdAt?.toDate?.(),
     updatedAt: data.updatedAt?.toDate?.(),
-  } satisfies ProductRecipe;
+  } as ProductRecipe;
 }
 
 export async function listProductRecipes() {
