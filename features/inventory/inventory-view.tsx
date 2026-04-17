@@ -220,6 +220,109 @@ export function InventoryView() {
           </aside>
 
           <div>
+            <div className="space-y-3 p-4 lg:hidden">
+              {loading ? (
+                <div className="flex h-40 items-center justify-center rounded-xl border border-stone-100 bg-white text-xs font-bold uppercase tracking-widest text-stone-400 opacity-40">
+                  Synchronizing Warehouse...
+                </div>
+              ) : paginatedIngredients.length === 0 ? (
+                <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-stone-100 bg-white opacity-40">
+                  <Archive className="mb-2 h-10 w-10 text-stone-300" />
+                  <p className="text-[10px] font-black uppercase tracking-widest text-stone-600">Warehouse Empty</p>
+                </div>
+              ) : (
+                paginatedIngredients.map((item) => {
+                  const isLow = item.stockQty <= item.lowStockThreshold;
+                  const adjValue = adjustments[item.id] || 0;
+                  const usage = getUsageSummary(item.id);
+                  return (
+                    <article
+                      key={item.id}
+                      className={cn(
+                        "space-y-3 rounded-xl border border-stone-100 bg-white p-4 shadow-sm",
+                        isLow && "border-amber-100 bg-amber-50/20",
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-black tracking-tight text-stone-900">{item.name}</p>
+                          <p className="mt-1 text-[9px] font-bold uppercase tracking-widest text-stone-400">
+                            ID: {item.id.slice(0, 8)}
+                          </p>
+                        </div>
+                        <span
+                          className={cn(
+                            "inline-flex h-5 items-center rounded-full px-2.5 text-[9px] font-black uppercase tracking-widest",
+                            item.isActive ? "bg-emerald-100 text-emerald-700" : "bg-stone-200 text-stone-500",
+                          )}
+                        >
+                          {item.isActive ? "Active" : "Inactive"}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className={cn("text-base font-black tracking-tighter", isLow ? "text-red-600" : "text-emerald-700")}>
+                            {item.stockQty.toLocaleString()} {item.unit}
+                          </p>
+                          {isLow ? (
+                            <Badge variant="destructive" className="mt-1 h-4 rounded-full px-2 text-[7px] font-black uppercase tracking-widest">
+                              Low Stock
+                            </Badge>
+                          ) : null}
+                        </div>
+                      </div>
+                      <p className="text-xs font-medium text-stone-500">{usage || "No products linked"}</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center rounded-xl border border-stone-200 bg-white p-0.5 shadow-sm ring-1 ring-stone-100/50">
+                          <button
+                            onClick={() => {
+                              const currentAdj = adjustments[item.id] || 0;
+                              setAdjustments((p) => ({ ...p, [item.id]: currentAdj - 1 }));
+                            }}
+                            className="flex h-8 w-8 items-center justify-center text-stone-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                          >
+                            <Minus className="h-3.5 w-3.5" />
+                          </button>
+                          <span className={cn("w-10 text-center text-xs font-black", adjValue !== 0 ? "text-stone-950" : "text-stone-200")}>
+                            {adjValue > 0 ? `+${adjValue}` : adjValue}
+                          </span>
+                          <button
+                            onClick={() => {
+                              const currentAdj = adjustments[item.id] || 0;
+                              setAdjustments((p) => ({ ...p, [item.id]: currentAdj + 1 }));
+                            }}
+                            className="flex h-8 w-8 items-center justify-center text-stone-400 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="default"
+                          disabled={adjValue === 0 || !item.isActive}
+                          onClick={() => void handleAdjustment(item, adjValue)}
+                          className="h-9 bg-stone-900 px-3 text-[10px] font-black uppercase tracking-widest text-stone-50 shadow-md transition-all hover:bg-stone-800"
+                        >
+                          Commit
+                        </Button>
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <IngredientDialog ingredient={item} onSaved={fetchData} />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 rounded-xl border border-stone-200 bg-white text-stone-300 shadow-sm transition-colors hover:bg-red-50 hover:text-red-500"
+                          onClick={() => void handleDelete(item.id, item.name)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </article>
+                  );
+                })
+              )}
+            </div>
+            <div className="hidden overflow-x-auto lg:block">
             <Table>
               <TableHeader className="bg-stone-50/30">
                 <TableRow className="hover:bg-transparent border-stone-100 h-14">
@@ -341,6 +444,7 @@ export function InventoryView() {
                 )}
               </TableBody>
             </Table>
+            </div>
 
             <div className="bg-stone-50/30 border-t border-stone-100 py-3">
               <TablePagination

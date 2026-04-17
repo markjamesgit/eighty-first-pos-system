@@ -274,6 +274,91 @@ export function MaintenanceView() {
               </div>
             </aside>
             <div>
+            <div className="space-y-3 p-4 lg:hidden">
+              {loading ? (
+                <div className="flex h-40 items-center justify-center rounded-xl border border-stone-100 bg-white text-xs font-bold uppercase tracking-widest text-stone-400 opacity-40">
+                  Syncing with Cloud Registry...
+                </div>
+              ) : paginatedItems.length === 0 ? (
+                <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-stone-100 bg-white opacity-40">
+                  <Sparkles className="mb-2 h-10 w-10 text-stone-300" />
+                  <p className="text-[10px] font-black uppercase tracking-widest text-stone-600">No matching records</p>
+                </div>
+              ) : (
+                paginatedItems.map((item) => (
+                  <article key={item.id} className="space-y-3 rounded-xl border border-stone-100 bg-white p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 overflow-hidden rounded-xl border border-stone-200 bg-stone-100">
+                          {item.imageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-stone-300">
+                              <ImageIcon className="h-4 w-4" />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-black tracking-tight text-stone-950">{item.name}</p>
+                          <span
+                            className={cn(
+                              "mt-1 inline-flex h-6 items-center rounded-full px-2.5 text-[9px] font-black uppercase tracking-widest",
+                              item.isActive ? "bg-emerald-100 text-emerald-700" : "bg-stone-200 text-stone-500",
+                            )}
+                          >
+                            {item.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    {(maintenanceSection === "variants" || maintenanceSection === "addons") ? (
+                      <p className="text-sm font-black text-stone-900">
+                        Price adjustment: +{formatCurrency(Number(item.price))}
+                      </p>
+                    ) : (
+                      <p className="text-xs font-medium text-stone-500">
+                        {item.description || "No supplemental details"}
+                      </p>
+                    )}
+                    {(maintenanceSection === "variants" || maintenanceSection === "addons") ? (
+                      <p className="text-xs font-medium text-stone-500">
+                        {item.description || "No supplemental details"}
+                      </p>
+                    ) : null}
+                    <div className="flex items-center justify-end gap-2 pt-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 rounded-xl border-stone-200 px-3 font-semibold"
+                        onClick={() => {
+                          setEditingId(item.id!);
+                          setForm({
+                            name: item.name,
+                            imageUrl: item.imageUrl,
+                            description: item.description,
+                            price: item.price,
+                            isActive: item.isActive,
+                          });
+                          setFormOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 rounded-xl text-stone-300 transition-colors hover:bg-red-50 hover:text-red-500"
+                        onClick={() => void handleDelete(item)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+            <div className="hidden overflow-x-auto lg:block">
             <Table>
               <TableHeader className="bg-stone-50/30">
                 <TableRow className="hover:bg-transparent border-stone-100 h-14">
@@ -386,6 +471,7 @@ export function MaintenanceView() {
                 )}
               </TableBody>
             </Table>
+            </div>
             <div className="bg-stone-50/30 border-t border-stone-100 py-3">
               <TablePagination
                 currentPage={currentPage}

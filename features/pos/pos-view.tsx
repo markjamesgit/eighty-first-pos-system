@@ -110,8 +110,8 @@ export function PosView() {
   }
 
   return (
-    <div className="grid h-[calc(100vh-6rem)] items-start gap-6 xl:grid-cols-[1fr_400px]">
-      <div className="flex flex-col h-full space-y-4 overflow-hidden">
+    <div className="grid min-h-[calc(100vh-6rem)] items-start gap-6 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_400px]">
+      <div className="flex min-h-0 flex-col space-y-4 overflow-hidden lg:h-[calc(100vh-6rem)]">
         <div className="sticky top-0 z-10 bg-stone-100/80 backdrop-blur-sm pb-2 pt-1 border-b border-stone-200/50">
           <ScrollArea className="w-full whitespace-nowrap rounded-lg border border-stone-200 bg-white p-1">
             <div className="flex w-max space-x-1 p-0.5">
@@ -139,7 +139,7 @@ export function PosView() {
           </ScrollArea>
         </div>
 
-        <div className="flex-1 overflow-y-auto pr-2 pb-20 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto pb-6 pr-1 lg:pb-20 lg:pr-2 custom-scrollbar">
              {mtLoading ? (
                <div className="py-20 text-center text-stone-400 font-medium">Syncing store data...</div>
              ) : (
@@ -190,7 +190,7 @@ export function PosView() {
         </div>
       </div>
 
-      <Card className="flex h-full flex-col overflow-hidden rounded-2xl border-stone-200 bg-white shadow-sm">
+      <Card className="flex max-h-[80vh] flex-col overflow-hidden rounded-2xl border-stone-200 bg-white shadow-sm lg:h-[calc(100vh-6rem)] lg:max-h-none">
         <CardHeader className="flex flex-row items-center justify-between border-b border-stone-100 bg-stone-50/60 px-5 py-4">
           <div className="min-w-0">
             <CardTitle className="flex items-center gap-2 text-base font-bold text-stone-900">

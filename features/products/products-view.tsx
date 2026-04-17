@@ -174,7 +174,71 @@ export function ProductsView() {
               {error}
             </div>
           )}
-          
+          <div className="space-y-3 p-4 lg:hidden">
+            {loading ? (
+              <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-stone-100 bg-white opacity-30 animate-pulse">
+                <Package className="mb-2 h-10 w-10 text-stone-300" />
+                <p className="text-[10px] font-black uppercase tracking-widest">Syncing Catalog...</p>
+              </div>
+            ) : paginatedProducts.length === 0 ? (
+              <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-stone-100 bg-white opacity-30">
+                <Search className="mb-2 h-10 w-10 text-stone-300" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-stone-600">Query returned 0 results</p>
+              </div>
+            ) : (
+              paginatedProducts.map((product) => (
+                <article key={product.id} className="space-y-3 rounded-xl border border-stone-100 bg-white p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-stone-200/50 bg-stone-100">
+                        {product.imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={product.imageUrl} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-stone-300">
+                            <Package className="h-5 w-5" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-black tracking-tight text-stone-900">{product.name}</p>
+                        <p className="mt-1 text-[9px] font-bold uppercase tracking-widest text-stone-400">
+                          ID: {product.id.slice(0, 8)}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge
+                      variant={product.isActive ? "success" : "default"}
+                      className={cn(
+                        "rounded-full px-3 text-[9px] font-black uppercase",
+                        !product.isActive && "bg-stone-200 text-stone-500",
+                      )}
+                    >
+                      {product.isActive ? "Live" : "Inactive"}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Badge variant="outline" className="h-5 border-stone-200 bg-stone-100/50 px-2 text-[9px] font-black uppercase tracking-widest">
+                      {product.category}
+                    </Badge>
+                    <span className="text-sm font-black text-stone-950">{formatCurrency(product.price)}</span>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <ProductDialog product={product} triggerLabel="Edit" onSaved={fetchProducts} />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 rounded-xl text-stone-300 transition-colors hover:bg-red-50 hover:text-red-500"
+                      onClick={() => void handleDelete(product.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </article>
+              ))
+            )}
+          </div>
+          <div className="hidden overflow-x-auto lg:block">
           <Table>
             <TableHeader className="bg-stone-50/30">
               <TableRow className="hover:bg-transparent border-stone-100">
@@ -255,6 +319,7 @@ export function ProductsView() {
               )}
             </TableBody>
           </Table>
+          </div>
           
           <div className="border-t border-stone-100 bg-stone-50/50">
             <TablePagination

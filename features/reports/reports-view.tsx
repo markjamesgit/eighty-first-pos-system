@@ -173,12 +173,12 @@ export function ReportsView() {
           <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Business Intelligence</h1>
           <p className="text-sm text-stone-500 font-medium">Analyze sales performance and material consumption.</p>
         </div>
-        <div className="flex gap-2">
-           <Button variant="outline" size="sm" onClick={handleDownloadSales} className="h-10 px-5 rounded-xl font-black text-[10px] uppercase tracking-widest border-stone-200 hover:bg-stone-50 transition-all">
+        <div className="flex flex-wrap gap-2">
+           <Button variant="outline" size="sm" onClick={handleDownloadSales} className="h-10 flex-1 min-w-[140px] px-5 rounded-xl font-black text-[10px] uppercase tracking-widest border-stone-200 hover:bg-stone-50 transition-all sm:flex-none">
               <FileDown className="h-4 w-4 mr-2" />
               Sales CSV
             </Button>
-            <Button variant="outline" size="sm" onClick={handleDownloadIngredients} className="h-10 px-5 rounded-xl font-black text-[10px] uppercase tracking-widest border-stone-200 hover:bg-stone-50 transition-all">
+            <Button variant="outline" size="sm" onClick={handleDownloadIngredients} className="h-10 flex-1 min-w-[140px] px-5 rounded-xl font-black text-[10px] uppercase tracking-widest border-stone-200 hover:bg-stone-50 transition-all sm:flex-none">
               <FileDown className="h-4 w-4 mr-2" />
               Usage CSV
             </Button>
@@ -190,7 +190,7 @@ export function ReportsView() {
           <CardTitle className="text-sm font-black uppercase tracking-[0.2em] text-stone-400">Parameter Configuration</CardTitle>
         </CardHeader>
         <CardContent className="p-8">
-          <div className="flex flex-col gap-6 md:flex-row md:items-end">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:gap-6">
             <div className="flex-1 space-y-2.5">
               <div className="flex items-center gap-2 mb-1">
                 <CalendarIcon className="h-3 w-3 text-stone-400" />
@@ -205,7 +205,7 @@ export function ReportsView() {
               </div>
               <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-12 rounded-xl border-stone-200 font-medium focus:ring-stone-900" />
             </div>
-            <Button onClick={() => void handleGenerate()} disabled={loading} className="font-black text-[10px] uppercase tracking-widest gap-2 h-12 px-10 bg-stone-900 text-white rounded-xl shadow-lg hover:bg-stone-800 transition-all">
+            <Button onClick={() => void handleGenerate()} disabled={loading} className="h-12 w-full gap-2 rounded-xl bg-stone-900 px-6 text-[10px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-stone-800 md:w-auto md:px-10">
               <Search className="h-4 w-4" />
               {loading ? "Processing..." : "Generate Analysis"}
             </Button>
@@ -214,7 +214,7 @@ export function ReportsView() {
       </Card>
 
       <Tabs defaultValue="sales" className="w-full">
-        <TabsList className="bg-stone-100/50 backdrop-blur-sm p-1.5 rounded-2xl border border-stone-200 mb-8 inline-flex">
+        <TabsList className="mb-8 inline-flex w-full flex-wrap gap-2 rounded-2xl border border-stone-200 bg-stone-100/50 p-1.5 backdrop-blur-sm md:w-auto">
           <TabsTrigger value="sales" className="flex items-center gap-2 px-8 h-10 rounded-xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all shadow-sm">
             <TrendingUp className="h-3.5 w-3.5" />
             Revenue stream
@@ -276,6 +276,30 @@ export function ReportsView() {
                 </div>
               </aside>
               <div>
+              <div className="space-y-3 p-4 lg:hidden">
+                {filteredSales.length === 0 ? (
+                  <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-stone-100 bg-white opacity-40">
+                    <BarChart3 className="mb-2 h-10 w-10 text-stone-300" />
+                    <p className="text-[10px] font-black uppercase tracking-widest">Awaiting Parameters</p>
+                  </div>
+                ) : (
+                  paginatedSales.map((order) => (
+                    <article key={order.id} className="space-y-3 rounded-xl border border-stone-100 bg-white p-4 shadow-sm">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-sm font-black uppercase tracking-tighter text-stone-950">{order.orderId}</p>
+                        <Badge variant="outline" className="h-5 border-stone-200 bg-stone-50 px-2.5 text-[8px] font-black uppercase tracking-widest">
+                          {order.status}
+                        </Badge>
+                      </div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
+                        {order.createdAt ? formatDateTime(order.createdAt) : "-"}
+                      </p>
+                      <p className="text-sm font-black text-stone-950">{formatCurrency(order.totalAmount)}</p>
+                    </article>
+                  ))
+                )}
+              </div>
+              <div className="hidden overflow-x-auto lg:block">
               <Table>
                 <TableHeader className="bg-stone-50/30">
                   <TableRow className="hover:bg-transparent border-stone-100 h-14">
@@ -313,6 +337,7 @@ export function ReportsView() {
                   )}
                 </TableBody>
               </Table>
+              </div>
               <div className="bg-stone-50/30 border-t border-stone-100 py-3">
                  <TablePagination
                     currentPage={salesPage}
@@ -372,6 +397,32 @@ export function ReportsView() {
                 </div>
               </aside>
               <div>
+              <div className="space-y-3 p-4 lg:hidden">
+                {filteredUsage.length === 0 ? (
+                  <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-stone-100 bg-white opacity-40">
+                    <FlaskConical className="mb-2 h-10 w-10 text-stone-300" />
+                    <p className="text-[10px] font-black uppercase tracking-widest">No Depletion Recorded</p>
+                  </div>
+                ) : (
+                  paginatedUsage.map((item) => (
+                    <article key={item.id} className="space-y-3 rounded-xl border border-stone-100 bg-white p-4 shadow-sm">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
+                        {item.createdAt ? formatDateTime(item.createdAt) : "-"}
+                      </p>
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-black text-stone-900">{item.ingredientName}</p>
+                        <p className="text-base font-black tracking-tighter text-red-600">
+                          {item.quantityChange} <span className="ml-1 text-[10px] text-stone-400">{item.unit}</span>
+                        </p>
+                      </div>
+                      <p className="truncate text-[10px] font-black uppercase tracking-tighter text-stone-300">
+                        #{item.referenceOrderId.slice(0, 12)}
+                      </p>
+                    </article>
+                  ))
+                )}
+              </div>
+              <div className="hidden overflow-x-auto lg:block">
               <Table>
                 <TableHeader className="bg-stone-50/30">
                   <TableRow className="hover:bg-transparent border-stone-100 h-14">
@@ -409,6 +460,7 @@ export function ReportsView() {
                   )}
                 </TableBody>
               </Table>
+              </div>
               <div className="bg-stone-50/30 border-t border-stone-100 py-3">
                  <TablePagination
                     currentPage={usagePage}

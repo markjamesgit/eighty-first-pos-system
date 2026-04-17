@@ -179,8 +179,8 @@ export function RecipesView() {
   }, {} as Record<string, RecipeTarget[]>);
 
   return (
-    <div className="grid h-[calc(100vh-8rem)] gap-6 xl:grid-cols-[340px_1fr]">
-      <Card className="flex flex-col h-full overflow-hidden">
+    <div className="grid min-h-[calc(100vh-8rem)] gap-6 xl:grid-cols-[340px_1fr]">
+      <Card className="flex max-h-[70vh] flex-col overflow-hidden xl:h-[calc(100vh-8rem)] xl:max-h-none">
         <CardHeader className="bg-stone-50 border-b border-stone-100 pb-4">
           <CardTitle>Menu Items</CardTitle>
           <CardDescription>Select an item to assign ingredients.</CardDescription>
@@ -219,7 +219,7 @@ export function RecipesView() {
         </ScrollArea>
       </Card>
 
-      <Card className="flex flex-col h-full relative overflow-hidden">
+      <Card className="relative flex max-h-[80vh] flex-col overflow-hidden xl:h-[calc(100vh-8rem)] xl:max-h-none">
         {!selectedTarget ? (
           <div className="flex h-full flex-col items-center justify-center text-center p-8 bg-stone-50/50">
             <div className="rounded-full bg-stone-100 p-4 mb-4">
@@ -232,8 +232,8 @@ export function RecipesView() {
           </div>
         ) : (
           <>
-            <CardHeader className="border-b border-stone-100 bg-white shadow-[0_1px_12px_rgba(0,0,0,0.02)] z-10 relative">
-              <div className="flex items-start justify-between">
+            <CardHeader className="relative z-10 border-b border-stone-100 bg-white shadow-[0_1px_12px_rgba(0,0,0,0.02)]">
+              <div className="flex flex-col items-start justify-between gap-2 sm:flex-row">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <Badge variant="outline" className="uppercase tracking-wider text-[10px] bg-stone-50">{selectedTarget.type}</Badge>
@@ -241,7 +241,7 @@ export function RecipesView() {
                       <Badge variant="outline" className="uppercase tracking-wider text-[10px] bg-stone-50 pb-0.5">{selectedTarget.category}</Badge>
                     )}
                   </div>
-                  <CardTitle className="text-xl">Recipe: {selectedTarget.name}</CardTitle>
+                  <CardTitle className="break-words text-xl">Recipe: {selectedTarget.name}</CardTitle>
                   <CardDescription>
                     Define the exact raw ingredients deducted when this is ordered.
                   </CardDescription>
@@ -251,8 +251,8 @@ export function RecipesView() {
             <ScrollArea className="flex-1 bg-stone-50/30 p-2">
               <div className="p-4 space-y-4">
                 {currentRecipeItems.map((item, index) => (
-                  <div key={index} className="flex items-center gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition hover:border-stone-300">
-                    <div className="flex-1 space-y-1.5">
+                  <div key={index} className="grid gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition hover:border-stone-300 sm:grid-cols-[1fr_120px_auto] sm:items-end">
+                    <div className="space-y-1.5">
                       <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Ingredient</label>
                       <Select
                         value={item.ingredientId}
@@ -271,7 +271,7 @@ export function RecipesView() {
                       </Select>
                     </div>
 
-                    <div className="w-[120px] space-y-1.5">
+                    <div className="space-y-1.5">
                       <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Usage Amount</label>
                       <div className="relative">
                         <Input
@@ -298,7 +298,7 @@ export function RecipesView() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="mt-6 h-9 w-9 shrink-0 text-stone-400 hover:text-red-600 hover:bg-red-50"
+                      className="h-9 w-9 shrink-0 self-end text-stone-400 hover:bg-red-50 hover:text-red-600"
                       onClick={() => handleRemoveIngredient(index)}
                     >
                       <Trash className="h-4 w-4" />

@@ -35,8 +35,8 @@ export function TablePagination({
   const endIdx = Math.min(currentPage * pageSize, totalItems);
 
   return (
-    <div className="flex flex-col items-start justify-between gap-3 bg-transparent px-8 py-4 transition-all sm:flex-row sm:items-center">
-      <div className="flex items-center gap-3">
+    <div className="flex flex-col items-start justify-between gap-3 bg-transparent px-4 py-4 transition-all sm:px-6 lg:flex-row lg:items-center lg:px-8">
+      <div className="flex w-full flex-col items-start gap-3 sm:w-auto sm:flex-row sm:items-center">
         {onPageSizeChange ? (
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wide text-stone-500">Rows</span>
@@ -58,7 +58,7 @@ export function TablePagination({
         Record <span className="text-stone-900">{startIdx}</span>-<span className="text-stone-900">{endIdx}</span> of <span className="text-stone-900">{totalItems}</span>
         </p>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-start">
         <Button
           variant="ghost"
           size="icon"

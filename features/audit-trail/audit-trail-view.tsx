@@ -138,6 +138,36 @@ export function AuditTrailView() {
             </div>
           </aside>
           <div>
+          <div className="space-y-3 p-4 lg:hidden">
+            {loading ? (
+              <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-stone-100 bg-white opacity-40 animate-pulse">
+                <History className="mb-2 h-10 w-10 text-stone-300" />
+                <p className="text-[10px] font-black uppercase tracking-widest">Retrieving Logs...</p>
+              </div>
+            ) : paginated.length === 0 ? (
+              <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-stone-100 bg-white opacity-30">
+                <Search className="mb-2 h-10 w-10 text-stone-300" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-stone-600">No activity matches your query</p>
+              </div>
+            ) : (
+              paginated.map((entry) => (
+                <article key={entry.id} className="space-y-3 rounded-xl border border-stone-100 bg-white p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-2">
+                    <Badge variant="outline" className="h-5 border-stone-200 bg-white text-[9px] font-black uppercase tracking-widest">
+                      {entry.module}
+                    </Badge>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
+                      {entry.createdAt ? formatDateTime(entry.createdAt) : "-"}
+                    </span>
+                  </div>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-stone-500">{entry.action}</p>
+                  <p className="text-sm font-bold leading-snug text-stone-900">{entry.description}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-stone-500">{entry.performedBy}</p>
+                </article>
+              ))
+            )}
+          </div>
+          <div className="hidden overflow-x-auto lg:block">
           <Table>
             <TableHeader className="bg-stone-50/30">
               <TableRow className="hover:bg-transparent border-stone-100 h-14">
@@ -199,6 +229,7 @@ export function AuditTrailView() {
               )}
             </TableBody>
           </Table>
+          </div>
 
           <div className="bg-stone-50/30 border-t border-stone-100 py-3">
             <TablePagination

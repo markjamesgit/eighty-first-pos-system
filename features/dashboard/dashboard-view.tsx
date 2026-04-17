@@ -193,7 +193,7 @@ export function DashboardView() {
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <Card className="border-stone-200 shadow-sm">
           <CardHeader className="gap-1">
             <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em]">Total Sales</CardDescription>

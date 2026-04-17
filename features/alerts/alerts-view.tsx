@@ -252,6 +252,47 @@ export function AlertsView() {
             </div>
           </aside>
           <div>
+          <div className="space-y-3 p-4 lg:hidden">
+            {filteredAlerts.length === 0 ? (
+              <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-stone-100 bg-white opacity-40">
+                <BellRing className="mb-2 h-10 w-10 text-stone-300" />
+                <p className="text-[10px] font-black uppercase tracking-widest">Sky is Clear</p>
+              </div>
+            ) : (
+              paginatedAlerts.map((alert) => (
+                <article
+                  key={alert.id}
+                  className={cn(
+                    "space-y-3 rounded-xl border border-stone-100 bg-white p-4 shadow-sm",
+                    alert.level === "critical" && "border-red-100 bg-red-50/20",
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <Badge
+                      variant={
+                        alert.level === "critical"
+                          ? "destructive"
+                          : alert.level === "warning"
+                            ? "warning"
+                            : alert.level === "good"
+                              ? "good"
+                              : "informational"
+                      }
+                      className="rounded-full px-3 text-[8px] font-black uppercase tracking-widest"
+                    >
+                      {alert.level}
+                    </Badge>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
+                      {formatDateTime(alert.createdAt)}
+                    </span>
+                  </div>
+                  <p className="text-sm font-bold leading-snug text-stone-900">{alert.message}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-stone-500">{alert.module}</p>
+                </article>
+              ))
+            )}
+          </div>
+          <div className="hidden overflow-x-auto lg:block">
           <Table>
             <TableHeader className="bg-stone-50/30">
               <TableRow className="hover:bg-transparent border-stone-100 h-14">
@@ -310,6 +351,7 @@ export function AlertsView() {
               )}
             </TableBody>
           </Table>
+          </div>
           
           <div className="bg-stone-50/30 border-t border-stone-100 py-3">
             <TablePagination
