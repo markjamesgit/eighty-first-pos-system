@@ -92,3 +92,20 @@ export async function getSalesSummaryByFilter(filter: "today" | "weekly" | "mont
     .map(mapSummary)
     .filter((item) => new Date(item.dateKey) >= new Date(getDayKey(cutoff)));
 }
+
+export async function getSalesSummaryByDateRange(startDate: Date, endDate: Date) {
+  const normalizedStart = new Date(getDayKey(startDate));
+  const normalizedEnd = new Date(getDayKey(endDate));
+  normalizedEnd.setHours(23, 59, 59, 999);
+
+  const snapshot = await getDocs(
+    query(salesCollection(), orderBy("dateKey", "desc"), limit(366)),
+  );
+
+  return snapshot.docs
+    .map(mapSummary)
+    .filter((item) => {
+      const date = new Date(item.dateKey);
+      return date >= normalizedStart && date <= normalizedEnd;
+    });
+}

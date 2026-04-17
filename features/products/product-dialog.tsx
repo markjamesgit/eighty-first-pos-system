@@ -30,7 +30,6 @@ type ProductFormState = {
   name: string;
   description: string;
   category: string;
-  maintenanceLinkType: "none" | "variant" | "addon" | "modifier";
   maintenanceLinkIds: string[];
   price: string;
   imageUrl: string;
@@ -41,7 +40,6 @@ const initialValues: ProductFormState = {
   name: "",
   description: "",
   category: "",
-  maintenanceLinkType: "none",
   maintenanceLinkIds: [],
   price: "",
   imageUrl: "",
@@ -99,7 +97,6 @@ export function ProductDialog({
       name: product.name,
       description: product.description ?? "",
       category: product.category,
-      maintenanceLinkType: product.maintenanceLinkType ?? "none",
       maintenanceLinkIds: product.maintenanceLinkIds ?? [],
       price: String(product.price),
       imageUrl: product.imageUrl ?? "",
@@ -116,15 +113,12 @@ export function ProductDialog({
     ])
       .then(([categories, variants, addons, modifiers]) => {
         const activeCategories = categories.filter((item) => item.isActive);
-        const activeVariants = variants.filter((item) => item.isActive);
-        const activeAddons = addons.filter((item) => item.isActive);
-        const activeModifiers = modifiers.filter((item) => item.isActive);
 
         const nextCategories = uniqueByName(activeCategories).map((item) => item.name);
         setCategoryOptions(nextCategories);
-        setVariantOptions(uniqueById(activeVariants));
-        setAddonOptions(uniqueById(activeAddons));
-        setModifierOptions(uniqueById(activeModifiers));
+        setVariantOptions(uniqueById(variants));
+        setAddonOptions(uniqueById(addons));
+        setModifierOptions(uniqueById(modifiers));
 
         if (!product && nextCategories.length && !values.category) {
           setValues((current) => ({ ...current, category: nextCategories[0] ?? "" }));
@@ -141,14 +135,13 @@ export function ProductDialog({
 
   function parseValues(): ProductFormValues {
     const parsedPrice = Number(values.price || "0");
-    const linkType = values.maintenanceLinkType === "none" ? undefined : values.maintenanceLinkType;
-    const linkIds = values.maintenanceLinkType === "none" ? undefined : values.maintenanceLinkIds;
+    const linkIds = values.maintenanceLinkIds.length ? values.maintenanceLinkIds : undefined;
 
     return {
       name: values.name.trim(),
       description: values.description.trim() || undefined,
       category: values.category,
-      maintenanceLinkType: linkType,
+      maintenanceLinkType: undefined,
       maintenanceLinkIds: linkIds,
       price: Number.isFinite(parsedPrice) ? parsedPrice : 0,
       stockQty: 0,
@@ -179,8 +172,20 @@ export function ProductDialog({
       toast.error("Product name is required.");
       return;
     }
+    if (!values.category.trim()) {
+      toast.error("Category is required.");
+      return;
+    }
+    if (!values.price.trim()) {
+      toast.error("Price is required.");
+      return;
+    }
 
     const parsed = parseValues();
+    if (!Number.isFinite(parsed.price)) {
+      toast.error("Price must be a valid number.");
+      return;
+    }
     if (parsed.price < 0) {
       toast.error("Price should be zero or above.");
       return;
@@ -304,37 +309,19 @@ export function ProductDialog({
             </div>
 
             <div className="space-y-3 rounded-xl border border-stone-200 bg-white p-4">
-              <label className="text-sm font-medium">Linked Item Type (Optional)</label>
-              <Select
-                value={values.maintenanceLinkType}
-                onValueChange={(value: "none" | "variant" | "addon" | "modifier") =>
-                  setValues((current) => ({
-                    ...current,
-                    maintenanceLinkType: value,
-                    maintenanceLinkIds: [],
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose an extra type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="variant">Variant</SelectItem>
-                  <SelectItem value="addon">Addon</SelectItem>
-                  <SelectItem value="modifier">Modifier</SelectItem>
-                </SelectContent>
-              </Select>
-              {values.maintenanceLinkType !== "none" && (
-                <div className="space-y-3">
-                  <label className="text-sm font-medium capitalize">Available {values.maintenanceLinkType}s</label>
+              <label className="text-sm font-medium">Linked Item Options (Optional)</label>
+              <p className="text-xs text-stone-500">
+                Select any combination of variants, addons, and modifiers.
+              </p>
+              {[
+                { key: "Variants", items: variantOptions },
+                { key: "Addons", items: addonOptions },
+                { key: "Modifiers", items: modifierOptions },
+              ].map((group) => (
+                <div key={group.key} className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-stone-500">{group.key}</label>
                   <div className="flex flex-wrap gap-2">
-                    {(values.maintenanceLinkType === "variant"
-                      ? variantOptions
-                      : values.maintenanceLinkType === "addon"
-                        ? addonOptions
-                        : modifierOptions
-                    ).map((option) => {
+                    {group.items.map((option) => {
                       const isSelected = values.maintenanceLinkIds.includes(option.id);
                       return (
                         <Button
@@ -355,12 +342,12 @@ export function ProductDialog({
                         </Button>
                       );
                     })}
-                    {!(values.maintenanceLinkType === "variant" ? variantOptions : values.maintenanceLinkType === "addon" ? addonOptions : modifierOptions).length && (
+                    {!group.items.length && (
                       <p className="text-xs text-stone-500">No items available. Add them in the Maintenance tab.</p>
                     )}
                   </div>
                 </div>
-              )}
+              ))}
             </div>
           </div>
 

@@ -70,7 +70,18 @@ export function PosView() {
   const change = cashReceived > subtotal ? cashReceived - subtotal : 0;
 
   async function handleCheckout() {
-    if (!cart.length) return;
+    if (!cart.length) {
+      toast.error("Add at least one item before checkout.");
+      return;
+    }
+    if (!Number.isFinite(cashReceived) || cashReceived <= 0) {
+      toast.error("Enter a valid cash amount.");
+      return;
+    }
+    if (cashReceived < subtotal) {
+      toast.error("Received cash cannot be lower than total payment.");
+      return;
+    }
     setLoading(true);
     try {
       const result = await createOrder({
@@ -281,7 +292,7 @@ export function PosView() {
                 min={0}
                 step="0.01"
                 value={cashReceived || ""}
-                onChange={(e) => setCashReceived(Number(e.target.value))}
+                onChange={(e) => setCashReceived(Number(e.target.value) || 0)}
                 placeholder="0.00"
                 className="h-11 border-none bg-transparent px-0 text-xl font-bold shadow-none focus-visible:ring-0"
               />

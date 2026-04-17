@@ -30,7 +30,8 @@ export function AlertsView() {
     Array<{ id: string; name: string; stockQty: number; lowStockThreshold: number }>
   >([]);
   const [realtimeAlerts, setRealtimeAlerts] = useState<SystemAlert[]>([]);
-  const emailedCriticalIdsRef = useRef<Set<string>>(new Set());
+  const emailedAlertIdsRef = useRef<Set<string>>(new Set());
+  const alertMountTimeRef = useRef<number | null>(null);
   const [search, setSearch] = useState("");
   const [levelFilter, setLevelFilter] = useState<"all" | SystemAlert["level"]>("all");
   const [moduleFilter, setModuleFilter] = useState("all");
@@ -40,6 +41,7 @@ export function AlertsView() {
   const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
+    alertMountTimeRef.current = Date.now();
     void fetchProducts();
     void listIngredients()
       .then((rows) =>
@@ -92,29 +94,39 @@ export function AlertsView() {
 
   useEffect(() => {
     if (!user?.email) return;
-    const newCriticalAlerts = realtimeAlerts.filter(
-      (alert) => alert.level === "critical" && !emailedCriticalIdsRef.current.has(alert.id),
-    );
-    if (!newCriticalAlerts.length) return;
+    const newEmailAlerts = realtimeAlerts.filter((alert) => {
+      const isNewSessionAlert =
+        alertMountTimeRef.current === null || alert.createdAt.getTime() >= alertMountTimeRef.current;
+      return (
+        alert.level !== "good" &&
+        isNewSessionAlert &&
+        !emailedAlertIdsRef.current.has(alert.id)
+      );
+    });
+    if (!newEmailAlerts.length) return;
 
-    void Promise.all(
-      newCriticalAlerts.map(async (alert) => {
-        const subject = `Critical Alert: ${alert.module}`;
-        const message = `[${alert.module}] ${alert.message}\nObserved at: ${formatDateTime(alert.createdAt)}`;
+    void Promise.allSettled(
+      newEmailAlerts.map(async (alert) => {
+        const normalizedLevel = `${alert.level.charAt(0).toUpperCase()}${alert.level.slice(1)}`;
+        const subject = `${normalizedLevel} Alert: ${alert.module}`;
+        const message = `[${alert.module}] ${alert.message}\nSeverity: ${normalizedLevel}\nObserved at: ${formatDateTime(alert.createdAt)}`;
         await queueAlertEmailSafe({
           recipientEmail: user.email,
           subject,
           message,
         });
-        emailedCriticalIdsRef.current.add(alert.id);
+        emailedAlertIdsRef.current.add(alert.id);
       }),
     )
-      .then(() => {
-        toast.success("Critical alerts are automatically emailed.");
+      .then((results) => {
+        const rejected = results.filter((result) => result.status === "rejected").length;
+        if (rejected === 0) {
+          toast.success("Alert emails queued successfully.");
+        } else {
+          toast.error("Some alert emails failed to queue.");
+        }
       })
-      .catch(() => {
-        toast.error("Failed to queue automated alert email.");
-      });
+      .catch(() => toast.error("Failed to queue automated alert email."));
   }, [realtimeAlerts, user?.email]);
 
   const filteredAlerts = useMemo(() => {
@@ -145,15 +157,6 @@ export function AlertsView() {
     [moduleFilter, moduleOptions],
   );
 
-  const criticalCount = useMemo(
-    () => realtimeAlerts.filter((alert) => alert.level === "critical").length,
-    [realtimeAlerts],
-  );
-  const warningCount = useMemo(
-    () => realtimeAlerts.filter((alert) => alert.level === "warning").length,
-    [realtimeAlerts],
-  );
-
   const totalPages = Math.max(1, Math.ceil(filteredAlerts.length / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
   const paginatedAlerts = useMemo(() => {
@@ -179,7 +182,7 @@ export function AlertsView() {
                   <CardTitle className="text-sm font-black uppercase tracking-[0.2em] text-stone-400">Alert Registry</CardTitle>
                   <CardDescription className="text-xs font-medium text-stone-500">Real-time consolidated telemetry stream.</CardDescription>
               </div>
-              <Badge variant="outline" className="bg-white px-4 h-8 rounded-full font-black text-[10px] text-stone-400 border-stone-200 shadow-sm">{user?.email}</Badge>
+              <Badge variant="outline" className="bg-white px-4 h-8 rounded-full font-black text-[10px] text-stone-400 border-stone-200 shadow-sm">{user?.email || "No user"}</Badge>
             </div>
         </CardHeader>
         <CardContent className="grid p-0 lg:grid-cols-[260px_1fr]">
@@ -243,19 +246,9 @@ export function AlertsView() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <div className="rounded-xl border border-stone-200 bg-white p-3">
-                <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Total Alerts</p>
-                <p className="mt-1 text-2xl font-black text-stone-900">{realtimeAlerts.length}</p>
-              </div>
-              <div className="rounded-xl border border-stone-200 bg-white p-3">
-                <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Critical</p>
-                <p className="mt-1 text-2xl font-black text-red-600">{criticalCount}</p>
-              </div>
-              <div className="rounded-xl border border-stone-200 bg-white p-3">
-                <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Warnings</p>
-                <p className="mt-1 text-2xl font-black text-amber-600">{warningCount}</p>
-              </div>
+            <div className="rounded-xl border border-stone-200 bg-white p-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Email delivery</p>
+              <p className="mt-1 text-xs font-medium text-stone-600">New warning and critical alerts are queued to your account email.</p>
             </div>
           </aside>
           <div>
@@ -283,7 +276,15 @@ export function AlertsView() {
                   <TableRow key={alert.id} className={cn("group hover:bg-stone-50/50 transition-all border-stone-100 h-20", alert.level ==='critical' && "bg-red-50/10 hover:bg-red-50/20")}>
                     <TableCell className="pl-8">
                       <Badge 
-                        variant={alert.level === "critical" ? "destructive" : alert.level === "warning" ? "warning" : "default"}
+                        variant={
+                          alert.level === "critical"
+                            ? "destructive"
+                            : alert.level === "warning"
+                              ? "warning"
+                              : alert.level === "good"
+                                ? "good"
+                                : "informational"
+                        }
                         className="rounded-full text-[8px] font-black uppercase tracking-widest px-3 h-5 shadow-sm ring-2 ring-white"
                       >
                         {alert.level}

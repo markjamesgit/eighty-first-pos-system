@@ -36,8 +36,8 @@ export function IngredientDialog({ onSaved, ingredient, triggerLabel }: Ingredie
   const [form, setForm] = useState({
     name: "",
     unit: "pcs",
-    stockQty: 0,
-    lowStockThreshold: 10,
+    stockQty: "",
+    lowStockThreshold: "",
     isActive: true,
   });
 
@@ -46,16 +46,16 @@ export function IngredientDialog({ onSaved, ingredient, triggerLabel }: Ingredie
       setForm({
         name: ingredient.name,
         unit: ingredient.unit,
-        stockQty: ingredient.stockQty,
-        lowStockThreshold: ingredient.lowStockThreshold,
+        stockQty: String(ingredient.stockQty),
+        lowStockThreshold: String(ingredient.lowStockThreshold),
         isActive: ingredient.isActive,
       });
     } else if (!ingredient && open) {
       setForm({
         name: "",
         unit: "pcs",
-        stockQty: 0,
-        lowStockThreshold: 10,
+        stockQty: "",
+        lowStockThreshold: "",
         isActive: true,
       });
     }
@@ -64,14 +64,31 @@ export function IngredientDialog({ onSaved, ingredient, triggerLabel }: Ingredie
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return toast.error("Name is required.");
+    if (!form.unit.trim()) return toast.error("Unit is required.");
+    if (form.stockQty === "") return toast.error("Initial stock is required.");
+    if (form.lowStockThreshold === "") return toast.error("Low stock threshold is required.");
+
+    const parsedStockQty = Number(form.stockQty);
+    const parsedLowStockThreshold = Number(form.lowStockThreshold);
+    if (!Number.isFinite(parsedStockQty) || parsedStockQty < 0) {
+      return toast.error("Initial stock must be zero or above.");
+    }
+    if (!Number.isFinite(parsedLowStockThreshold) || parsedLowStockThreshold < 0) {
+      return toast.error("Low stock threshold must be zero or above.");
+    }
     
     setLoading(true);
     try {
+      const payload = {
+        ...form,
+        stockQty: parsedStockQty,
+        lowStockThreshold: parsedLowStockThreshold,
+      };
       if (ingredient) {
-        await updateIngredient(ingredient.id, form);
+        await updateIngredient(ingredient.id, payload);
         toast.success("Ingredient updated.");
       } else {
-        await createIngredient(form);
+        await createIngredient(payload);
         toast.success("Ingredient added to warehouse.");
       }
       setOpen(false);
@@ -130,8 +147,11 @@ export function IngredientDialog({ onSaved, ingredient, triggerLabel }: Ingredie
                 <label className="text-xs font-bold uppercase tracking-widest text-stone-500">Initial Stock</label>
                 <Input
                   type="number"
+                  min="0"
+                  step="0.01"
                   value={form.stockQty}
-                  onChange={(e) => setForm((p) => ({ ...p, stockQty: Number(e.target.value) }))}
+                  onChange={(e) => setForm((p) => ({ ...p, stockQty: e.target.value }))}
+                  placeholder="0"
                 />
               </div>
             </div>
@@ -139,8 +159,11 @@ export function IngredientDialog({ onSaved, ingredient, triggerLabel }: Ingredie
               <label className="text-xs font-bold uppercase tracking-widest text-stone-500">Low Stock Threshold</label>
               <Input
                 type="number"
+                min="0"
+                step="0.01"
                 value={form.lowStockThreshold}
-                onChange={(e) => setForm((p) => ({ ...p, lowStockThreshold: Number(e.target.value) }))}
+                onChange={(e) => setForm((p) => ({ ...p, lowStockThreshold: e.target.value }))}
+                placeholder="0"
               />
               <p className="text-[10px] text-stone-400">System will alert you when stock falls below this level.</p>
             </div>

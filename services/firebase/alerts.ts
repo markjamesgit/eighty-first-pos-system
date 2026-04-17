@@ -13,12 +13,12 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import { getFirestoreDb } from "./client";
-import type { AlertRecord } from "@/lib/types/domain";
+import type { AlertLevel, AlertRecord } from "@/lib/types/domain";
 
 export type SystemAlert = {
   id: string;
   module: string;
-  level: "info" | "warning" | "critical";
+  level: AlertLevel;
   message: string;
   createdAt: Date;
   updatedAt: Date;
@@ -70,8 +70,14 @@ export async function queueAlertEmailSafe(payload: {
   message: string;
 }) {
   const firestore = getFirestoreDb();
+  const normalizedEmail = payload.recipientEmail.trim();
+  if (!normalizedEmail) {
+    throw new Error("Recipient email is required.");
+  }
+
+  // Firebase "Trigger Email" extension default payload.
   await addDoc(collection(firestore, "mail"), {
-    to: payload.recipientEmail,
+    to: [normalizedEmail],
     message: {
       subject: payload.subject,
       text: payload.message,

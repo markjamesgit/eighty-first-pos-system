@@ -5,6 +5,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { DASHBOARD_FILTERS } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -13,13 +14,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/utils";
+import { toast } from "sonner";
 import { listIngredients } from "@/services/firebase/ingredients";
 import { listIngredientUsageForRange } from "@/services/firebase/orders";
-import { getSalesSummaryByFilter } from "@/services/firebase/sales";
+import { getSalesSummaryByDateRange, getSalesSummaryByFilter } from "@/services/firebase/sales";
 import type { SalesSummary } from "@/lib/types/domain";
 
 export function DashboardView() {
-  const [filter, setFilter] = useState<"today" | "weekly" | "monthly">("today");
+  const [filter, setFilter] = useState<"today" | "weekly" | "monthly" | "custom">("today");
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
   const [summary, setSummary] = useState<SalesSummary[]>([]);
   const [ingredients, setIngredients] = useState<
     Array<{ id: string; name: string; stockQty: number; lowStockThreshold: number }>
@@ -46,7 +50,32 @@ export function DashboardView() {
   }
 
   useEffect(() => {
-    void getSalesSummaryByFilter(filter).then(setSummary);
+    const range = getRangeForFilter(filter === "custom" ? "today" : filter);
+    const startDate =
+      filter === "custom" && customStartDate ? new Date(`${customStartDate}T00:00:00`) : range.startDate;
+    const endDate =
+      filter === "custom" && customEndDate ? new Date(`${customEndDate}T23:59:59`) : range.endDate;
+
+    if (filter === "custom") {
+      if (!customStartDate || !customEndDate) {
+        setSummary([]);
+        setIngredientUsage([]);
+        return;
+      }
+      if (startDate > endDate) {
+        toast.error("Custom range start date cannot be later than end date.");
+        setSummary([]);
+        setIngredientUsage([]);
+        return;
+      }
+    }
+
+    const salesPromise =
+      filter === "custom"
+        ? getSalesSummaryByDateRange(startDate, endDate)
+        : getSalesSummaryByFilter(filter);
+    void salesPromise.then(setSummary).catch(() => setSummary([]));
+
     void listIngredients()
       .then((rows) =>
         setIngredients(
@@ -59,8 +88,7 @@ export function DashboardView() {
         ),
       )
       .catch(() => setIngredients([]));
-    const range = getRangeForFilter(filter);
-    void listIngredientUsageForRange(range)
+    void listIngredientUsageForRange({ startDate, endDate })
       .then((rows) =>
         setIngredientUsage(
           rows.map((row) => ({
@@ -70,7 +98,7 @@ export function DashboardView() {
         ),
       )
       .catch(() => setIngredientUsage([]));
-  }, [filter]);
+  }, [filter, customStartDate, customEndDate]);
 
   const totals = useMemo(() => {
     return summary.reduce(
@@ -122,56 +150,78 @@ export function DashboardView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-stone-950">Sales Dashboard</h1>
-          <p className="text-sm text-stone-500">
-            Lightweight KPI cards backed by pre-aggregated Firestore summaries.
-          </p>
+      <Card className="overflow-hidden border-stone-200 bg-gradient-to-r from-stone-950 via-stone-900 to-stone-800 text-white shadow-lg">
+        <CardContent className="flex flex-col gap-5 p-6 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-300">Control Center</p>
+            <h1 className="mt-1 text-2xl font-black tracking-tight">Sales Dashboard</h1>
+            <p className="mt-2 text-sm text-stone-300">
+              Real-time business pulse with sales, top products, and inventory signals.
+            </p>
+          </div>
+          <div className="w-full md:w-[220px]">
+            <label className="mb-1 block text-[10px] font-black uppercase tracking-widest text-stone-300">Date Filter</label>
+            <Select
+              value={filter}
+              onValueChange={(value: "today" | "weekly" | "monthly" | "custom") => setFilter(value)}
+            >
+              <SelectTrigger className="w-full border-stone-700 bg-stone-900/60 text-stone-100">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DASHBOARD_FILTERS.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+                <SelectItem value="custom">Custom Range</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+      {filter === "custom" && (
+        <div className="grid gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-4 md:grid-cols-2">
+          <div className="space-y-1">
+            <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Start date</label>
+            <Input type="date" value={customStartDate} onChange={(event) => setCustomStartDate(event.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">End date</label>
+            <Input type="date" value={customEndDate} onChange={(event) => setCustomEndDate(event.target.value)} />
+          </div>
         </div>
-        <Select value={filter} onValueChange={(value: "today" | "weekly" | "monthly") => setFilter(value)}>
-          <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {DASHBOARD_FILTERS.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-5">
-        <Card>
-          <CardHeader>
-            <CardDescription>Total Sales</CardDescription>
-            <CardTitle>{formatCurrency(totals.totalSales)}</CardTitle>
+        <Card className="border-stone-200 shadow-sm">
+          <CardHeader className="gap-1">
+            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em]">Total Sales</CardDescription>
+            <CardTitle className="text-2xl">{formatCurrency(totals.totalSales)}</CardTitle>
           </CardHeader>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardDescription>Orders</CardDescription>
-            <CardTitle>{totals.orderCount}</CardTitle>
+        <Card className="border-stone-200 shadow-sm">
+          <CardHeader className="gap-1">
+            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em]">Orders</CardDescription>
+            <CardTitle className="text-2xl">{totals.orderCount}</CardTitle>
           </CardHeader>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardDescription>Top Product</CardDescription>
-            <CardTitle>{topProducts[0]?.name ?? "No sales yet"}</CardTitle>
+        <Card className="border-stone-200 shadow-sm">
+          <CardHeader className="gap-1">
+            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em]">Top Product</CardDescription>
+            <CardTitle className="text-base">{topProducts[0]?.name ?? "No sales yet"}</CardTitle>
           </CardHeader>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardDescription>Low Ingredient Stock</CardDescription>
-            <CardTitle>{ingredientStats.lowStockCount}</CardTitle>
+        <Card className="border-stone-200 shadow-sm">
+          <CardHeader className="gap-1">
+            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em]">Low Stock</CardDescription>
+            <CardTitle className="text-2xl text-amber-600">{ingredientStats.lowStockCount}</CardTitle>
           </CardHeader>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardDescription>Critical Ingredients</CardDescription>
-            <CardTitle>{ingredientStats.criticalCount}</CardTitle>
+        <Card className="border-stone-200 shadow-sm">
+          <CardHeader className="gap-1">
+            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em]">Critical Stockouts</CardDescription>
+            <CardTitle className="text-2xl text-red-600">{ingredientStats.criticalCount}</CardTitle>
           </CardHeader>
         </Card>
       </div>

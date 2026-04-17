@@ -133,7 +133,18 @@ export function RecipesView() {
   };
 
   const handleSaveRecipe = async () => {
-    if (!selectedTarget) return;
+    if (!selectedTarget) {
+      toast.error("Select an item first.");
+      return;
+    }
+    if (!currentRecipeItems.length) {
+      toast.error("Add at least one ingredient before saving.");
+      return;
+    }
+    if (currentRecipeItems.some((item) => !item.ingredientId)) {
+      toast.error("Each recipe row must have an ingredient.");
+      return;
+    }
 
     if (currentRecipeItems.some((item) => item.qtyUsed <= 0)) {
       toast.error("All ingredients must have a quantity greater than 0.");
@@ -268,8 +279,15 @@ export function RecipesView() {
                           min="0"
                           step="0.1"
                           className="h-9 shadow-none pr-12 text-right"
-                          value={item.qtyUsed}
-                          onChange={(e) => handleUpdateIngredient(index, "qtyUsed", Number(e.target.value))}
+                          value={item.qtyUsed === 0 ? "" : item.qtyUsed}
+                          onChange={(e) =>
+                            handleUpdateIngredient(
+                              index,
+                              "qtyUsed",
+                              e.target.value === "" ? 0 : Number(e.target.value),
+                            )
+                          }
+                          placeholder="0"
                         />
                         <span className="absolute inset-y-0 right-3 flex items-center text-xs text-stone-400 pointer-events-none">
                           {item.unit}

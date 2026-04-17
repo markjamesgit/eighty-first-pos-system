@@ -18,12 +18,11 @@ import Link from "next/link";
 
 export function AppHeader() {
   const [alerts, setAlerts] = useState<SystemAlert[]>([]);
+  const [alertsOpen, setAlertsOpen] = useState(false);
 
   useEffect(() => {
     return subscribeToAlerts(setAlerts, 5);
   }, []);
-
-  const alertCount = alerts.length;
 
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-stone-200 bg-white/80 px-6 backdrop-blur-md">
@@ -32,15 +31,10 @@ export function AppHeader() {
       </div>
 
       <div className="flex items-center gap-4">
-        <DropdownMenu>
+        <DropdownMenu open={alertsOpen} onOpenChange={setAlertsOpen}>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="relative flex items-center gap-2 rounded-full px-3">
               <BellRing className="h-4 w-4 text-stone-600" />
-              {alertCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white ring-2 ring-white">
-                  {alertCount}
-                </span>
-              )}
               <span className="hidden text-xs font-semibold text-stone-600 lg:inline-block">Alerts</span>
               <ChevronDown className="h-3 w-3 text-stone-400" />
             </Button>
@@ -48,7 +42,6 @@ export function AppHeader() {
           <DropdownMenuContent align="end" className="w-[320px] rounded-xl border-stone-200 p-0 shadow-xl">
             <div className="flex items-center justify-between p-4">
               <DropdownMenuLabel className="p-0 text-sm font-bold">Recent Notifications</DropdownMenuLabel>
-              {alertCount > 0 && <Badge variant="outline" className="text-[10px]">{alertCount} Active</Badge>}
             </div>
             <DropdownMenuSeparator className="m-0" />
             <div className="max-h-[300px] overflow-y-auto">
@@ -62,7 +55,15 @@ export function AppHeader() {
                   <DropdownMenuItem key={alert.id} className="flex flex-col items-start gap-1 border-b border-stone-50 p-4 last:border-0 hover:bg-stone-50 focus:bg-stone-50">
                     <div className="flex w-full items-center justify-between">
                       <Badge 
-                        variant={alert.level === "critical" ? "destructive" : alert.level === "warning" ? "warning" : "info"}
+                        variant={
+                          alert.level === "critical"
+                            ? "destructive"
+                            : alert.level === "warning"
+                              ? "warning"
+                              : alert.level === "good"
+                                ? "good"
+                                : "informational"
+                        }
                         className="rounded-sm px-1.5 py-0 text-[9px] font-black uppercase tracking-widest"
                       >
                         {alert.level}
