@@ -79,26 +79,26 @@ export function AuditTrailView() {
         </div>
       </div>
 
-      <Card className="border-stone-200 shadow-xl shadow-stone-200/40 overflow-hidden rounded-2xl bg-white">
-        <CardHeader className="bg-stone-50/80 backdrop-blur-md pb-6 border-b border-stone-100">
-           <CardTitle className="text-sm font-black uppercase tracking-[0.2em] text-stone-400">Activity stream</CardTitle>
-           <CardDescription className="text-[11px] font-medium text-stone-500">Real-time telemetry of system-wide alterations.</CardDescription>
+      <Card className="overflow-hidden rounded-2xl md:rounded-3xl border-stone-100 bg-white shadow-sm">
+        <CardHeader className="bg-white border-b border-stone-100 pb-5 px-6">
+           <CardTitle className="text-xl font-bold text-stone-900 tracking-tight">Activity stream</CardTitle>
+           <CardDescription className="text-sm font-medium text-stone-500">Real-time telemetry of system-wide alterations.</CardDescription>
         </CardHeader>
-        <CardContent className="grid p-0 lg:grid-cols-[260px_1fr]">
-          <aside className="space-y-5 border-b border-stone-100 bg-stone-50/60 p-5 lg:border-b-0 lg:border-r">
+        <CardContent className="grid p-0 lg:grid-cols-[240px_1fr]">
+              <aside className="space-y-4 border-b border-stone-100 bg-white p-5 lg:border-b-0 lg:border-r">
             <div>
               <h3 className="flex items-center gap-2 text-sm font-bold text-stone-900">
                 <SlidersHorizontal className="h-4 w-4" />
                 Audit Sidebar
               </h3>
-              <p className="mt-1 text-xs text-stone-500">Filter and monitor system-wide audit records.</p>
+              <p className="mt-1 text-xs text-stone-500 font-medium">Filter and monitor records.</p>
             </div>
             <div className="space-y-3">
               <div className="relative group">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400 transition-colors group-focus-within:text-stone-900" />
                 <Input
-                  placeholder="Search forensic logs..."
-                  className="h-10 rounded-xl border-stone-200 bg-white pl-10 font-medium transition-all focus-visible:ring-stone-900"
+                  placeholder="Search logs..."
+                  className="h-10 rounded-xl border-stone-100 bg-white pl-10 font-medium transition-all focus-visible:ring-stone-950"
                   value={search}
                   onChange={(e) => {
                     setSearch(e.target.value);
@@ -113,10 +113,10 @@ export function AuditTrailView() {
                   setCurrentPage(1);
                 }}
               >
-                <SelectTrigger className="h-10 rounded-xl border-stone-200 bg-white font-semibold text-stone-600">
+                <SelectTrigger className="h-10 rounded-xl border-stone-100 bg-white font-medium text-stone-600">
                   <SelectValue placeholder="Gateway" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-stone-200">
+                <SelectContent className="rounded-xl border-stone-100">
                   <SelectItem value="all">All Gateways</SelectItem>
                   {moduleOptions.map((module) => (
                     <SelectItem key={module} value={module}>
@@ -126,13 +126,13 @@ export function AuditTrailView() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <div className="rounded-xl border border-stone-200 bg-white p-3">
-                <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Total Logs</p>
+            <div className="hidden lg:block space-y-2">
+              <div className="rounded-xl border border-stone-100 bg-stone-50/40 p-4 shadow-sm">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500">Total Logs</p>
                 <p className="mt-1 text-2xl font-black text-stone-900">{entries.length}</p>
               </div>
-              <div className="rounded-xl border border-stone-200 bg-white p-3">
-                <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Filtered Results</p>
+              <div className="rounded-xl border border-stone-100 bg-stone-50/40 p-4 shadow-sm">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500">Filtered Results</p>
                 <p className="mt-1 text-2xl font-black text-stone-900">{filtered.length}</p>
               </div>
             </div>
@@ -167,17 +167,17 @@ export function AuditTrailView() {
               ))
             )}
           </div>
-          <div className="hidden overflow-x-auto lg:block">
-          <Table>
-            <TableHeader className="bg-stone-50/30">
-              <TableRow className="hover:bg-transparent border-stone-100 h-14">
-                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 pl-8 w-[140px]">Gateway</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 w-[140px]">Event Type</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Description</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 w-[160px]">Actor</TableHead>
-                <TableHead className="text-right text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 pr-8 w-[180px]">Timestamp</TableHead>
-              </TableRow>
-            </TableHeader>
+              <div className="hidden overflow-x-auto lg:block">
+              <Table>
+                <TableHeader className="bg-white">
+                  <TableRow className="hover:bg-transparent border-stone-100 h-12">
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8 w-[140px]">Gateway</TableHead>
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 w-[140px]">Event Type</TableHead>
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400">Description</TableHead>
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 w-[160px]">Actor</TableHead>
+                    <TableHead className="text-right py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pr-6 md:pr-8 w-[180px]">Timestamp</TableHead>
+                  </TableRow>
+                </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
@@ -200,27 +200,27 @@ export function AuditTrailView() {
               ) : (
                 paginated.map((entry) => (
                   <TableRow key={entry.id} className="hover:bg-stone-50/50 transition-all border-stone-100 group">
-                    <TableCell className="pl-8">
-                       <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-stone-200 bg-white h-5">
+                    <TableCell className="pl-6 md:pl-8 py-4">
+                       <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider border-stone-100 bg-white h-5 shadow-sm">
                          {entry.module}
                        </Badge>
                     </TableCell>
                     <TableCell>
-                       <span className="text-[10px] font-black uppercase tracking-tighter text-stone-400 group-hover:text-stone-950 transition-colors">{entry.action}</span>
+                       <span className="text-[11px] font-bold uppercase tracking-tight text-stone-400 group-hover:text-stone-900 transition-colors">{entry.action}</span>
                     </TableCell>
                     <TableCell>
                        <p className="text-sm font-bold text-stone-900 tracking-tight leading-snug">{entry.description}</p>
                     </TableCell>
                     <TableCell>
                        <div className="flex items-center gap-2">
-                         <div className="h-6 w-6 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center">
-                           <span className="text-[8px] font-black uppercase text-stone-400">{entry.performedBy.slice(0,1)}</span>
+                         <div className="h-6 w-6 rounded-full bg-stone-50 border border-stone-100 flex items-center justify-center">
+                           <span className="text-[8px] font-bold uppercase text-stone-500">{entry.performedBy.slice(0,1)}</span>
                          </div>
-                         <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">{entry.performedBy}</span>
+                         <span className="text-xs font-bold text-stone-700">{entry.performedBy}</span>
                        </div>
                     </TableCell>
-                    <TableCell className="text-right pr-8">
-                       <span className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.1em]">
+                    <TableCell className="text-right pr-6 md:pr-8">
+                       <span className="text-[11px] font-bold text-stone-400 uppercase tracking-widest">
                          {entry.createdAt ? formatDateTime(entry.createdAt) : "-"}
                        </span>
                     </TableCell>
@@ -231,7 +231,7 @@ export function AuditTrailView() {
           </Table>
           </div>
 
-          <div className="bg-stone-50/30 border-t border-stone-100 py-3">
+              <div className="bg-white border-t border-stone-100 py-3">
             <TablePagination
               currentPage={safeCurrentPage}
               totalPages={totalPages}

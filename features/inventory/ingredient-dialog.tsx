@@ -108,43 +108,44 @@ export function IngredientDialog({ onSaved, ingredient, triggerLabel }: Ingredie
             <Edit2 className="h-4 w-4" />
           </Button>
         ) : (
-          <Button className="font-bold gap-2">
-            <Plus className="h-4 w-4" />
+          <Button className="rounded-xl px-5 font-semibold shadow-sm">
             {triggerLabel || "Add Ingredient"}
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <form onSubmit={handleSave}>
-          <DialogHeader>
-            <DialogTitle>{ingredient ? "Edit Ingredient" : "New Ingredient"}</DialogTitle>
-            <DialogDescription>
+      <DialogContent className="sm:max-w-[425px] rounded-3xl border-stone-100 p-0 shadow-xl overflow-hidden bg-white">
+        <form onSubmit={handleSave} className="flex flex-col">
+          <DialogHeader className="bg-white border-b border-stone-100 px-6 py-5">
+            <DialogTitle className="text-lg font-bold text-stone-900">{ingredient ? "Edit Ingredient" : "New Ingredient"}</DialogTitle>
+            <DialogDescription className="text-xs text-stone-500 mt-1">
               {ingredient 
                 ? "Update details for this raw material in your inventory."
                 : "Add a raw material or consumable to your global inventory stock."
               }
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-5 px-6 py-6">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-widest text-stone-500">Name</label>
+              <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Name</label>
               <Input
                 placeholder="e.g. Milk, Brown Sugar, Coffee Beans"
                 value={form.name}
                 onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                className="h-10 rounded-xl border-stone-200 shadow-none"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-widest text-stone-500">Unit</label>
+                <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Unit</label>
                 <Input
                   placeholder="pcs, ml, kg, etc."
                   value={form.unit}
                   onChange={(e) => setForm((p) => ({ ...p, unit: e.target.value }))}
+                  className="h-10 rounded-xl border-stone-200 shadow-none"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-widest text-stone-500">Initial Stock</label>
+                <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Initial Stock</label>
                 <Input
                   type="number"
                   min="0"
@@ -152,11 +153,12 @@ export function IngredientDialog({ onSaved, ingredient, triggerLabel }: Ingredie
                   value={form.stockQty}
                   onChange={(e) => setForm((p) => ({ ...p, stockQty: e.target.value }))}
                   placeholder="0"
+                  className="h-10 rounded-xl border-stone-200 shadow-none text-right"
                 />
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-widest text-stone-500">Low Stock Threshold</label>
+              <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Low Stock Threshold</label>
               <Input
                 type="number"
                 min="0"
@@ -164,16 +166,17 @@ export function IngredientDialog({ onSaved, ingredient, triggerLabel }: Ingredie
                 value={form.lowStockThreshold}
                 onChange={(e) => setForm((p) => ({ ...p, lowStockThreshold: e.target.value }))}
                 placeholder="0"
+                className="h-10 rounded-xl border-stone-200 shadow-none text-right"
               />
-              <p className="text-[10px] text-stone-400">System will alert you when stock falls below this level.</p>
+              <p className="text-[10px] font-medium text-stone-400">System will alert you when stock falls below this level.</p>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-widest text-stone-500">Status</label>
+              <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Status</label>
               <Select
                 value={form.isActive ? "active" : "inactive"}
                 onValueChange={(value) => setForm((p) => ({ ...p, isActive: value === "active" }))}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-10 rounded-xl border-stone-200 shadow-none text-sm font-semibold">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -183,9 +186,12 @@ export function IngredientDialog({ onSaved, ingredient, triggerLabel }: Ingredie
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button type="submit" disabled={loading} className="w-full font-bold">
-              {loading ? (ingredient ? "Updating..." : "Adding...") : (ingredient ? "Save Changes" : "Confirm Addition")}
+          <DialogFooter className="bg-white border-t border-stone-100 px-6 py-4 flex-row justify-end items-center gap-2">
+            <Button variant="secondary" onClick={() => setOpen(false)} type="button" className="rounded-xl font-semibold px-5 shadow-sm">
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading} className="rounded-xl font-bold px-6 shadow-md shrink-0">
+              {loading ? (ingredient ? "Updating..." : "Adding...") : (ingredient ? "Save Changes" : "Add")}
             </Button>
           </DialogFooter>
         </form>

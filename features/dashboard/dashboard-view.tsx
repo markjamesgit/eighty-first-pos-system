@@ -193,93 +193,128 @@ export function DashboardView() {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <Card className="border-stone-200 shadow-sm">
-          <CardHeader className="gap-1">
-            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em]">Total Sales</CardDescription>
-            <CardTitle className="text-2xl">{formatCurrency(totals.totalSales)}</CardTitle>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+        <Card className="col-span-2 sm:col-span-1 border-stone-100 shadow-sm rounded-2xl">
+          <CardHeader className="gap-1 p-4 sm:p-5">
+            <CardDescription className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-stone-500">Total Sales</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl font-black text-stone-900">{formatCurrency(totals.totalSales)}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="border-stone-200 shadow-sm">
-          <CardHeader className="gap-1">
-            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em]">Orders</CardDescription>
-            <CardTitle className="text-2xl">{totals.orderCount}</CardTitle>
+        <Card className="border-stone-100 shadow-sm rounded-2xl">
+          <CardHeader className="gap-1 p-4 sm:p-5">
+            <CardDescription className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-stone-500">Orders</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl font-black text-stone-900">{totals.orderCount}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="border-stone-200 shadow-sm">
-          <CardHeader className="gap-1">
-            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em]">Top Product</CardDescription>
-            <CardTitle className="text-base">{topProducts[0]?.name ?? "No sales yet"}</CardTitle>
+        <Card className="border-stone-100 shadow-sm rounded-2xl">
+          <CardHeader className="gap-1 p-4 sm:p-5">
+            <CardDescription className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-stone-500">Top Product</CardDescription>
+            <CardTitle className="text-sm sm:text-lg font-bold text-stone-900 truncate">{topProducts[0]?.name ?? "No sales yet"}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="border-stone-200 shadow-sm">
-          <CardHeader className="gap-1">
-            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em]">Low Stock</CardDescription>
-            <CardTitle className="text-2xl text-amber-600">{ingredientStats.lowStockCount}</CardTitle>
+        <Card className="border-stone-100 shadow-sm rounded-2xl">
+          <CardHeader className="gap-1 p-4 sm:p-5">
+            <CardDescription className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-stone-500">Low Stock</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl font-black text-amber-600">{ingredientStats.lowStockCount}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="border-stone-200 shadow-sm">
-          <CardHeader className="gap-1">
-            <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em]">Critical Stockouts</CardDescription>
-            <CardTitle className="text-2xl text-red-600">{ingredientStats.criticalCount}</CardTitle>
+        <Card className="border-stone-100 shadow-sm rounded-2xl">
+          <CardHeader className="gap-1 p-4 sm:p-5">
+            <CardDescription className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-stone-500">Critical Stock</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl font-black text-red-600">{ingredientStats.criticalCount}</CardTitle>
           </CardHeader>
         </Card>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Sales Trend</CardTitle>
-            <CardDescription>Simple chart based on small pre-aggregated summary docs.</CardDescription>
+      <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-[1.5fr_1fr]">
+        <Card className="flex flex-col border-stone-100 shadow-sm rounded-2xl overflow-hidden">
+          <CardHeader className="px-5 pt-5 pb-2 sm:p-6 sm:pb-3">
+            <CardTitle className="text-base font-bold text-stone-900">Revenue Flow</CardTitle>
+            <CardDescription className="text-xs">Sales performance across timeframe.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px]">
+          <CardContent className="h-[260px] sm:h-[350px] lg:h-full lg:min-h-[400px] p-3 sm:p-6 sm:pt-0 pb-3 flex-grow">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={summary}>
-                <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                <XAxis dataKey="dateKey" tickLine={false} axisLine={false} />
-                <YAxis tickFormatter={(value) => `PHP ${value}`} tickLine={false} axisLine={false} />
-                <Tooltip formatter={(value) => formatCurrency(Number(value ?? 0))} />
-                <Bar dataKey="totalSales" fill="#1c1917" radius={[8, 8, 0, 0]} />
+              <BarChart data={summary} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
+                <XAxis 
+                  dataKey="dateKey" 
+                  tickLine={false} 
+                  axisLine={false} 
+                  fontSize={10} 
+                  tickMargin={12}
+                  stroke="#a8a29e" 
+                  tickFormatter={(val: string) => {
+                    if (!val) return "";
+                    const parts = val.split("-");
+                    if (parts.length === 3) return `${parts[1]}/${parts[2]}`;
+                    return val;
+                  }}
+                />
+                <YAxis 
+                  tickFormatter={(value) => `₱${value}`} 
+                  tickLine={false} 
+                  axisLine={false} 
+                  fontSize={10} 
+                  tickMargin={12}
+                  stroke="#a8a29e"
+                />
+                <Tooltip 
+                  cursor={{ fill: '#fafaf9' }}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #f5f5f4', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)', padding: '8px 12px' }}
+                  formatter={(value) => [`₱${Number(value).toFixed(2)}`, "Revenue"]} 
+                  labelStyle={{ fontWeight: "600", color: "#44403c", marginBottom: "4px", fontSize: "11px" }}
+                  itemStyle={{ fontSize: "12px", fontWeight: "600", color: "#1c1917" }}
+                />
+                <Bar 
+                  dataKey="totalSales" 
+                  fill="#292524" 
+                  radius={[4, 4, 0, 0]} 
+                  barSize={24}
+                  animationDuration={1000}
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Sellers</CardTitle>
-            <CardDescription>Aggregated from daily summary docs instead of raw order scans.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {topProducts.map((product) => (
-              <div key={product.name} className="flex items-center justify-between rounded-lg border border-stone-200 p-3">
-                <span className="font-medium">{product.name}</span>
-                <Badge>{product.qty} sold</Badge>
-              </div>
-            ))}
-            {!topProducts.length ? (
-              <p className="text-sm text-stone-500">Complete some orders to populate sales insights.</p>
-            ) : null}
-          </CardContent>
-        </Card>
+        <div className="flex flex-col gap-4 sm:gap-6">
+          <Card className="flex-1 border-stone-100 shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="pb-1 pt-5 px-5 sm:p-6 sm:pb-2">
+              <CardTitle className="text-sm sm:text-base font-bold text-stone-900">Top Sellers</CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-5 sm:px-6 flex flex-col gap-1">
+              {topProducts.map((product) => (
+                <div key={product.name} className="flex items-center justify-between py-2.5 border-b border-stone-100 last:border-0">
+                  <span className="font-semibold text-stone-800 text-sm">{product.name}</span>
+                  <span className="text-xs font-medium text-stone-500">{product.qty} sold</span>
+                </div>
+              ))}
+              {!topProducts.length ? (
+                <div className="flex py-8 items-center justify-center">
+                  <p className="text-xs text-stone-400">No recent sales data</p>
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Used Ingredients</CardTitle>
-            <CardDescription>Most consumed ingredients in selected dashboard period.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {ingredientStats.topUsed.map((ingredient) => (
-              <div key={ingredient} className="flex items-center justify-between rounded-lg border border-stone-200 p-3">
-                <span className="font-medium">{ingredient}</span>
-                <Badge>High usage</Badge>
-              </div>
-            ))}
-            {!ingredientStats.topUsed.length ? (
-              <p className="text-sm text-stone-500">No ingredient usage data for selected period.</p>
-            ) : null}
-          </CardContent>
-        </Card>
+          <Card className="flex-1 border-stone-100 shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="pb-1 pt-5 px-5 sm:p-6 sm:pb-2">
+              <CardTitle className="text-sm sm:text-base font-bold text-stone-900">Top Ingredients</CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-5 sm:px-6 flex flex-col gap-1">
+              {ingredientStats.topUsed.map((ingredient) => (
+                <div key={ingredient} className="flex items-center justify-between py-2 sm:py-2.5 border-b border-stone-100 last:border-0">
+                  <span className="font-semibold text-stone-800 text-xs sm:text-sm">{ingredient}</span>
+                  <span className="text-[10px] sm:text-xs font-medium text-stone-500">High usage</span>
+                </div>
+              ))}
+              {!ingredientStats.topUsed.length ? (
+                <div className="flex py-6 sm:py-8 items-center justify-center">
+                  <p className="text-xs text-stone-400">No recent usage data</p>
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

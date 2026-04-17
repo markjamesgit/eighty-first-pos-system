@@ -144,7 +144,6 @@ export function ProductDialog({
       maintenanceLinkType: undefined,
       maintenanceLinkIds: linkIds,
       price: Number.isFinite(parsedPrice) ? parsedPrice : 0,
-      stockQty: 0,
       imageUrl: values.imageUrl.trim(),
       isActive: values.isActive,
     };
@@ -216,14 +215,14 @@ export function ProductDialog({
       <DialogTrigger asChild>
         <Button
           variant={product ? "outline" : "default"}
-          className={product ? "" : "rounded-xl px-5 font-semibold shadow-sm"}
+          className="rounded-xl px-5 font-semibold shadow-sm"
         >
           {triggerLabel}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl border-stone-200 p-0 sm:max-w-3xl">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto rounded-3xl border-stone-100 p-0 sm:max-w-3xl shadow-xl">
         <DialogHeader>
-          <div className="border-b border-stone-100 bg-stone-50/70 px-6 py-5">
+          <div className="border-b border-stone-100 bg-white px-5 sm:px-6 py-5">
             <DialogTitle className="text-lg font-bold text-stone-900">
               {product ? "Edit Product" : "Add Product"}
             </DialogTitle>
@@ -232,10 +231,10 @@ export function ProductDialog({
             </DialogDescription>
           </div>
         </DialogHeader>
-        <div className="grid gap-6 px-6 pb-6 md:grid-cols-[1fr_220px]">
-          <div className="space-y-5">
-            <div className="space-y-3 rounded-xl border border-stone-200 bg-white p-4">
-              <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Basic Details</p>
+        <div className="grid gap-5 sm:gap-6 px-5 sm:px-6 pb-6 md:grid-cols-[1fr_220px]">
+          <div className="space-y-4 sm:space-y-5">
+            <div className="space-y-3 rounded-2xl border border-stone-100 bg-white p-4 sm:p-5 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+              <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Basic Details</p>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Name</label>
                 <Input
@@ -272,7 +271,7 @@ export function ProductDialog({
               </div>
             </div>
 
-            <div className="grid gap-4 rounded-xl border border-stone-200 bg-white p-4 sm:grid-cols-2">
+            <div className="grid gap-4 rounded-2xl border border-stone-100 bg-white p-4 sm:p-5 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] sm:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Price</label>
                 <Input
@@ -308,7 +307,7 @@ export function ProductDialog({
               </div>
             </div>
 
-            <div className="space-y-3 rounded-xl border border-stone-200 bg-white p-4">
+            <div className="space-y-3 rounded-2xl border border-stone-100 bg-white p-4 sm:p-5 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
               <label className="text-sm font-medium">Linked Item Options (Optional)</label>
               <p className="text-xs text-stone-500">
                 Select any combination of variants, addons, and modifiers.
@@ -352,7 +351,7 @@ export function ProductDialog({
           </div>
 
           <aside className="space-y-4">
-            <div className="space-y-2 rounded-xl border border-stone-200 bg-stone-50/70 p-4">
+            <div className="space-y-2 rounded-2xl border border-stone-100 bg-stone-50/50 p-4 sm:p-5">
               <label className="text-sm font-medium">Product image (optional)</label>
               <label className="flex items-center gap-2 text-sm font-medium text-stone-700">
                 <Upload className="h-4 w-4" />
@@ -381,11 +380,11 @@ export function ProductDialog({
             </div>
           </aside>
         </div>
-        <DialogFooter className="border-t border-stone-100 bg-stone-50/70 px-6 py-4">
-          <Button variant="secondary" onClick={() => setOpen(false)}>
+        <DialogFooter className="border-t border-stone-100 bg-white px-5 sm:px-6 py-4 flex-row items-center justify-end gap-2">
+          <Button variant="secondary" onClick={() => setOpen(false)} className="rounded-xl font-semibold">
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={loading || uploadingImage}>
+          <Button onClick={handleSave} disabled={loading || uploadingImage} className="rounded-xl font-semibold px-6 shadow-md">
             {loading ? "Saving..." : product ? "Save Changes" : "Add Product"}
           </Button>
         </DialogFooter>

@@ -124,30 +124,30 @@ export function OrdersView() {
       </div>
 
       <Tabs defaultValue="active" className="w-full">
-        <TabsList className="mb-8 inline-flex w-full flex-wrap gap-2 rounded-2xl border border-stone-200 bg-stone-100/50 p-1.5 backdrop-blur-sm md:w-auto">
-          <TabsTrigger value="active" className="flex items-center gap-2 px-6 h-10 rounded-xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all shadow-sm">
-            <Clock className="h-3.5 w-3.5" />
+        <TabsList className="mb-6 inline-flex w-full flex-wrap gap-1 rounded-2xl bg-stone-100/50 p-1 md:w-auto">
+          <TabsTrigger value="active" className="flex items-center gap-2 px-6 h-10 rounded-xl font-bold text-xs data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all shadow-sm">
+            <Clock className="h-4 w-4" />
             Active Service
             {activeOrders.length > 0 && (
-              <Badge variant="warning" className="ml-2 rounded-full px-1.5 h-4 text-[9px] font-black shadow-sm ring-2 ring-white">
+              <Badge variant="warning" className="ml-2 rounded-full px-1.5 h-4 text-[10px] font-bold shadow-sm ring-2 ring-white">
                 {activeOrders.length}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2 px-6 h-10 rounded-xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all">
-            <ClipboardCheck className="h-3.5 w-3.5" />
+          <TabsTrigger value="history" className="flex items-center gap-2 px-6 h-10 rounded-xl font-bold text-xs data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all">
+            <ClipboardCheck className="h-4 w-4" />
             Archive
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="active" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <Card className="overflow-hidden rounded-2xl border-stone-200 bg-white shadow-xl shadow-stone-200/40">
-            <CardHeader className="bg-stone-50/80 border-b border-stone-100 pb-6">
-              <CardTitle className="text-xl font-black text-stone-900 tracking-tight">Active Queue</CardTitle>
-              <CardDescription className="text-stone-500 font-medium">Monitoring orders currently being processed in the kitchen.</CardDescription>
+          <Card className="overflow-hidden rounded-2xl md:rounded-3xl border-stone-100 bg-white shadow-sm">
+            <CardHeader className="bg-white border-b border-stone-100 pb-5 px-6">
+              <CardTitle className="text-xl font-bold text-stone-900 tracking-tight">Active Queue</CardTitle>
+              <CardDescription className="text-stone-500 font-medium text-sm">Monitoring orders currently being processed in the kitchen.</CardDescription>
             </CardHeader>
-            <CardContent className="grid p-0 lg:grid-cols-[260px_1fr]">
-              <aside className="space-y-5 border-b border-stone-100 bg-stone-50/60 p-5 lg:border-b-0 lg:border-r">
+            <CardContent className="grid p-0 lg:grid-cols-[240px_1fr]">
+              <aside className="space-y-4 border-b border-stone-100 bg-white p-5 lg:border-b-0 lg:border-r">
                 <div>
                   <h3 className="flex items-center gap-2 text-sm font-bold text-stone-900">
                     <SlidersHorizontal className="h-4 w-4" />
@@ -164,13 +164,13 @@ export function OrdersView() {
                     onChange={(e) => setActiveSearch(e.target.value)}
                   />
                 </div>
-                <div className="space-y-2">
-                  <div className="rounded-xl border border-stone-200 bg-white p-3">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Active Orders</p>
+                <div className="hidden lg:block space-y-2">
+                  <div className="rounded-xl border border-stone-100 bg-stone-50/30 p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500">Active Orders</p>
                     <p className="mt-1 text-2xl font-black text-stone-900">{activeOrders.length}</p>
                   </div>
-                  <div className="rounded-xl border border-stone-200 bg-white p-3">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Filtered Results</p>
+                  <div className="rounded-xl border border-stone-100 bg-stone-50/30 p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500">Filtered Results</p>
                     <p className="mt-1 text-2xl font-black text-stone-900">{filteredActiveOrders.length}</p>
                   </div>
                 </div>
@@ -221,13 +221,13 @@ export function OrdersView() {
               </div>
               <div className="hidden overflow-x-auto lg:block">
               <Table>
-                <TableHeader className="bg-stone-50/30">
-                  <TableRow className="hover:bg-transparent border-stone-100">
-                    <TableHead className="h-12 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 pl-8">Order ID</TableHead>
-                    <TableHead className="h-12 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Order Items</TableHead>
-                    <TableHead className="h-12 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 text-center">Amount Due</TableHead>
-                    <TableHead className="h-12 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 text-center">Received At</TableHead>
-                    <TableHead className="h-12 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 text-right pr-8">Actions</TableHead>
+                <TableHeader className="bg-white">
+                  <TableRow className="hover:bg-transparent border-stone-100 h-12">
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Order ID</TableHead>
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400">Order Items</TableHead>
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">Amount Due</TableHead>
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">Received At</TableHead>
+                    <TableHead className="text-right py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pr-6 md:pr-8">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -243,12 +243,12 @@ export function OrdersView() {
                     </TableRow>
                   ) : (
                     filteredActiveOrders.map((order) => (
-                      <TableRow key={order.id} className="group hover:bg-stone-50/50 transition-all border-stone-100 py-4">
-                        <TableCell className="pl-8">
+                      <TableRow key={order.id} className="group hover:bg-stone-50/50 transition-all border-stone-100">
+                        <TableCell className="pl-6 md:pl-8 py-4">
                            <button
                              type="button"
                              onClick={() => setSelectedOrder(order)}
-                             className="font-black text-sm uppercase tracking-tighter text-stone-950 underline-offset-4 hover:underline"
+                             className="font-bold text-sm uppercase tracking-tight text-stone-950 underline-offset-4 hover:underline"
                            >
                              {order.orderId}
                            </button>
@@ -270,11 +270,11 @@ export function OrdersView() {
                              {order.createdAt ? formatDateTime(order.createdAt).split(",")[1] : "-"}
                            </span>
                         </TableCell>
-                        <TableCell className="text-right pr-8">
+                        <TableCell className="text-right pr-6 md:pr-8">
                            <Button 
                              size="sm" 
                              onClick={() => void handleComplete(order.id)} 
-                             className="h-9 px-6 font-black text-[10px] uppercase tracking-widest bg-stone-900 text-white rounded-xl shadow-md hover:bg-emerald-600 transition-all transform active:scale-95 group-hover:bg-stone-950"
+                             className="h-9 px-6 font-bold text-xs bg-stone-900 text-white rounded-xl shadow-sm hover:bg-emerald-600 transition-all active:scale-95"
                            >
                              Finalize
                            </Button>
@@ -291,13 +291,13 @@ export function OrdersView() {
         </TabsContent>
 
         <TabsContent value="history" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <Card className="overflow-hidden rounded-2xl border-stone-200 bg-white shadow-xl shadow-stone-200/40">
-            <CardHeader className="bg-stone-50/80 border-b border-stone-100 pb-6">
-              <CardTitle className="text-xl font-black text-stone-900 tracking-tight">Order Logs</CardTitle>
-              <CardDescription className="text-stone-500 font-medium text-xs">A comprehensive record of all finalized transactions.</CardDescription>
+          <Card className="overflow-hidden rounded-2xl md:rounded-3xl border-stone-100 bg-white shadow-sm">
+            <CardHeader className="bg-white border-b border-stone-100 pb-5 px-6">
+              <CardTitle className="text-xl font-bold text-stone-900 tracking-tight">Order Logs</CardTitle>
+              <CardDescription className="text-stone-500 font-medium text-sm">A comprehensive record of all finalized transactions.</CardDescription>
             </CardHeader>
-            <CardContent className="grid p-0 lg:grid-cols-[260px_1fr]">
-              <aside className="space-y-5 border-b border-stone-100 bg-stone-50/60 p-5 lg:border-b-0 lg:border-r">
+            <CardContent className="grid p-0 lg:grid-cols-[240px_1fr]">
+              <aside className="space-y-4 border-b border-stone-100 bg-white p-5 lg:border-b-0 lg:border-r">
                 <div>
                   <h3 className="flex items-center gap-2 text-sm font-bold text-stone-900">
                     <SlidersHorizontal className="h-4 w-4" />
@@ -328,13 +328,13 @@ export function OrdersView() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <div className="rounded-xl border border-stone-200 bg-white p-3">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Total Logs</p>
+                <div className="hidden lg:block space-y-2">
+                  <div className="rounded-xl border border-stone-100 bg-stone-50/30 p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500">Total Logs</p>
                     <p className="mt-1 text-2xl font-black text-stone-900">{historyOrders.length}</p>
                   </div>
-                  <div className="rounded-xl border border-stone-200 bg-white p-3">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Filtered Results</p>
+                  <div className="rounded-xl border border-stone-100 bg-stone-50/30 p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500">Filtered Results</p>
                     <p className="mt-1 text-2xl font-black text-stone-900">{filteredHistoryOrders.length}</p>
                   </div>
                 </div>
@@ -371,12 +371,12 @@ export function OrdersView() {
               </div>
               <div className="hidden overflow-x-auto lg:block">
               <Table>
-                <TableHeader className="bg-stone-50/30">
-                  <TableRow className="hover:bg-transparent border-stone-100">
-                    <TableHead className="h-12 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 pl-8">Order Ref</TableHead>
-                    <TableHead className="h-12 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 text-center">Net Amount</TableHead>
-                    <TableHead className="h-12 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 text-center">Status</TableHead>
-                    <TableHead className="h-12 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 text-right pr-8">Completion Time</TableHead>
+                <TableHeader className="bg-white">
+                  <TableRow className="hover:bg-transparent border-stone-100 h-12">
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Order Ref</TableHead>
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">Net Amount</TableHead>
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">Status</TableHead>
+                    <TableHead className="text-right py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pr-6 md:pr-8">Completion Time</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -407,7 +407,7 @@ export function OrdersView() {
                             {order.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right pr-8 text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+                        <TableCell className="text-right pr-6 md:pr-8 text-[11px] font-bold text-stone-400 uppercase tracking-widest">
                           {order.completedAt ? formatDateTime(order.completedAt) : "-"}
                         </TableCell>
                       </TableRow>
@@ -417,7 +417,7 @@ export function OrdersView() {
               </Table>
               </div>
               
-              <div className="bg-stone-50/30 border-t border-stone-100 py-2">
+              <div className="bg-white border-t border-stone-100 py-3">
                  <TablePagination
                     currentPage={currentPage}
                     totalPages={totalPages}
@@ -435,19 +435,19 @@ export function OrdersView() {
       </Tabs>
 
       <Dialog open={!!selectedOrder} onOpenChange={(open) => !open && setSelectedOrder(null)}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-stone-900">
-              Order Details {selectedOrder ? `- ${selectedOrder.orderId}` : ""}
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl rounded-3xl border-stone-100 p-0 shadow-2xl bg-white flex flex-col">
+          <DialogHeader className="bg-white border-b border-stone-100 px-6 py-5">
+            <DialogTitle className="text-lg font-bold text-stone-900">
+              Order Details {selectedOrder ? `• ${selectedOrder.orderId}` : ""}
             </DialogTitle>
-            <DialogDescription>
-              Review complete order information including items, totals, and payment.
+            <DialogDescription className="text-xs text-stone-500 mt-1">
+              Review information including items, totals, and payment details.
             </DialogDescription>
           </DialogHeader>
-
-          {selectedOrder ? (
-            <div className="space-y-4">
-              <div className="grid gap-3 rounded-xl border border-stone-200 bg-stone-50/60 p-4 sm:grid-cols-2">
+          <div className="p-6">
+            {selectedOrder ? (
+              <div className="space-y-4">
+                <div className="grid gap-3 rounded-xl border border-stone-100 bg-stone-50/30 p-4 sm:grid-cols-2">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Status</p>
                   <p className="mt-1 text-sm font-semibold text-stone-900">{selectedOrder.status}</p>
@@ -470,7 +470,7 @@ export function OrdersView() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-stone-200 bg-white">
+              <div className="rounded-xl border border-stone-100 bg-white overflow-hidden shadow-sm">
                 <div className="border-b border-stone-100 px-4 py-3">
                   <p className="text-sm font-bold text-stone-900">Ordered Items</p>
                 </div>
@@ -492,7 +492,7 @@ export function OrdersView() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-stone-200 bg-stone-50/60 p-4">
+              <div className="rounded-xl border border-stone-100 bg-stone-50/30 p-5">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-stone-600">Total Amount</span>
                   <span className="font-bold text-stone-900">{formatCurrency(selectedOrder.totalAmount)}</span>
@@ -501,13 +501,19 @@ export function OrdersView() {
                   <span className="text-stone-600">Cash Received</span>
                   <span className="font-bold text-stone-900">{formatCurrency(selectedOrder.cashReceived)}</span>
                 </div>
-                <div className="mt-2 flex items-center justify-between border-t border-stone-200 pt-2 text-sm">
+                <div className="mt-3 flex items-center justify-between border-t border-stone-100 pt-3 text-sm">
                   <span className="text-stone-600">Change</span>
                   <span className="font-bold text-stone-900">{formatCurrency(selectedOrder.change)}</span>
                 </div>
               </div>
             </div>
           ) : null}
+          </div>
+          <div className="bg-white border-t border-stone-100 px-6 py-4 flex justify-end">
+            <Button variant="secondary" onClick={() => setSelectedOrder(null)} className="rounded-xl font-semibold">
+              Close Window
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

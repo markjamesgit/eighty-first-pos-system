@@ -74,19 +74,20 @@ export function AppHeader() {
                       <div className="flex items-center gap-2">
                         {!alert.isRead && <span className="h-2 w-2 rounded-full bg-red-500" />}
                         <Badge 
-                        variant={
-                          alert.level === "critical"
-                            ? "destructive"
-                            : alert.level === "warning"
-                              ? "warning"
-                              : alert.level === "good"
-                                ? "good"
-                                : "informational"
-                        }
-                        className="rounded-sm px-1.5 py-0 text-[9px] font-black uppercase tracking-widest"
-                      >
-                        {alert.level}
-                      </Badge>
+                          variant={
+                            alert.level === "critical"
+                              ? "destructive"
+                              : alert.level === "warning"
+                                ? "warning"
+                                : alert.level === "good"
+                                  ? "good"
+                                  : "informational"
+                          }
+                          className="rounded-sm px-1.5 py-0 text-[9px] font-black uppercase tracking-widest"
+                        >
+                          {alert.level}
+                        </Badge>
+                      </div>
                       <span className="text-[10px] font-medium text-stone-400">
                         {formatDateTime(alert.createdAt)}
                       </span>

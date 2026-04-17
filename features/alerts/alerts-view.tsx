@@ -86,38 +86,38 @@ export function AlertsView() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-black text-stone-900 tracking-tight flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-stone-900 tracking-tight flex items-center gap-3">
              Incident Control
           </h1>
-          <p className="text-sm text-stone-500 font-medium">Monitoring stock levels, system health, and operations.</p>
+          <p className="text-sm text-stone-500 font-medium">Monitoring stock levels, system health, and operational flow.</p>
         </div>
       </div>
 
-      <Card className="overflow-hidden rounded-3xl border-none bg-white shadow-xl shadow-stone-200/40 ring-1 ring-stone-100">
-        <CardHeader className={cn("bg-stone-50/80 backdrop-blur-md pb-8 border-stone-100 transition-colors border-b", realtimeAlerts.some(a => a.level === "critical") ? "bg-red-50/10" : "bg-stone-50/80")}>
-            <div className="flex items-center justify-between">
+      <Card className="overflow-hidden rounded-2xl md:rounded-3xl border-stone-100 bg-white shadow-sm">
+        <CardHeader className={cn("bg-white border-b border-stone-100 py-6 px-6 md:px-8", realtimeAlerts.some(a => a.level === "critical") ? "border-red-100" : "border-stone-100")}>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-1">
-                  <CardTitle className="text-sm font-black uppercase tracking-[0.2em] text-stone-400">Alert Registry</CardTitle>
-                  <CardDescription className="text-xs font-medium text-stone-500">Real-time consolidated telemetry stream.</CardDescription>
+                  <CardTitle className="text-xl font-bold text-stone-900 tracking-tight">Alert Registry</CardTitle>
+                  <CardDescription className="text-sm font-medium text-stone-500">Real-time consolidated telemetry stream.</CardDescription>
               </div>
-              <Badge variant="outline" className="bg-white px-4 h-8 rounded-full font-black text-[10px] text-stone-400 border-stone-200 shadow-sm">{user?.email || "No user"}</Badge>
+              <Badge variant="outline" className="bg-stone-50/50 px-4 h-8 rounded-full font-bold text-[11px] text-stone-400 border-stone-100 shadow-sm self-start md:self-center">{user?.email || "No user"}</Badge>
             </div>
         </CardHeader>
-        <CardContent className="grid p-0 lg:grid-cols-[260px_1fr]">
-          <aside className="space-y-5 border-b border-stone-100 bg-stone-50/60 p-5 lg:border-b-0 lg:border-r">
+        <CardContent className="grid p-0 lg:grid-cols-[240px_1fr]">
+          <aside className="space-y-4 border-b border-stone-100 bg-white p-5 lg:border-b-0 lg:border-r">
             <div>
               <h3 className="flex items-center gap-2 text-sm font-bold text-stone-900">
                 <SlidersHorizontal className="h-4 w-4" />
                 Alerts Sidebar
               </h3>
-              <p className="mt-1 text-xs text-stone-500">Filter and monitor incident telemetry in real time.</p>
+              <p className="mt-1 text-xs text-stone-500 font-medium">Filter and monitor records.</p>
             </div>
             <div className="space-y-3">
               <div className="relative group">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400 transition-colors group-focus-within:text-stone-900" />
                 <Input
                   placeholder="Search alerts..."
-                  className="h-10 rounded-xl border-stone-200 bg-white pl-10 font-medium transition-all focus-visible:ring-stone-900"
+                  className="h-10 rounded-xl border-stone-100 bg-white pl-10 font-medium transition-all focus-visible:ring-stone-950"
                   value={search}
                   onChange={(e) => {
                     setSearch(e.target.value);
@@ -132,10 +132,10 @@ export function AlertsView() {
                   setCurrentPage(1);
                 }}
               >
-                <SelectTrigger className="h-10 rounded-xl border-stone-200 bg-white font-semibold text-stone-600">
+                <SelectTrigger className="h-10 rounded-xl border-stone-100 bg-white font-medium text-stone-600">
                   <SelectValue placeholder="Severity" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-stone-200">
+                <SelectContent className="rounded-xl border-stone-100">
                   <SelectItem value="all">All Severity</SelectItem>
                   {levelOptions.map((level) => (
                     <SelectItem key={level} value={level}>
@@ -151,10 +151,10 @@ export function AlertsView() {
                   setCurrentPage(1);
                 }}
               >
-                <SelectTrigger className="h-10 rounded-xl border-stone-200 bg-white font-semibold text-stone-600">
+                <SelectTrigger className="h-10 rounded-xl border-stone-100 bg-white font-medium text-stone-600">
                   <SelectValue placeholder="Component" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-stone-200">
+                <SelectContent className="rounded-xl border-stone-100">
                   <SelectItem value="all">All Components</SelectItem>
                   {moduleOptions.map((module) => (
                     <SelectItem key={module} value={module}>
@@ -168,22 +168,22 @@ export function AlertsView() {
                   onClick={() =>
                     void markAlertsAsRead(filteredAlerts.filter((a) => !a.isRead).map((a) => a.id))
                   }
-                  className="w-full gap-2 rounded-xl bg-stone-950 font-bold text-white shadow hover:bg-stone-800"
+                  className="w-full gap-2 rounded-xl bg-stone-900 font-bold text-xs text-white shadow-sm hover:bg-stone-800"
                 >
                   <CheckCheck className="h-4 w-4" />
-                  Mark All as Read
+                  Mark All Read
                 </Button>
               ) : null}
               {filteredAlerts.length > 0 ? (
                 <Button
                   variant="outline"
-                  className="w-full gap-2 rounded-xl border-stone-200 text-red-600 hover:bg-red-50 hover:text-red-700 shadow-sm transition-all"
+                  className="w-full gap-2 rounded-xl border-stone-100 text-stone-500 hover:bg-red-50 hover:text-red-600 transition-all font-bold text-xs"
                   onClick={() => {
                     void wipeAllAlerts().then(() => toast.success("All alert data wiped successfully."));
                   }}
                 >
                   <Trash2 className="h-4 w-4" />
-                  Clear All Alerts
+                  Wipe Registry
                 </Button>
               ) : null}
             </div>
@@ -204,12 +204,12 @@ export function AlertsView() {
                   <article
                     key={alert.id}
                     className={cn(
-                      "flex flex-col gap-3 rounded-2xl border bg-white p-5 shadow-sm transition-all hover:shadow-md sm:flex-row sm:items-center sm:justify-between",
+                      "flex flex-col gap-3 rounded-2xl border bg-white p-5 shadow-sm transition-all sm:flex-row sm:items-center sm:justify-between",
                       alert.level === "critical"
-                        ? "border-red-200/60 bg-red-50/30 hover:bg-red-50/50"
+                        ? "border-red-50 bg-red-50/10"
                         : alert.level === "warning"
-                          ? "border-amber-200/50 hover:bg-amber-50/20"
-                          : "border-stone-100 hover:bg-stone-50/50"
+                          ? "border-amber-50 bg-amber-50/10"
+                          : "border-stone-100 bg-white"
                     )}
                   >
                     <div className="flex flex-grow flex-col gap-3 sm:flex-row sm:items-center">
@@ -227,7 +227,7 @@ export function AlertsView() {
                                   ? "good"
                                   : "informational"
                           }
-                          className="h-7 items-center justify-center rounded-full px-4 text-[10px] font-black uppercase tracking-widest shadow-sm ring-2 ring-white"
+                          className="h-7 items-center justify-center rounded-full px-4 text-[11px] font-bold shadow-sm"
                         >
                           {alert.level}
                         </Badge>
@@ -235,11 +235,11 @@ export function AlertsView() {
 
                       <div className="flex flex-col justify-center sm:pl-2">
                         <div className="flex items-center gap-2 mb-0.5">
-                           <span className="text-[10px] font-black uppercase tracking-wider text-stone-400">
+                           <span className="text-[11px] font-bold text-stone-400">
                              {alert.module}
                            </span>
-                           <span className="hidden sm:inline text-stone-300">&bull;</span>
-                           <span className="text-[10px] sm:hidden font-bold tracking-wider text-stone-400 uppercase">
+                           <span className="hidden sm:inline text-stone-200">&bull;</span>
+                           <span className="text-[11px] sm:hidden font-medium text-stone-400 capitalize">
                               {formatDateTime(alert.createdAt)}
                            </span>
                         </div>
@@ -249,21 +249,20 @@ export function AlertsView() {
                       </div>
                     </div>
 
-                    <div className="hidden shrink-0 items-center justify-end text-right sm:flex sm:min-w-[140px] gap-4">
+                    <div className="hidden shrink-0 items-center justify-end text-right sm:flex sm:min-w-[140px] gap-6">
                       {!alert.isRead ? (
                         <Button
                           variant="ghost"
                           size="icon"
                           title="Acknowledge Alert"
                           onClick={() => void markAlertsAsRead([alert.id])}
-                          className="h-8 w-8 rounded-full border border-stone-200 text-stone-400 hover:bg-stone-900 hover:text-white transition-all shadow-sm"
+                          className="h-9 w-9 rounded-xl border border-stone-100 text-stone-400 hover:bg-stone-900 hover:text-white transition-all shadow-sm bg-white"
                         >
                           <CheckCheck className="h-4 w-4" />
                         </Button>
                       ) : null}
                       <div className="flex flex-col items-end">
-                        <span className="text-xs font-bold text-stone-500">Recorded at</span>
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 mt-0.5">
+                        <span className="text-[11px] font-medium text-stone-400">
                           {formatDateTime(alert.createdAt)}
                         </span>
                       </div>
@@ -274,7 +273,7 @@ export function AlertsView() {
             </div>
           </div>
           
-          <div className="bg-stone-50/30 border-t border-stone-100 py-3 rounded-b-3xl">
+          <div className="bg-white border-t border-stone-100 py-3 rounded-b-3xl">
             <TablePagination
               currentPage={safeCurrentPage}
               totalPages={totalPages}

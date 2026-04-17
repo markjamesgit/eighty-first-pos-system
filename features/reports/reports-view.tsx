@@ -174,22 +174,22 @@ export function ReportsView() {
           <p className="text-sm text-stone-500 font-medium">Analyze sales performance and material consumption.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-           <Button variant="outline" size="sm" onClick={handleDownloadSales} className="h-10 flex-1 min-w-[140px] px-5 rounded-xl font-black text-[10px] uppercase tracking-widest border-stone-200 hover:bg-stone-50 transition-all sm:flex-none">
+           <Button variant="outline" size="sm" onClick={handleDownloadSales} className="h-10 flex-1 min-w-[140px] px-5 rounded-xl font-bold text-xs border-stone-100 hover:bg-stone-50 transition-all sm:flex-none shadow-sm">
               <FileDown className="h-4 w-4 mr-2" />
               Sales CSV
             </Button>
-            <Button variant="outline" size="sm" onClick={handleDownloadIngredients} className="h-10 flex-1 min-w-[140px] px-5 rounded-xl font-black text-[10px] uppercase tracking-widest border-stone-200 hover:bg-stone-50 transition-all sm:flex-none">
+            <Button variant="outline" size="sm" onClick={handleDownloadIngredients} className="h-10 flex-1 min-w-[140px] px-5 rounded-xl font-bold text-xs border-stone-100 hover:bg-stone-50 transition-all sm:flex-none shadow-sm">
               <FileDown className="h-4 w-4 mr-2" />
               Usage CSV
             </Button>
         </div>
       </div>
 
-      <Card className="border-stone-200 shadow-lg shadow-stone-200/40 rounded-2xl bg-white overflow-hidden">
-        <CardHeader className="bg-stone-50/80 backdrop-blur-md border-b border-stone-100 py-6">
-          <CardTitle className="text-sm font-black uppercase tracking-[0.2em] text-stone-400">Parameter Configuration</CardTitle>
+      <Card className="border-stone-100 shadow-sm rounded-2xl md:rounded-3xl bg-white overflow-hidden">
+        <CardHeader className="bg-white border-b border-stone-100 py-6 px-8">
+          <CardTitle className="text-xs font-bold uppercase tracking-wider text-stone-500">Parameter Configuration</CardTitle>
         </CardHeader>
-        <CardContent className="p-8">
+        <CardContent className="p-6 md:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:gap-6">
             <div className="flex-1 space-y-2.5">
               <div className="flex items-center gap-2 mb-1">
@@ -205,7 +205,7 @@ export function ReportsView() {
               </div>
               <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-12 rounded-xl border-stone-200 font-medium focus:ring-stone-900" />
             </div>
-            <Button onClick={() => void handleGenerate()} disabled={loading} className="h-12 w-full gap-2 rounded-xl bg-stone-900 px-6 text-[10px] font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-stone-800 md:w-auto md:px-10">
+            <Button onClick={() => void handleGenerate()} disabled={loading} className="h-12 w-full gap-2 rounded-xl bg-stone-900 px-6 text-xs font-bold text-white shadow-sm transition-all hover:bg-stone-800 md:w-auto md:px-10">
               <Search className="h-4 w-4" />
               {loading ? "Processing..." : "Generate Analysis"}
             </Button>
@@ -214,33 +214,33 @@ export function ReportsView() {
       </Card>
 
       <Tabs defaultValue="sales" className="w-full">
-        <TabsList className="mb-8 inline-flex w-full flex-wrap gap-2 rounded-2xl border border-stone-200 bg-stone-100/50 p-1.5 backdrop-blur-sm md:w-auto">
-          <TabsTrigger value="sales" className="flex items-center gap-2 px-8 h-10 rounded-xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all shadow-sm">
-            <TrendingUp className="h-3.5 w-3.5" />
-            Revenue stream
+        <TabsList className="mb-6 inline-flex w-full flex-wrap gap-1 rounded-2xl bg-stone-100/50 p-1 md:w-auto">
+          <TabsTrigger value="sales" className="flex items-center gap-2 px-6 h-10 rounded-xl font-bold text-xs data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all shadow-sm">
+            <TrendingUp className="h-4 w-4" />
+            Revenue Stream
           </TabsTrigger>
-          <TabsTrigger value="ingredients" className="flex items-center gap-2 px-8 h-10 rounded-xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all">
-            <FlaskConical className="h-3.5 w-3.5" />
-            Material Consumption
+          <TabsTrigger value="ingredients" className="flex items-center gap-2 px-6 h-10 rounded-xl font-bold text-xs data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all">
+            <FlaskConical className="h-4 w-4" />
+            Consumption
           </TabsTrigger>
         </TabsList>
         
         <TabsContent value="sales" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <Card className="overflow-hidden rounded-2xl border-stone-200 bg-white shadow-xl shadow-stone-200/40">
-            <CardHeader className="bg-stone-50/80 border-b border-stone-100 py-8 px-8">
-              <div className="flex items-center justify-between">
+          <Card className="overflow-hidden rounded-2xl md:rounded-3xl border-stone-100 bg-white shadow-sm">
+            <CardHeader className="bg-white border-b border-stone-100 py-6 md:py-8 px-6 md:px-8">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                  <CardTitle className="text-xl font-black text-stone-900 tracking-tight">Sales Summary</CardTitle>
-                  <CardDescription className="text-stone-500 font-medium">Consolidated transaction list for the chosen parameters.</CardDescription>
+                  <CardTitle className="text-xl font-bold text-stone-900 tracking-tight">Sales Summary</CardTitle>
+                  <CardDescription className="text-stone-500 font-medium text-sm">Consolidated transaction list for the chosen parameters.</CardDescription>
                 </div>
-                <div className="bg-stone-950 px-8 py-5 rounded-3xl shadow-xl shadow-stone-950/20 text-right ring-4 ring-stone-100">
-                  <p className="text-[10px] font-black text-stone-500 uppercase tracking-widest mb-1.5">Selected Period Revenue</p>
-                  <p className="text-2xl font-black text-white tracking-tighter">{formatCurrency(totalSales)}</p>
+                <div className="bg-stone-900 px-6 py-4 rounded-2xl shadow-sm text-center md:text-right border border-stone-800">
+                  <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1">Period Revenue</p>
+                  <p className="text-2xl font-black text-white">{formatCurrency(totalSales)}</p>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="grid p-0 lg:grid-cols-[260px_1fr]">
-              <aside className="space-y-5 border-b border-stone-100 bg-stone-50/60 p-5 lg:border-b-0 lg:border-r">
+            <CardContent className="grid p-0 lg:grid-cols-[240px_1fr]">
+              <aside className="space-y-4 border-b border-stone-100 bg-white p-5 lg:border-b-0 lg:border-r">
                 <div>
                   <h3 className="flex items-center gap-2 text-sm font-bold text-stone-900">
                     <SlidersHorizontal className="h-4 w-4" />
@@ -260,18 +260,14 @@ export function ReportsView() {
                     }}
                   />
                 </div>
-                <div className="space-y-2">
-                  <div className="rounded-xl border border-stone-200 bg-white p-3">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Total Orders</p>
+                <div className="hidden lg:block space-y-2">
+                  <div className="rounded-xl border border-stone-100 bg-stone-50/40 p-4 shadow-sm">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500">Total Orders</p>
                     <p className="mt-1 text-2xl font-black text-stone-900">{orders.length}</p>
                   </div>
-                  <div className="rounded-xl border border-stone-200 bg-white p-3">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Filtered Results</p>
+                  <div className="rounded-xl border border-stone-100 bg-stone-50/40 p-4 shadow-sm">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500">Filtered Results</p>
                     <p className="mt-1 text-2xl font-black text-stone-900">{filteredSales.length}</p>
-                  </div>
-                  <div className="rounded-xl border border-stone-200 bg-white p-3">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Filtered Revenue</p>
-                    <p className="mt-1 text-xl font-black text-stone-900">{formatCurrency(filteredSalesAmount)}</p>
                   </div>
                 </div>
               </aside>
@@ -301,12 +297,12 @@ export function ReportsView() {
               </div>
               <div className="hidden overflow-x-auto lg:block">
               <Table>
-                <TableHeader className="bg-stone-50/30">
-                  <TableRow className="hover:bg-transparent border-stone-100 h-14">
-                    <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 pl-8">Order ID</TableHead>
-                    <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">DateTime</TableHead>
-                    <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 text-center">Amount</TableHead>
-                    <TableHead className="text-right text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 pr-8">Status</TableHead>
+                <TableHeader className="bg-white">
+                  <TableRow className="hover:bg-transparent border-stone-100 h-12">
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Order ID</TableHead>
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400">DateTime</TableHead>
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">Amount</TableHead>
+                    <TableHead className="text-right py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pr-6 md:pr-8">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -322,15 +318,15 @@ export function ReportsView() {
                   ) : (
                     paginatedSales.map((order) => (
                       <TableRow key={order.id} className="hover:bg-stone-50/50 group transition-all border-stone-100 h-20">
-                        <TableCell className="pl-8">
-                           <span className="font-black text-stone-950 text-sm tracking-tighter uppercase">{order.orderId}</span>
+                        <TableCell className="pl-6 md:pl-8 py-4">
+                           <span className="font-bold text-sm tracking-tight text-stone-950 uppercase">{order.orderId}</span>
                         </TableCell>
-                        <TableCell className="text-stone-500 text-[10px] font-bold uppercase tracking-widest">{order.createdAt ? formatDateTime(order.createdAt) : "-"}</TableCell>
+                        <TableCell className="text-stone-500 text-[11px] font-medium">{order.createdAt ? formatDateTime(order.createdAt) : "-"}</TableCell>
                         <TableCell className="text-center">
-                           <span className="font-black text-stone-950 text-sm">{formatCurrency(order.totalAmount)}</span>
+                           <span className="font-bold text-stone-950 text-sm">{formatCurrency(order.totalAmount)}</span>
                         </TableCell>
-                        <TableCell className="text-right pr-8">
-                           <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest border-stone-200 bg-stone-50 px-2.5 h-5">{order.status}</Badge>
+                        <TableCell className="text-right pr-6 md:pr-8">
+                           <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider border-stone-200 bg-stone-50 px-2.5 h-6 shadow-sm">{order.status}</Badge>
                         </TableCell>
                       </TableRow>
                     ))
@@ -338,7 +334,7 @@ export function ReportsView() {
                 </TableBody>
               </Table>
               </div>
-              <div className="bg-stone-50/30 border-t border-stone-100 py-3">
+              <div className="bg-white border-t border-stone-100 py-3">
                  <TablePagination
                     currentPage={salesPage}
                     totalPages={salesTotalPages}
@@ -355,13 +351,13 @@ export function ReportsView() {
         </TabsContent>
 
         <TabsContent value="ingredients" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <Card className="overflow-hidden rounded-2xl border-stone-200 bg-white shadow-xl shadow-stone-200/40">
-            <CardHeader className="bg-stone-50/80 border-b border-stone-100 py-8 px-8">
-              <CardTitle className="text-xl font-black text-stone-900 tracking-tight">Ingredient Flux</CardTitle>
-              <CardDescription className="text-stone-500 font-medium">Atomic breakdown of material consumption logs.</CardDescription>
+          <Card className="overflow-hidden rounded-2xl md:rounded-3xl border-stone-100 bg-white shadow-sm">
+            <CardHeader className="bg-white border-b border-stone-100 py-6 md:py-8 px-6 md:px-8">
+              <CardTitle className="text-xl font-bold text-stone-900 tracking-tight">Ingredient Flux</CardTitle>
+              <CardDescription className="text-stone-500 font-medium text-sm">Atomic breakdown of material consumption logs.</CardDescription>
             </CardHeader>
-            <CardContent className="grid p-0 lg:grid-cols-[260px_1fr]">
-              <aside className="space-y-5 border-b border-stone-100 bg-stone-50/60 p-5 lg:border-b-0 lg:border-r">
+            <CardContent className="grid p-0 lg:grid-cols-[240px_1fr]">
+              <aside className="space-y-4 border-b border-stone-100 bg-white p-5 lg:border-b-0 lg:border-r">
                 <div>
                   <h3 className="flex items-center gap-2 text-sm font-bold text-stone-900">
                     <SlidersHorizontal className="h-4 w-4" />
@@ -381,18 +377,14 @@ export function ReportsView() {
                     }}
                   />
                 </div>
-                <div className="space-y-2">
-                  <div className="rounded-xl border border-stone-200 bg-white p-3">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Usage Logs</p>
+                <div className="hidden lg:block space-y-2">
+                  <div className="rounded-xl border border-stone-100 bg-stone-50/40 p-4 shadow-sm">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500">Usage Logs</p>
                     <p className="mt-1 text-2xl font-black text-stone-900">{ingredientUsage.length}</p>
                   </div>
-                  <div className="rounded-xl border border-stone-200 bg-white p-3">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Filtered Results</p>
+                  <div className="rounded-xl border border-stone-100 bg-stone-50/40 p-4 shadow-sm">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500">Filtered Results</p>
                     <p className="mt-1 text-2xl font-black text-stone-900">{filteredUsage.length}</p>
-                  </div>
-                  <div className="rounded-xl border border-stone-200 bg-white p-3">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Total Usage</p>
-                    <p className="mt-1 text-xl font-black text-stone-900">{filteredUsageQuantity.toLocaleString()}</p>
                   </div>
                 </div>
               </aside>
@@ -424,12 +416,12 @@ export function ReportsView() {
               </div>
               <div className="hidden overflow-x-auto lg:block">
               <Table>
-                <TableHeader className="bg-stone-50/30">
-                  <TableRow className="hover:bg-transparent border-stone-100 h-14">
-                    <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 pl-8">DateTime</TableHead>
-                    <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Ingredient</TableHead>
-                    <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 text-center">Change</TableHead>
-                    <TableHead className="text-right text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 pr-8">Order context</TableHead>
+                <TableHeader className="bg-white">
+                  <TableRow className="hover:bg-transparent border-stone-100 h-12">
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">DateTime</TableHead>
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400">Ingredient</TableHead>
+                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">Change</TableHead>
+                    <TableHead className="text-right py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pr-6 md:pr-8">Order context</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -444,16 +436,16 @@ export function ReportsView() {
                     </TableRow>
                   ) : (
                     paginatedUsage.map((item) => (
-                      <TableRow key={item.id} className="hover:bg-stone-50/50 group border-stone-100 transition-all h-20">
-                        <TableCell className="pl-8 text-stone-500 font-bold text-[10px] uppercase tracking-widest">{item.createdAt ? formatDateTime(item.createdAt) : "-"}</TableCell>
+                      <TableRow key={item.id} className="hover:bg-stone-50/50 group border-stone-100 transition-all">
+                        <TableCell className="pl-6 md:pl-8 py-4 text-stone-500 font-medium text-[11px]">{item.createdAt ? formatDateTime(item.createdAt) : "-"}</TableCell>
                         <TableCell>
-                           <span className="font-black text-stone-900 text-sm">{item.ingredientName}</span>
+                           <span className="font-bold text-stone-900 text-sm">{item.ingredientName}</span>
                         </TableCell>
-                        <TableCell className="text-center font-black text-red-600 text-base tracking-tighter">
-                          {item.quantityChange} <span className="text-[10px] text-stone-400 ml-1">{item.unit}</span>
+                        <TableCell className="text-center font-bold text-red-600 text-sm">
+                          {item.quantityChange} <span className="text-[10px] text-stone-400 ml-0.5">{item.unit}</span>
                         </TableCell>
-                        <TableCell className="text-right pr-8">
-                           <span className="text-[10px] font-black text-stone-300 uppercase tracking-tighter truncate max-w-[120px] inline-block">#{item.referenceOrderId.slice(0,12)}</span>
+                        <TableCell className="text-right pr-6 md:pr-8">
+                           <span className="text-[11px] font-semibold text-stone-300 uppercase tracking-tighter truncate max-w-[120px] inline-block">#{item.referenceOrderId.slice(0,12)}</span>
                         </TableCell>
                       </TableRow>
                     ))
@@ -461,7 +453,7 @@ export function ReportsView() {
                 </TableBody>
               </Table>
               </div>
-              <div className="bg-stone-50/30 border-t border-stone-100 py-3">
+              <div className="bg-white border-t border-stone-100 py-3">
                  <TablePagination
                     currentPage={usagePage}
                     totalPages={usageTotalPages}

@@ -179,14 +179,14 @@ export function RecipesView() {
   }, {} as Record<string, RecipeTarget[]>);
 
   return (
-    <div className="grid min-h-[calc(100vh-8rem)] gap-6 xl:grid-cols-[340px_1fr]">
-      <Card className="flex max-h-[70vh] flex-col overflow-hidden xl:h-[calc(100vh-8rem)] xl:max-h-none">
-        <CardHeader className="bg-stone-50 border-b border-stone-100 pb-4">
-          <CardTitle>Menu Items</CardTitle>
+    <div className="flex flex-col h-[calc(100dvh-5rem)] gap-4 md:grid md:h-auto md:min-h-[calc(100vh-6rem)] md:grid-cols-[280px_1fr] lg:grid-cols-[300px_1fr] xl:grid-cols-[340px_1fr] md:gap-5 lg:gap-6 mt-1 md:mt-0">
+      <Card className="flex h-[35dvh] md:h-[calc(100vh-6rem)] flex-col overflow-hidden md:rounded-2xl border-stone-100 border-x-0 border-t-0 md:border bg-white shadow-sm shrink-0 md:shrink relative rounded-b-3xl md:rounded-b-2xl shadow-[0_10px_20px_-15px_rgba(0,0,0,0.1)] md:shadow-sm z-10">
+        <CardHeader className="bg-white border-b border-stone-100 pb-3 md:pb-4 px-4 md:px-5 pt-4">
+          <CardTitle className="text-base md:text-lg font-bold text-stone-900 tracking-tight">Menu Items</CardTitle>
           <CardDescription>Select an item to assign ingredients.</CardDescription>
         </CardHeader>
-        <ScrollArea className="flex-1 bg-white">
-          <div className="p-4 space-y-6">
+        <ScrollArea className="flex-1 bg-white custom-scrollbar">
+          <div className="p-3 md:p-4 space-y-4 md:space-y-6">
             {Object.entries(groupedTargets).map(([groupName, items]) => (
               <div key={groupName}>
                 <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-stone-500 capitalize">{groupName}</h3>
@@ -197,15 +197,15 @@ export function RecipesView() {
                       <button
                         key={item.id}
                         onClick={() => setSelectedTargetId(item.id)}
-                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition-colors ${
                           selectedTargetId === item.id
-                            ? "bg-stone-900 text-white"
-                            : "hover:bg-stone-100 text-stone-700"
+                            ? "bg-stone-900 text-white shadow-md shadow-stone-900/10"
+                            : "bg-white border border-transparent hover:border-stone-100 hover:bg-stone-50 text-stone-600"
                         }`}
                       >
-                        <span className="font-medium truncate">{item.name}</span>
+                        <span className="truncate">{item.name}</span>
                         {hasRecipe && (
-                          <Badge variant={selectedTargetId === item.id ? "secondary" : "default"} className="scale-75 origin-right">
+                          <Badge variant={selectedTargetId === item.id ? "secondary" : "outline"} className="scale-75 origin-right uppercase tracking-wider text-[10px]">
                             Linked
                           </Badge>
                         )}
@@ -219,46 +219,46 @@ export function RecipesView() {
         </ScrollArea>
       </Card>
 
-      <Card className="relative flex max-h-[80vh] flex-col overflow-hidden xl:h-[calc(100vh-8rem)] xl:max-h-none">
+      <Card className="flex flex-1 flex-col h-[40dvh] md:h-[calc(100vh-6rem)] overflow-hidden rounded-t-3xl rounded-b-none md:rounded-2xl border border-stone-100 md:border-x border-b-0 md:border-b border-x-0 bg-white shadow-sm shrink-0 md:shrink md:max-h-none">
         {!selectedTarget ? (
-          <div className="flex h-full flex-col items-center justify-center text-center p-8 bg-stone-50/50">
-            <div className="rounded-full bg-stone-100 p-4 mb-4">
-              <ChefHat className="h-8 w-8 text-stone-400" />
+          <div className="flex h-full flex-col items-center justify-center text-center p-8 bg-white border border-stone-100 rounded-2xl m-4 border-dashed">
+            <div className="rounded-2xl bg-stone-50 border border-stone-100 p-4 mb-4">
+              <ChefHat className="h-6 w-6 md:h-8 md:w-8 text-stone-300" />
             </div>
-            <h3 className="text-lg font-medium text-stone-900">No Item Selected</h3>
-            <p className="mt-1 text-sm text-stone-500 max-w-[280px]">
+            <h3 className="text-base md:text-lg font-bold text-stone-900">No Item Selected</h3>
+            <p className="mt-1 text-xs md:text-sm font-medium text-stone-500 max-w-[280px]">
               Choose a product, variant, or addon from the sidebar to configure its recipe.
             </p>
           </div>
         ) : (
           <>
-            <CardHeader className="relative z-10 border-b border-stone-100 bg-white shadow-[0_1px_12px_rgba(0,0,0,0.02)]">
-              <div className="flex flex-col items-start justify-between gap-2 sm:flex-row">
+            <CardHeader className="relative z-10 border-b border-stone-100 bg-white pb-4 pt-3 px-4 md:px-5 md:pt-4 md:pb-5 shadow-[0_4px_20px_-15px_rgba(0,0,0,0.05)]">
+              <div className="flex flex-col items-start justify-between gap-1 md:gap-2">
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge variant="outline" className="uppercase tracking-wider text-[10px] bg-stone-50">{selectedTarget.type}</Badge>
+                  <div className="flex items-center gap-1.5 mb-1.5 md:mb-2">
+                    <Badge variant="outline" className="uppercase tracking-wider text-[9px] font-bold text-stone-400">{selectedTarget.type}</Badge>
                     {selectedTarget.category && (
-                      <Badge variant="outline" className="uppercase tracking-wider text-[10px] bg-stone-50 pb-0.5">{selectedTarget.category}</Badge>
+                      <Badge variant="outline" className="uppercase tracking-wider text-[9px] font-bold text-stone-400">{selectedTarget.category}</Badge>
                     )}
                   </div>
-                  <CardTitle className="break-words text-xl">Recipe: {selectedTarget.name}</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="break-words text-lg md:text-xl font-bold tracking-tight text-stone-900">Recipe: {selectedTarget.name}</CardTitle>
+                  <CardDescription className="text-xs font-medium text-stone-500 mt-0.5">
                     Define the exact raw ingredients deducted when this is ordered.
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <ScrollArea className="flex-1 bg-stone-50/30 p-2">
-              <div className="p-4 space-y-4">
+            <ScrollArea className="flex-1 bg-stone-50/30 p-0 md:p-2 custom-scrollbar">
+              <div className="p-3 md:p-4 space-y-3 md:space-y-4">
                 {currentRecipeItems.map((item, index) => (
-                  <div key={index} className="grid gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition hover:border-stone-300 sm:grid-cols-[1fr_120px_auto] sm:items-end">
+                  <div key={index} className="grid gap-3 rounded-2xl border border-stone-100 bg-white p-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] sm:grid-cols-[1fr_120px_auto] sm:items-end">
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Ingredient</label>
                       <Select
                         value={item.ingredientId}
                         onValueChange={(val) => handleUpdateIngredient(index, "ingredientId", val)}
                       >
-                        <SelectTrigger className="h-9 font-medium shadow-none">
+                        <SelectTrigger className="h-10 text-sm font-semibold rounded-xl shadow-none">
                           <SelectValue placeholder="Select ingredient" />
                         </SelectTrigger>
                         <SelectContent>
@@ -278,7 +278,7 @@ export function RecipesView() {
                           type="number"
                           min="0"
                           step="0.1"
-                          className="h-9 shadow-none pr-12 text-right"
+                          className="h-10 rounded-xl shadow-none pr-12 text-sm font-semibold text-right"
                           value={item.qtyUsed === 0 ? "" : item.qtyUsed}
                           onChange={(e) =>
                             handleUpdateIngredient(
@@ -298,7 +298,7 @@ export function RecipesView() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9 shrink-0 self-end text-stone-400 hover:bg-red-50 hover:text-red-600"
+                      className="h-10 w-10 shrink-0 self-end text-stone-400 hover:bg-stone-50 border border-transparent hover:border-stone-100 hover:text-red-500 rounded-xl transition-colors"
                       onClick={() => handleRemoveIngredient(index)}
                     >
                       <Trash className="h-4 w-4" />
@@ -307,26 +307,26 @@ export function RecipesView() {
                 ))}
                 
                 {currentRecipeItems.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-stone-200 bg-stone-50 py-10 text-center">
-                    <BookOpen className="mx-auto h-8 w-8 text-stone-300 mb-2" />
-                    <p className="text-sm font-medium text-stone-900">No ingredients linked</p>
-                    <p className="text-xs text-stone-500 mb-4">This item uses 0 inventory stock when ordered.</p>
-                    <Button variant="outline" size="sm" onClick={handleAddIngredient} className="bg-white">
-                      <Plus className="mr-2 h-4 w-4" /> Add First Ingredient
+                  <div className="rounded-2xl border border-dashed border-stone-200 bg-white py-8 text-center">
+                    <BookOpen className="mx-auto h-6 w-6 text-stone-300 mb-2" />
+                    <p className="text-sm font-bold text-stone-900">No ingredients linked</p>
+                    <p className="text-xs font-semibold text-stone-400 mb-4">This item uses 0 inventory stock when ordered.</p>
+                    <Button variant="outline" size="sm" onClick={handleAddIngredient} className="bg-white rounded-xl">
+                      <Plus className="mr-1.5 h-3.5 w-3.5" /> Add First Ingredient
                     </Button>
                   </div>
                 ) : (
-                  <Button variant="outline" onClick={handleAddIngredient} className="w-full border-dashed">
-                    <Plus className="mr-2 h-4 w-4" /> Add Another Ingredient
+                  <Button variant="outline" onClick={handleAddIngredient} className="w-full border-dashed rounded-xl h-10 font-semibold text-sm">
+                    <Plus className="mr-1.5 h-3.5 w-3.5" /> Add Another Ingredient
                   </Button>
                 )}
               </div>
             </ScrollArea>
-            <div className="border-t border-stone-200 bg-stone-50 p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] z-10 relative">
-              <Button onClick={() => void handleSaveRecipe()} disabled={saving} className="w-full font-semibold">
+            <div className="border-t border-stone-100 bg-white p-3 md:p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] z-10 relative">
+              <Button onClick={() => void handleSaveRecipe()} disabled={saving} className="w-full font-bold h-10 md:h-12 text-xs md:text-sm rounded-xl">
                 {saving ? "Saving..." : (
                   <>
-                    <Save className="mr-2 h-4 w-4"/> Save Recipe Configuration
+                    <Save className="mr-1.5 h-3.5 w-3.5 md:h-4 md:w-4"/> Save Recipe Configuration
                   </>
                 )}
               </Button>
