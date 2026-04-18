@@ -161,24 +161,34 @@ export function DashboardView() {
     return { lowStockCount, criticalCount, topUsed };
   }, [ingredientUsage, ingredients]);
 
+  const motifHex = (sysConfig.primaryColor || "#1c1917").replace('#', '');
+  const motifR = parseInt(motifHex.substring(0, 2), 16) || 28;
+  const motifG = parseInt(motifHex.substring(2, 4), 16) || 25;
+  const motifB = parseInt(motifHex.substring(4, 6), 16) || 23;
+  const isLightMotif = (motifR * 299 + motifG * 587 + motifB * 114) / 1000 > 128;
+  const motifStyle = {
+    backgroundColor: sysConfig.primaryColor || "#1c1917",
+    color: isLightMotif ? "#1c1917" : "#ffffff",
+  };
+
   return (
     <div className="space-y-6">
-      <Card className="overflow-hidden border-stone-200 bg-gradient-to-r from-stone-950 via-stone-900 to-stone-800 text-white shadow-lg">
+      <Card className="overflow-hidden border-transparent shadow-lg transition-colors" style={motifStyle}>
         <CardContent className="flex flex-col gap-5 p-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-300">Control Center</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-90">Control Center</p>
             <h1 className="mt-1 text-2xl font-black tracking-tight">{greeting}, {sysConfig.adminName || "Admin"}</h1>
-            <p className="mt-2 text-sm text-stone-300">
+            <p className="mt-2 text-sm opacity-95">
               Real-time business pulse with sales, top products, and inventory signals.
             </p>
           </div>
           <div className="w-full md:w-[220px]">
-            <label className="mb-1 block text-[10px] font-black uppercase tracking-widest text-stone-300">Date Filter</label>
+            <label className="mb-1 block text-[10px] font-black uppercase tracking-widest opacity-90">Date Filter</label>
             <Select
               value={filter}
               onValueChange={(value: "today" | "weekly" | "monthly" | "custom") => setFilter(value)}
             >
-              <SelectTrigger className="w-full border-stone-700 bg-stone-900/60 text-stone-100">
+              <SelectTrigger className={`w-full transition-colors ${isLightMotif ? "bg-black/5 border-black/10 text-stone-900" : "bg-white/10 border-white/20 text-white"}`}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

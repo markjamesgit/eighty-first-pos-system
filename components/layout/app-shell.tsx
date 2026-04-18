@@ -135,24 +135,34 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Optional auto-clear on visit - but user requested manual "Mark as Read" UI too,
   // so we won't auto-clear the whole database. We just let the badge react to unreadCount.
 
+  const motifHex = (sysConfig.primaryColor || "#1c1917").replace('#', '');
+  const motifR = parseInt(motifHex.substring(0, 2), 16) || 28;
+  const motifG = parseInt(motifHex.substring(2, 4), 16) || 25;
+  const motifB = parseInt(motifHex.substring(4, 6), 16) || 23;
+  const isLightMotif = (motifR * 299 + motifG * 587 + motifB * 114) / 1000 > 128;
+  const motifStyle = {
+    backgroundColor: sysConfig.primaryColor || "#1c1917",
+    color: isLightMotif ? "#1c1917" : "#ffffff",
+  };
+
   const sidebarContent = (
     <div className="flex h-full flex-col">
-      <Link href="/profile" className="block mb-6 shrink-0 rounded-xl bg-gradient-to-r from-stone-950 via-stone-900 to-stone-800 p-4 text-white shadow-sm transition-all hover:bg-stone-900 hover:shadow-md cursor-pointer group">
+      <Link href="/profile" style={motifStyle} className="block mb-6 shrink-0 rounded-xl p-4 shadow-sm transition-all hover:shadow-md hover:opacity-90 cursor-pointer group">
         <div className="flex items-center gap-3">
           {sysConfig.logoUrl ? (
             <img src={sysConfig.logoUrl} alt="Logo" className="h-10 w-10 md:h-12 md:w-12 rounded-lg object-cover bg-white shrink-0" />
           ) : (
-            <div className="h-10 w-10 md:h-12 md:w-12 rounded-lg bg-stone-800 flex items-center justify-center shrink-0">
-              <Coffee className="h-5 w-5 text-stone-400" />
+            <div className={`h-10 w-10 md:h-12 md:w-12 rounded-lg flex items-center justify-center shrink-0 ${isLightMotif ? 'bg-black/5' : 'bg-white/10'}`}>
+              <Coffee className={`h-5 w-5 ${isLightMotif ? 'text-stone-700' : 'text-stone-200'}`} />
             </div>
           )}
           <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-stone-400 transition-colors group-hover:text-stone-300 truncate">{sysConfig.shopName || "Coffee POS"}</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] opacity-90 transition-colors truncate">{sysConfig.shopName || "Coffee POS"}</p>
             <h1 className="text-base md:text-lg font-semibold truncate leading-tight mt-0.5">{sysConfig.adminName || "System Administrator"}</h1>
           </div>
         </div>
-        <div className="mt-4 flex items-center justify-between border-t border-stone-800/50 pt-3">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-stone-500 transition-colors group-hover:text-white">
+        <div className={`mt-4 flex items-center justify-between border-t pt-3 ${isLightMotif ? 'border-black/10' : 'border-white/20'}`}>
+          <p className="text-[10px] font-bold uppercase tracking-widest opacity-95 transition-colors group-hover:opacity-100">
             View Profile →
           </p>
         </div>

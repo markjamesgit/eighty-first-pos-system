@@ -50,6 +50,7 @@ export function ProfileView() {
 
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     void loadConfig();
@@ -166,18 +167,23 @@ export function ProfileView() {
   return (
     <div className="mx-auto max-w-3xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-stone-900">System Preferences</h1>
-        <p className="mt-1 text-sm font-medium text-stone-500">Configure business details, aesthetics, and administrative access.</p>
+        <h1 className="text-2xl font-black tracking-tight text-stone-900">Settings</h1>
+        <p className="mt-1 text-sm font-medium text-stone-500">Customize your shop's appearance, details, and security.</p>
       </div>
 
       <div className="space-y-6">
         {/* Brand Identity */}
         <section className="space-y-4">
-          <div>
-             <h2 className="text-sm font-bold text-stone-900 flex items-center gap-2">
-               <Store className="h-4 w-4 text-stone-400" /> Brand Identity
-             </h2>
-             <p className="text-xs font-medium text-stone-500 mt-0.5">Define what your staff and customers see.</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
+            <div>
+               <h2 className="text-sm font-bold text-stone-900 flex items-center gap-2">
+                 <Store className="h-4 w-4 text-stone-400" /> Store Information
+               </h2>
+               <p className="text-xs font-medium text-stone-500 mt-0.5">Set down your shop's name and visual logo.</p>
+            </div>
+            <Button onClick={handleSaveConfig} disabled={savingConfig} className="h-10 md:h-8 rounded-xl md:rounded-lg px-4 text-xs font-bold w-full md:w-auto">
+               Save Identity
+            </Button>
           </div>
           <Card className="p-4 md:p-6 border-stone-100 shadow-sm rounded-2xl bg-white flex flex-col md:flex-row gap-6 md:gap-8">
             <div className="shrink-0 flex justify-center md:justify-start">
@@ -216,9 +222,9 @@ export function ProfileView() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
             <div>
                <h2 className="text-sm font-bold text-stone-900 flex items-center gap-2">
-                 <ShieldCheck className="h-4 w-4 text-stone-400" /> Security Layers
+                 <ShieldCheck className="h-4 w-4 text-stone-400" /> Backup PIN Code
                </h2>
-               <p className="text-xs font-medium text-stone-500 mt-0.5">Physical backend bypass controls.</p>
+               <p className="text-xs font-medium text-stone-500 mt-0.5">Set a secure emergency recovery PIN.</p>
             </div>
             <Button onClick={handleSaveConfig} disabled={savingConfig} className="h-10 md:h-8 rounded-xl md:rounded-lg px-4 text-xs font-bold w-full md:w-auto">Save PIN</Button>
           </div>
@@ -256,9 +262,9 @@ export function ProfileView() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
              <div>
                <h2 className="text-sm font-bold text-stone-900 flex items-center gap-2">
-                 <Palette className="h-4 w-4 text-stone-400" /> System Aesthetics
+                 <Palette className="h-4 w-4 text-stone-400" /> Theme & Appearance
                </h2>
-               <p className="text-xs font-medium text-stone-500 mt-0.5">Live layout and styling variations.</p>
+               <p className="text-xs font-medium text-stone-500 mt-0.5">Personalize the application's visual style.</p>
              </div>
              <Button onClick={() => setConfig(c => ({...c, primaryColor: DEFAULT_CONFIG.primaryColor, fontFamily: DEFAULT_CONFIG.fontFamily}))} variant="outline" className="h-10 md:h-8 rounded-xl md:rounded-lg px-4 text-xs font-bold text-stone-600 w-full md:w-auto">
                Reset Defaults
@@ -266,18 +272,32 @@ export function ProfileView() {
           </div>
           <Card className="p-4 md:p-6 border-stone-100 shadow-sm rounded-2xl bg-white space-y-6">
             <div className="space-y-2.5">
-               <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">Interface Motif</label>
+               <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">Theme Color</label>
                <div className="flex flex-wrap gap-2">
-                 {THEME_COLORS.map((color) => (
-                   <button key={color.value} onClick={() => setConfig({ ...config, primaryColor: color.value })} className={`flex gap-2 h-10 items-center justify-center rounded-xl border px-4 transition-all ${config.primaryColor === color.value ? "border-stone-900 bg-stone-900 text-white shadow-md font-bold" : "border-stone-200 bg-white text-stone-700 hover:border-stone-300 font-medium"}`}>
-                     <span className="h-3.5 w-3.5 rounded-full border border-stone-200" style={{ backgroundColor: color.value }} />
-                     {color.name}
-                   </button>
-                 ))}
+                 {THEME_COLORS.map((color) => {
+                   const isActive = config.primaryColor === color.value;
+                   const hex = color.value.replace('#', '');
+                   const r = parseInt(hex.substring(0, 2), 16);
+                   const g = parseInt(hex.substring(2, 4), 16);
+                   const b = parseInt(hex.substring(4, 6), 16);
+                   const isLight = (r * 299 + g * 587 + b * 114) / 1000 > 128;
+                   
+                   return (
+                     <button 
+                       key={color.value} 
+                       onClick={() => setConfig({ ...config, primaryColor: color.value })} 
+                       style={isActive ? { backgroundColor: color.value, borderColor: color.value, color: isLight ? '#1c1917' : '#ffffff' } : {}}
+                       className={`flex gap-2 h-10 items-center justify-center rounded-xl border px-4 transition-all ${isActive ? "shadow-md font-bold" : "border-stone-200 bg-white text-stone-700 hover:border-stone-300 font-medium"}`}
+                     >
+                       {!isActive && <span className="h-3.5 w-3.5 rounded-full border border-stone-200" style={{ backgroundColor: color.value }} />}
+                       {color.name}
+                     </button>
+                   );
+                 })}
                </div>
             </div>
             <div className="space-y-2.5">
-               <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">Typography Suite</label>
+               <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">Font Style</label>
                <div className="flex flex-wrap gap-2">
                  {FONT_FAMILIES.map((font) => (
                    <button key={font.value} onClick={() => setConfig({ ...config, fontFamily: font.value })} style={{ fontFamily: font.value }} className={`flex h-10 items-center justify-center rounded-xl border px-4 transition-all ${config.fontFamily === font.value ? "border-stone-900 bg-stone-900 text-white shadow-md font-bold" : "border-stone-200 bg-white text-stone-700 hover:border-stone-300 font-medium"}`}>
@@ -292,13 +312,13 @@ export function ProfileView() {
           </Card>
         </section>
 
-        {/* Account Credentials */}
+        {/* Login Password */}
         <section className="space-y-4">
           <div>
              <h2 className="text-sm font-bold text-stone-900 flex items-center gap-2">
-               <Lock className="h-4 w-4 text-stone-400" /> Account Credentials
+               <Lock className="h-4 w-4 text-stone-400" /> Login Password
              </h2>
-             <p className="text-xs font-medium text-stone-500 mt-0.5">Firebase master authentication bindings.</p>
+             <p className="text-xs font-medium text-stone-500 mt-0.5">Update your administrator password.</p>
           </div>
           <Card className="p-4 md:p-6 border-stone-100 shadow-sm rounded-2xl bg-white space-y-4">
             <div className="flex flex-col md:flex-row gap-4 items-end">
@@ -322,7 +342,12 @@ export function ProfileView() {
                </div>
                <div className="w-full space-y-1.5">
                  <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">Confirm Password</label>
-                 <Input type={showNewPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="h-11 rounded-xl border-stone-200" />
+                 <div className="relative">
+                   <Input type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="h-11 rounded-xl border-stone-200 pr-10" />
+                   <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400">
+                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                   </button>
+                 </div>
                </div>
                <Button disabled={updatingPassword} onClick={() => void handleUpdatePassword()} className="h-11 w-full bg-stone-900 text-white rounded-xl text-xs font-bold md:w-auto md:px-8 shrink-0">
                {updatingPassword ? "Updating..." : "Update Security"}
@@ -331,13 +356,13 @@ export function ProfileView() {
           </Card>
         </section>
 
-        {/* Danger Zone */}
+        {/* System Reset */}
         <section className="space-y-4 pt-10">
           <div>
              <h2 className="text-sm font-bold text-red-600 flex items-center gap-2">
-               <AlertTriangle className="h-4 w-4" /> Danger Zone
+               <AlertTriangle className="h-4 w-4" /> System Reset
              </h2>
-             <p className="text-xs font-medium text-stone-500 mt-0.5">Destructive administrative actions.</p>
+             <p className="text-xs font-medium text-stone-500 mt-0.5">Permanently erase business data.</p>
           </div>
           <Card className="p-4 md:p-6 border-red-100 shadow-sm rounded-2xl bg-red-50/50 space-y-4">
              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
