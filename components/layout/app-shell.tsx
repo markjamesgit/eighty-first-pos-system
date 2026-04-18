@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { subscribeToAlerts, syncAlertRecordsSafe, type SystemAlert } from "@/services/firebase/alerts";
 import { subscribeToIngredients } from "@/services/firebase/ingredients";
 import { subscribeToActiveOrders } from "@/services/firebase/orders";
+import { subscribeToAdminConfig, type AdminSystemConfig, DEFAULT_CONFIG } from "@/services/firebase/admin-config";
 import type { AlertRecord, IngredientItem, OrderRecord } from "@/lib/types/domain";
 import {
   BarChart3,
@@ -64,6 +65,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     return subscribeToActiveOrders(setActiveOrders, 100);
+  }, []);
+
+  const [sysConfig, setSysConfig] = useState<AdminSystemConfig>(DEFAULT_CONFIG);
+  useEffect(() => {
+    return subscribeToAdminConfig(setSysConfig);
   }, []);
 
   // Global Alerts Engine
@@ -130,16 +136,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // so we won't auto-clear the whole database. We just let the badge react to unreadCount.
 
   const sidebarContent = (
-    <>
-      <div className="mb-8 rounded-xl bg-stone-950 p-4 text-white">
-        <p className="text-sm uppercase tracking-[0.2em] text-stone-300">Coffee POS</p>
-        <h1 className="mt-2 text-2xl font-semibold">Admin Console</h1>
-        <div className="mt-2 h-px bg-stone-800" />
-        <p className="mt-2 truncate text-[10px] font-bold uppercase tracking-widest text-stone-500">
-          {user?.email ?? "Admin"}
-        </p>
-      </div>
-      <nav className="space-y-2 overflow-y-auto pb-24">
+    <div className="flex h-full flex-col">
+      <Link href="/profile" className="block mb-6 shrink-0 rounded-xl bg-stone-950 p-4 text-white shadow-sm transition-all hover:bg-stone-900 hover:shadow-md cursor-pointer group">
+        <div className="flex items-center gap-3">
+          {sysConfig.logoUrl ? (
+            <img src={sysConfig.logoUrl} alt="Logo" className="h-10 w-10 md:h-12 md:w-12 rounded-lg object-cover bg-white shrink-0" />
+          ) : (
+            <div className="h-10 w-10 md:h-12 md:w-12 rounded-lg bg-stone-800 flex items-center justify-center shrink-0">
+              <Coffee className="h-5 w-5 text-stone-400" />
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-stone-400 transition-colors group-hover:text-stone-300 truncate">{sysConfig.shopName || "Coffee POS"}</p>
+            <h1 className="text-base md:text-lg font-semibold truncate leading-tight mt-0.5">{sysConfig.adminName || "System Administrator"}</h1>
+          </div>
+        </div>
+        <div className="mt-4 flex items-center justify-between border-t border-stone-800/50 pt-3">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-stone-500 transition-colors group-hover:text-white">
+            View Profile →
+          </p>
+        </div>
+      </Link>
+      <nav className="space-y-1.5 flex-1 overflow-y-auto pb-24 pr-2 custom-scrollbar">
         {navigation.map((item) => {
           const Icon = item.icon;
           const active = pathname === item.href;
@@ -193,13 +211,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </details>
       </nav>
-    </>
+    </div>
   );
 
   return (
     <div className="min-h-screen bg-stone-100">
-      <div className="mx-auto grid min-h-screen max-w-[1600px] lg:grid-cols-[240px_1fr]">
-        <aside className="sticky top-0 hidden h-screen border-r border-stone-200 bg-white p-4 lg:block">
+      <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col md:grid md:grid-cols-[230px_1fr] lg:grid-cols-[250px_1fr]">
+        <aside className="sticky top-0 hidden h-[100dvh] flex-col border-r border-stone-200 bg-white p-4 md:flex shadow-[4px_0_24px_-12px_rgba(0,0,0,0.05)] z-10 transition-all">
           {sidebarContent}
           <div className="absolute bottom-4 left-4 right-4">
             <Button
@@ -214,8 +232,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
         </aside>
-        <div className="flex flex-col">
-          <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
+        <div className="flex flex-col min-w-0 flex-1">
+          <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 px-4 py-3 backdrop-blur md:hidden">
             <div className="flex items-center justify-between gap-3">
               <Button
                 type="button"
@@ -236,14 +254,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </header>
           {mobileNavOpen ? (
-            <div className="fixed inset-0 z-40 lg:hidden">
+            <div className="fixed inset-0 z-40 md:hidden">
               <button
                 type="button"
-                className="absolute inset-0 bg-black/30"
+                className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm transition-opacity"
                 aria-label="Close navigation"
                 onClick={() => setMobileNavOpen(false)}
               />
-              <aside className="absolute left-0 top-0 h-full w-[85%] max-w-[320px] border-r border-stone-200 bg-white p-4 shadow-xl">
+              <aside className="absolute left-0 top-0 flex h-[100dvh] w-[85%] max-w-[320px] flex-col border-r border-stone-100 bg-white p-4 shadow-2xl transition-transform">
                 {sidebarContent}
                 <div className="absolute bottom-4 left-4 right-4">
                   <Button

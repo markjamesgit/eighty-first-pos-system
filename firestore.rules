@@ -92,5 +92,10 @@ service cloud.firestore {
     match /ingredient_stock_history/{doc} {
       allow read, write: if isAdmin();
     }
+
+    match /admin/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }

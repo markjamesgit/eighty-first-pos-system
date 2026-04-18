@@ -214,12 +214,12 @@ export function ReportsView() {
       </Card>
 
       <Tabs defaultValue="sales" className="w-full">
-        <TabsList className="mb-6 inline-flex w-full flex-wrap gap-1 rounded-2xl bg-stone-100/50 p-1 md:w-auto">
-          <TabsTrigger value="sales" className="flex items-center gap-2 px-6 h-10 rounded-xl font-bold text-xs data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all shadow-sm">
+        <TabsList className="mb-6 flex w-full gap-1 rounded-2xl bg-stone-100/50 p-1 md:inline-flex md:w-auto">
+          <TabsTrigger value="sales" className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-6 h-10 rounded-xl font-bold text-xs data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all shadow-sm">
             <TrendingUp className="h-4 w-4" />
             Revenue Stream
           </TabsTrigger>
-          <TabsTrigger value="ingredients" className="flex items-center gap-2 px-6 h-10 rounded-xl font-bold text-xs data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all">
+          <TabsTrigger value="ingredients" className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-6 h-10 rounded-xl font-bold text-xs data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all">
             <FlaskConical className="h-4 w-4" />
             Consumption
           </TabsTrigger>

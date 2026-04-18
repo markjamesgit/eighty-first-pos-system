@@ -44,6 +44,7 @@ export function PosView() {
   const [modifiers, setModifiers] = useState<any[]>([]);
   const [mtLoading, setMtLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("All");
+  const [mobileTab, setMobileTab] = useState<"products" | "cart">("products");
   const [configProduct, setConfigProduct] = useState<Product | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [customerName, setCustomerName] = useState("");
@@ -123,8 +124,29 @@ export function PosView() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-4.5rem)] gap-3 md:grid md:h-auto md:min-h-[calc(100vh-6rem)] md:grid-cols-[1fr_320px] lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_400px] md:gap-5 lg:gap-6 mt-1 md:mt-0">
-      <div className="flex flex-1 flex-col space-y-2 lg:space-y-3 overflow-hidden md:h-[calc(100vh-6rem)] border border-stone-100 md:border-none rounded-2xl md:rounded-none bg-white md:bg-transparent shadow-sm md:shadow-none">
+    <div className="flex flex-col h-[calc(100dvh-4.5rem)] md:h-[calc(100vh-6rem)] gap-2 md:gap-0 mt-1 md:mt-0">
+      <div className="flex md:hidden bg-stone-100/50 p-1 rounded-2xl gap-1 shrink-0 w-full mb-1">
+        <Button 
+          variant={mobileTab === "products" ? "default" : "ghost"} 
+          className={cn("flex-1 rounded-xl h-10 font-bold text-xs transition-all", mobileTab === "products" ? "bg-stone-900 text-white shadow-sm" : "")}
+          onClick={() => setMobileTab("products")}
+        >
+          Menu Products
+        </Button>
+        <Button 
+          variant={mobileTab === "cart" ? "default" : "ghost"} 
+          className={cn("flex-1 rounded-xl h-10 font-bold text-xs relative transition-all", mobileTab === "cart" ? "bg-stone-900 text-white shadow-sm" : "")}
+          onClick={() => setMobileTab("cart")}
+        >
+          Current Order
+          {totalItems > 0 && (
+            <Badge className="absolute -top-2 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-red-600 border border-white text-[10px] pointer-events-none shadow-sm">{totalItems}</Badge>
+          )}
+        </Button>
+      </div>
+
+      <div className="flex-1 flex flex-col md:grid md:grid-cols-[1fr_300px] lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_400px] md:gap-5 lg:gap-6 overflow-hidden">
+        <div className={cn("flex-col space-y-2 lg:space-y-3 overflow-hidden min-h-0 md:h-full border border-stone-100 md:border-none rounded-2xl md:rounded-none bg-white md:bg-transparent shadow-sm md:shadow-none", mobileTab === "products" ? "flex flex-1" : "hidden md:flex")}>
         <div className="sticky top-0 z-10 bg-stone-100/80 backdrop-blur-sm pb-2 pt-1 border-b border-stone-200/50">
           <ScrollArea className="w-full whitespace-nowrap rounded-lg border border-stone-200 bg-white p-1">
             <div className="flex w-max space-x-1 p-0.5">
@@ -210,7 +232,7 @@ export function PosView() {
         </div>
       </div>
 
-      <Card className="flex h-[42dvh] md:h-[calc(100vh-6rem)] shrink-0 flex-col overflow-hidden rounded-t-3xl rounded-b-none md:rounded-2xl border-stone-100 border-x-0 border-b-0 md:border-x md:border-b bg-white shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] md:shadow-sm">
+      <Card className={cn("flex-col overflow-hidden rounded-t-3xl rounded-b-none md:rounded-2xl border-stone-100 border-x-0 border-b-0 md:border-x md:border-b bg-white shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] md:shadow-sm shrink-0 md:h-full", mobileTab === "cart" ? "flex flex-1 h-full shadow-none w-full border-x border-b rounded-2xl" : "hidden md:flex")}>
         <CardHeader className="flex flex-row items-center justify-between border-b border-stone-100 bg-white px-4 py-3 sm:px-5 sm:py-4">
           <div className="min-w-0">
             <CardTitle className="flex items-center gap-2 text-sm sm:text-base font-bold text-stone-900">
@@ -395,6 +417,7 @@ export function PosView() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

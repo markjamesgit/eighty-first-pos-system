@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 import { listProducts } from "@/services/firebase/products";
 import { listMaintenanceItems } from "@/services/firebase/maintenance";
@@ -38,6 +39,7 @@ export function RecipesView() {
   const [recipes, setRecipes] = useState<ProductRecipe[]>([]);
 
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<"items" | "recipe">("items");
   const [currentRecipeItems, setCurrentRecipeItems] = useState<(Omit<ProductRecipeItem, "qtyUsed"> & { qtyUsed: string })[]>([]);
 
   const loadData = async () => {
@@ -182,8 +184,27 @@ export function RecipesView() {
   }, {} as Record<string, RecipeTarget[]>);
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-5rem)] gap-4 md:grid md:h-auto md:min-h-[calc(100vh-6rem)] md:grid-cols-[280px_1fr] lg:grid-cols-[300px_1fr] xl:grid-cols-[340px_1fr] md:gap-5 lg:gap-6 mt-1 md:mt-0">
-      <Card className="flex h-[35dvh] md:h-[calc(100vh-6rem)] flex-col overflow-hidden md:rounded-2xl border-stone-100 border-x-0 border-t-0 md:border bg-white shadow-sm shrink-0 md:shrink relative rounded-b-3xl md:rounded-b-2xl shadow-[0_10px_20px_-15px_rgba(0,0,0,0.1)] md:shadow-sm z-10">
+    <div className="flex flex-col h-[calc(100dvh-5rem)] md:h-[calc(100vh-6rem)] gap-2 md:gap-0 mt-1 md:mt-0">
+      <div className="flex md:hidden bg-stone-100/50 p-1 mb-1 rounded-2xl gap-1 shrink-0 w-full">
+        <Button 
+          variant={mobileTab === "items" ? "default" : "ghost"} 
+          className={cn("flex-1 rounded-xl h-10 font-bold text-xs transition-all", mobileTab === "items" ? "bg-stone-900 text-white shadow-sm" : "")}
+          onClick={() => setMobileTab("items")}
+        >
+          Menu Items
+        </Button>
+        <Button 
+          variant={mobileTab === "recipe" ? "default" : "ghost"} 
+          className={cn("flex-1 rounded-xl h-10 font-bold text-xs transition-all", mobileTab === "recipe" ? "bg-stone-900 text-white shadow-sm" : "")}
+          onClick={() => setMobileTab("recipe")}
+          disabled={!selectedTargetId}
+        >
+          Recipe Content
+        </Button>
+      </div>
+
+      <div className="flex-1 flex flex-col md:grid md:grid-cols-[260px_1fr] lg:grid-cols-[300px_1fr] xl:grid-cols-[340px_1fr] md:gap-5 lg:gap-6 overflow-hidden">
+        <Card className={cn("flex-col overflow-hidden md:rounded-2xl border-stone-100 border-x-0 border-t-0 md:border bg-white shadow-sm shrink-0 relative rounded-b-3xl md:rounded-b-2xl shadow-[0_10px_20px_-15px_rgba(0,0,0,0.1)] md:shadow-sm z-10 md:h-full", mobileTab === "items" ? "flex flex-1 rounded-2xl border-x border-t" : "hidden md:flex")}>
         <CardHeader className="bg-white border-b border-stone-100 pb-3 md:pb-4 px-4 md:px-5 pt-4">
           <CardTitle className="text-base md:text-lg font-bold text-stone-900 tracking-tight">Menu Items</CardTitle>
           <CardDescription>Select an item to assign ingredients.</CardDescription>
@@ -199,7 +220,10 @@ export function RecipesView() {
                     return (
                       <button
                         key={item.id}
-                        onClick={() => setSelectedTargetId(item.id)}
+                        onClick={() => {
+                          setSelectedTargetId(item.id);
+                          setMobileTab("recipe");
+                        }}
                         className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition-colors ${
                           selectedTargetId === item.id
                             ? "bg-stone-900 text-white shadow-md shadow-stone-900/10"
@@ -222,7 +246,7 @@ export function RecipesView() {
         </ScrollArea>
       </Card>
 
-      <Card className="flex flex-1 flex-col h-[40dvh] md:h-[calc(100vh-6rem)] overflow-hidden rounded-t-3xl rounded-b-none md:rounded-2xl border border-stone-100 md:border-x border-b-0 md:border-b border-x-0 bg-white shadow-sm shrink-0 md:shrink md:max-h-none">
+      <Card className={cn("flex-col overflow-hidden rounded-t-3xl rounded-b-none md:rounded-2xl border border-stone-100 md:border-x border-b-0 md:border-b border-x-0 bg-white shadow-sm shrink-0 md:h-full", mobileTab === "recipe" ? "flex flex-1 rounded-2xl border-x border-b" : "hidden md:flex")}>
         {!selectedTarget ? (
           <div className="flex h-full flex-col items-center justify-center text-center p-8 bg-white border border-stone-100 rounded-2xl m-4 border-dashed">
             <div className="rounded-2xl bg-stone-50 border border-stone-100 p-4 mb-4">
@@ -337,6 +361,7 @@ export function RecipesView() {
           </>
         )}
       </Card>
+      </div>
     </div>
   );
 }

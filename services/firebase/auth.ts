@@ -3,6 +3,7 @@
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
   type User,
 } from "firebase/auth";
@@ -56,6 +57,11 @@ export async function loginAdmin(email: string, password: string) {
 
 export function subscribeToAuthState(callback: (user: User | null) => void) {
   return onAuthStateChanged(getFirebaseAuth(), callback);
+}
+
+export async function resetAdminPassword(email: string) {
+  if (!email) throw new Error("Email address is required.");
+  await sendPasswordResetEmail(getFirebaseAuth(), email);
 }
 
 export async function getCurrentAdminProfile(uid: string): Promise<AppUser | null> {

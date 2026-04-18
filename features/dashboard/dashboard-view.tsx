@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { listIngredients } from "@/services/firebase/ingredients";
 import { listIngredientUsageForRange } from "@/services/firebase/orders";
 import { getSalesSummaryByDateRange, getSalesSummaryByFilter } from "@/services/firebase/sales";
+import { subscribeToAdminConfig, type AdminSystemConfig, DEFAULT_CONFIG } from "@/services/firebase/admin-config";
 import type { SalesSummary } from "@/lib/types/domain";
 
 export function DashboardView() {
@@ -31,6 +32,18 @@ export function DashboardView() {
   const [ingredientUsage, setIngredientUsage] = useState<
     Array<{ ingredientName: string; quantityChange: number }>
   >([]);
+  const [sysConfig, setSysConfig] = useState<AdminSystemConfig>(DEFAULT_CONFIG);
+
+  useEffect(() => {
+    return subscribeToAdminConfig(setSysConfig);
+  }, []);
+
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  }, []);
 
   function getRangeForFilter(rangeFilter: "today" | "weekly" | "monthly") {
     const now = new Date();
@@ -154,7 +167,7 @@ export function DashboardView() {
         <CardContent className="flex flex-col gap-5 p-6 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-300">Control Center</p>
-            <h1 className="mt-1 text-2xl font-black tracking-tight">Sales Dashboard</h1>
+            <h1 className="mt-1 text-2xl font-black tracking-tight">{greeting}, {sysConfig.adminName || "Admin"}</h1>
             <p className="mt-2 text-sm text-stone-300">
               Real-time business pulse with sales, top products, and inventory signals.
             </p>
