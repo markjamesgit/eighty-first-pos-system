@@ -3,10 +3,13 @@ import { LoginForm } from "@/features/auth/login-form";
 export default function LoginPage() {
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-stone-50 px-4 py-10 selection:bg-stone-900 selection:text-white">
-      {/* Minimalist Abstract Background Pattern */}
-      <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-stone-200/50 via-stone-50/20 to-transparent" />
-        <div className="absolute h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+      {/* Clean Aesthetic Minimal Background */}
+      <div className="pointer-events-none absolute inset-0 z-0 bg-[#fafaf9] overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-[60vh] bg-gradient-to-b from-stone-200/40 via-stone-100/10 to-transparent" />
+        
+        <div className="absolute -top-[10%] -left-[5%] w-[40%] h-[40%] bg-stone-300/20 rounded-full blur-[120px]" />
+        <div className="absolute top-[20%] -right-[10%] w-[45%] h-[50%] bg-amber-100/20 rounded-full blur-[140px]" />
+        <div className="absolute -bottom-[20%] left-[10%] w-[50%] h-[50%] bg-orange-50/30 rounded-full blur-[120px]" />
       </div>
 
       <div className="relative z-10 grid w-full max-w-5xl gap-10 lg:grid-cols-[1.2fr_0.8fr]">

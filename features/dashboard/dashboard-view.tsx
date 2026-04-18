@@ -194,14 +194,14 @@ export function DashboardView() {
         </CardContent>
       </Card>
       {filter === "custom" && (
-        <div className="grid gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-4 md:grid-cols-2">
+        <div className="grid grid-cols-2 gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-4">
           <div className="space-y-1">
             <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Start date</label>
-            <Input type="date" value={customStartDate} onChange={(event) => setCustomStartDate(event.target.value)} />
+            <Input type="date" value={customStartDate} onChange={(event) => setCustomStartDate(event.target.value)} className="bg-white" />
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">End date</label>
-            <Input type="date" value={customEndDate} onChange={(event) => setCustomEndDate(event.target.value)} />
+            <Input type="date" value={customEndDate} onChange={(event) => setCustomEndDate(event.target.value)} className="bg-white" />
           </div>
         </div>
       )}

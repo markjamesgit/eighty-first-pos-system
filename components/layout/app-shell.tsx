@@ -137,7 +137,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const sidebarContent = (
     <div className="flex h-full flex-col">
-      <Link href="/profile" className="block mb-6 shrink-0 rounded-xl bg-stone-950 p-4 text-white shadow-sm transition-all hover:bg-stone-900 hover:shadow-md cursor-pointer group">
+      <Link href="/profile" className="block mb-6 shrink-0 rounded-xl bg-gradient-to-r from-stone-950 via-stone-900 to-stone-800 p-4 text-white shadow-sm transition-all hover:bg-stone-900 hover:shadow-md cursor-pointer group">
         <div className="flex items-center gap-3">
           {sysConfig.logoUrl ? (
             <img src={sysConfig.logoUrl} alt="Logo" className="h-10 w-10 md:h-12 md:w-12 rounded-lg object-cover bg-white shrink-0" />
@@ -215,8 +215,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-stone-100">
-      <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col md:grid md:grid-cols-[230px_1fr] lg:grid-cols-[250px_1fr]">
+    <div className="min-h-screen bg-stone-50 relative">
+      {/* Clean Aesthetic Minimal Background */}
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[#fafaf9] overflow-hidden">
+        {/* Soft top gradient sweep */}
+        <div className="absolute inset-x-0 top-0 h-[60vh] bg-gradient-to-b from-stone-200/40 via-stone-100/10 to-transparent" />
+
+        {/* Organic floating blur orbs for a premium aesthetic vibe */}
+        <div className="absolute -top-[10%] -left-[5%] w-[40%] h-[40%] bg-stone-300/20 rounded-full blur-[120px]" />
+        <div className="absolute top-[20%] -right-[10%] w-[45%] h-[50%] bg-amber-100/20 rounded-full blur-[140px]" />
+        <div className="absolute -bottom-[20%] left-[10%] w-[50%] h-[50%] bg-orange-50/30 rounded-full blur-[120px]" />
+      </div>
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-[1600px] flex-col md:grid md:grid-cols-[230px_1fr] lg:grid-cols-[250px_1fr]">
         <aside className="sticky top-0 hidden h-[100dvh] flex-col border-r border-stone-200 bg-white p-4 md:flex shadow-[4px_0_24px_-12px_rgba(0,0,0,0.05)] z-10 transition-all">
           {sidebarContent}
           <div className="absolute bottom-4 left-4 right-4 bg-white pb-1 pt-2">

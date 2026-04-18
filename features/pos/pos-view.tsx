@@ -11,7 +11,7 @@ import { createOrder } from "@/services/firebase/orders";
 import { usePosStore, getCartSubtotal } from "@/store/pos-store";
 import { useProductsStore } from "@/store/products-store";
 import { listMaintenanceItems } from "@/services/firebase/maintenance";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -147,13 +147,16 @@ export function PosView() {
 
       <div className="flex-1 flex flex-col md:grid md:grid-cols-[1fr_300px] lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_400px] md:gap-5 lg:gap-6 overflow-hidden">
         <div className={cn("flex-col space-y-2 lg:space-y-3 overflow-hidden min-h-0 md:h-full border border-stone-100 md:border-none rounded-2xl md:rounded-none bg-white md:bg-transparent shadow-sm md:shadow-none", mobileTab === "products" ? "flex flex-1" : "hidden md:flex")}>
-        <div className="sticky top-0 z-10 bg-stone-100/80 backdrop-blur-sm pb-2 pt-1 border-b border-stone-200/50">
-          <ScrollArea className="w-full whitespace-nowrap rounded-lg border border-stone-200 bg-white p-1">
-            <div className="flex w-max space-x-1 p-0.5">
+        <div className="sticky top-0 z-10 bg-white/90 md:bg-stone-50/90 backdrop-blur-md pt-3 pb-2 border-b border-stone-100">
+          <div className="w-full overflow-x-auto no-scrollbar px-2 pb-1">
+            <div className="flex w-max space-x-1.5">
               <Button
                 variant={activeTab === "All" ? "default" : "ghost"}
                 size="sm"
-                className="rounded-md font-bold px-4"
+                className={cn(
+                  "rounded-full font-bold px-5 h-8 text-xs shrink-0 transition-all",
+                  activeTab === "All" ? "bg-stone-900 text-white shadow-sm" : "text-stone-500 hover:text-stone-900 hover:bg-stone-200/50"
+                )}
                 onClick={() => setActiveTab("All")}
               >
                 All Products
@@ -163,15 +166,17 @@ export function PosView() {
                   key={category}
                   variant={activeTab === category ? "default" : "ghost"}
                   size="sm"
-                  className="rounded-md font-bold px-4"
+                  className={cn(
+                    "rounded-full font-bold px-5 h-8 text-xs shrink-0 transition-all",
+                    activeTab === category ? "bg-stone-900 text-white shadow-sm" : "text-stone-500 hover:text-stone-900 hover:bg-stone-200/50"
+                  )}
                   onClick={() => setActiveTab(category)}
                 >
                   {category}
                 </Button>
               ))}
             </div>
-            <ScrollBar orientation="horizontal" className="hidden" />
-          </ScrollArea>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-2 pb-2 md:pb-20 md:pr-2 custom-scrollbar">
