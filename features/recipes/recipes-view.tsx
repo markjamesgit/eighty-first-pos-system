@@ -38,7 +38,7 @@ export function RecipesView() {
   const [recipes, setRecipes] = useState<ProductRecipe[]>([]);
 
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
-  const [currentRecipeItems, setCurrentRecipeItems] = useState<ProductRecipeItem[]>([]);
+  const [currentRecipeItems, setCurrentRecipeItems] = useState<(Omit<ProductRecipeItem, "qtyUsed"> & { qtyUsed: string })[]>([]);
 
   const loadData = async () => {
     try {
@@ -82,7 +82,7 @@ export function RecipesView() {
     if (selectedTargetId) {
       const existing = recipes.find((r) => r.productId === selectedTargetId);
       if (existing) {
-        setCurrentRecipeItems(existing.items);
+        setCurrentRecipeItems(existing.items.map(i => ({ ...i, qtyUsed: String(i.qtyUsed) })));
       } else {
         setCurrentRecipeItems([]);
       }
@@ -102,13 +102,13 @@ export function RecipesView() {
       {
         ingredientId: firstIng.id,
         ingredientName: firstIng.name,
-        qtyUsed: 1,
+        qtyUsed: "1",
         unit: firstIng.unit,
       },
     ]);
   };
 
-  const handleUpdateIngredient = (index: number, field: keyof ProductRecipeItem, value: any) => {
+  const handleUpdateIngredient = (index: number, field: string, value: any) => {
     setCurrentRecipeItems((prev) => {
       const clone = [...prev];
       if (field === "ingredientId") {
@@ -146,7 +146,7 @@ export function RecipesView() {
       return;
     }
 
-    if (currentRecipeItems.some((item) => item.qtyUsed <= 0)) {
+    if (currentRecipeItems.some((item) => Number(item.qtyUsed) <= 0)) {
       toast.error("All ingredients must have a quantity greater than 0.");
       return;
     }
@@ -156,7 +156,10 @@ export function RecipesView() {
       await saveProductRecipe({
         productId: selectedTarget.id,
         productName: selectedTarget.name,
-        items: currentRecipeItems,
+        items: currentRecipeItems.map(i => ({
+          ...i,
+          qtyUsed: Number(i.qtyUsed)
+        })),
       });
       toast.success("Recipe saved successfully.");
       void loadData(); // Reload to update recipes mapping
@@ -277,17 +280,17 @@ export function RecipesView() {
                         <Input
                           type="text"
                           min="0"
-                          step="0.1"
-                          className="h-10 rounded-xl shadow-none pr-12 text-sm font-semibold text-right"
-                          value={item.qtyUsed === 0 ? "" : item.qtyUsed}
+                          step="0.01"
+                          className="h-10 rounded-xl shadow-none pr-12 text-sm font-semibold"
+                          value={item.qtyUsed}
                           onChange={(e) =>
                             handleUpdateIngredient(
                               index,
                               "qtyUsed",
-                              e.target.value === "" ? 0 : Number(e.target.value),
+                              e.target.value
                             )
                           }
-                          placeholder="0"
+                          placeholder="0.00"
                         />
                         <span className="absolute inset-y-0 right-3 flex items-center text-xs text-stone-400 pointer-events-none">
                           {item.unit}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Edit2 } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -104,8 +104,13 @@ export function IngredientDialog({ onSaved, ingredient, triggerLabel }: Ingredie
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {ingredient ? (
-          <Button variant="ghost" size="icon" className="h-9 w-9 text-stone-300 hover:text-stone-900 transition-colors rounded-xl bg-white border border-stone-200 shadow-sm">
-            <Edit2 className="h-4 w-4" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 text-stone-300 hover:text-stone-900 hover:bg-stone-50 rounded-xl transition-colors bg-white"
+          >
+            <Pencil className="h-4 w-4" />
+            <span className="sr-only">Edit</span>
           </Button>
         ) : (
           <Button className="rounded-xl px-5 font-semibold shadow-sm">
@@ -153,7 +158,7 @@ export function IngredientDialog({ onSaved, ingredient, triggerLabel }: Ingredie
                   value={form.stockQty}
                   onChange={(e) => setForm((p) => ({ ...p, stockQty: e.target.value }))}
                   placeholder="0"
-                  className="h-10 rounded-xl border-stone-200 shadow-none text-right"
+                  className="h-10 rounded-xl border-stone-200 shadow-none"
                 />
               </div>
             </div>
@@ -166,7 +171,7 @@ export function IngredientDialog({ onSaved, ingredient, triggerLabel }: Ingredie
                 value={form.lowStockThreshold}
                 onChange={(e) => setForm((p) => ({ ...p, lowStockThreshold: e.target.value }))}
                 placeholder="0"
-                className="h-10 rounded-xl border-stone-200 shadow-none text-right"
+                className="h-10 rounded-xl border-stone-200 shadow-none"
               />
               <p className="text-[10px] font-medium text-stone-400">System will alert you when stock falls below this level.</p>
             </div>

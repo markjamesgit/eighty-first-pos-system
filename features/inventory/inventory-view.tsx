@@ -102,6 +102,11 @@ export function InventoryView() {
   async function handleAdjustment(ingredient: IngredientItem, quantityDelta: number) {
     if (quantityDelta === 0) return;
 
+    if (ingredient.stockQty + quantityDelta < 0) {
+      toast.error(`Invalid adjustment: Cannot reduce stock below 0.`);
+      return;
+    }
+
     try {
       await adjustStock(ingredient, {
         ingredientId: ingredient.id,
@@ -231,7 +236,6 @@ export function InventoryView() {
               ) : (
                 paginatedIngredients.map((item) => {
                   const isLow = item.stockQty <= item.lowStockThreshold;
-                  const adjValue = adjustments[item.id] || 0;
                   const usage = getUsageSummary(item.id);
                   return (
                     <article
@@ -270,39 +274,11 @@ export function InventoryView() {
                         </div>
                       </div>
                       <p className="text-xs font-medium text-stone-500">{usage || "No products linked"}</p>
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center rounded-xl border border-stone-200 bg-white p-0.5 shadow-sm ring-1 ring-stone-100/50">
-                          <button
-                            onClick={() => {
-                              const currentAdj = adjustments[item.id] || 0;
-                              setAdjustments((p) => ({ ...p, [item.id]: currentAdj - 1 }));
-                            }}
-                            className="flex h-8 w-8 items-center justify-center text-stone-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                          >
-                            <Minus className="h-3.5 w-3.5" />
-                          </button>
-                          <span className={cn("w-10 text-center text-xs font-black", adjValue !== 0 ? "text-stone-950" : "text-stone-200")}>
-                            {adjValue > 0 ? `+${adjValue}` : adjValue}
-                          </span>
-                          <button
-                            onClick={() => {
-                              const currentAdj = adjustments[item.id] || 0;
-                              setAdjustments((p) => ({ ...p, [item.id]: currentAdj + 1 }));
-                            }}
-                            className="flex h-8 w-8 items-center justify-center text-stone-400 transition-colors hover:bg-emerald-50 hover:text-emerald-600"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="default"
-                          disabled={adjValue === 0 || !item.isActive}
-                          onClick={() => void handleAdjustment(item, adjValue)}
-                          className="h-9 bg-stone-900 px-3 text-[10px] font-bold uppercase tracking-wider text-stone-50 shadow-sm transition-all hover:bg-stone-800 rounded-xl"
-                        >
-                          Commit
-                        </Button>
+                      <div className="rounded-xl border border-stone-100 bg-stone-50/50 px-3 py-2 flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-stone-500">Alert Threshold</span>
+                        <Badge variant="outline" className="border-stone-200 bg-white text-[10px] font-bold uppercase tracking-wider text-stone-600 shadow-sm px-2">
+                          &le; {item.lowStockThreshold} {item.unit}
+                        </Badge>
                       </div>
                       <div className="flex justify-end gap-2">
                         <IngredientDialog ingredient={item} onSaved={fetchData} />
@@ -329,7 +305,7 @@ export function InventoryView() {
                     <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Unit</TableHead>
                     <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Status</TableHead>
                     <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Usage context</TableHead>
-                    <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Adjustments</TableHead>
+                    <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Threshold</TableHead>
                     <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 md:pr-8">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -348,7 +324,6 @@ export function InventoryView() {
                   ) : (
                     paginatedIngredients.map((item) => {
                       const isLow = item.stockQty <= item.lowStockThreshold;
-                      const adjValue = adjustments[item.id] || 0;
                       const usage = getUsageSummary(item.id);
 
                       return (
@@ -388,40 +363,9 @@ export function InventoryView() {
                             </p>
                           </TableCell>
                           <TableCell className="pl-4">
-                            <div className="flex items-center justify-start gap-2">
-                              <div className="flex items-center rounded-xl border border-stone-200 bg-white p-0.5 shadow-sm overflow-hidden ring-1 ring-stone-100/50">
-                                <button
-                                  onClick={() => {
-                                    const currentAdj = adjustments[item.id] || 0;
-                                    setAdjustments((p) => ({ ...p, [item.id]: currentAdj - 1 }));
-                                  }}
-                                  className="h-8 w-8 flex items-center justify-center text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                                >
-                                  <Minus className="h-3.5 w-3.5" />
-                                </button>
-                                <span className={cn("w-10 text-center text-xs font-black", adjValue !== 0 ? "text-stone-950" : "text-stone-200")}>
-                                  {adjValue > 0 ? `+${adjValue}` : adjValue}
-                                </span>
-                                <button
-                                  onClick={() => {
-                                    const currentAdj = adjustments[item.id] || 0;
-                                    setAdjustments((p) => ({ ...p, [item.id]: currentAdj + 1 }));
-                                  }}
-                                  className="h-8 w-8 flex items-center justify-center text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
-                                >
-                                  <Plus className="h-3.5 w-3.5" />
-                                </button>
-                              </div>
-                              <Button
-                                size="sm"
-                                variant="default"
-                                disabled={adjValue === 0 || !item.isActive}
-                                onClick={() => void handleAdjustment(item, adjValue)}
-                                className="h-9 px-3 text-[10px] font-bold uppercase tracking-wider bg-stone-900 text-stone-50 hover:bg-stone-800 transition-all rounded-xl active:scale-95 shadow-sm"
-                              >
-                                Commit
-                              </Button>
-                            </div>
+                            <Badge variant="outline" className="border-stone-200 bg-stone-50 text-[10px] font-bold uppercase tracking-wider text-stone-500 shadow-sm h-6 px-2.5">
+                              Alert &le; {item.lowStockThreshold} {item.unit}
+                            </Badge>
                           </TableCell>
                           <TableCell className="pl-4 pr-6 md:pr-8">
                             <div className="flex justify-start gap-2">

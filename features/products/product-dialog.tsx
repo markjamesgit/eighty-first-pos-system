@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Upload } from "lucide-react";
+import { Upload, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import type { Product, ProductFormValues } from "@/lib/types/domain";
 import { Button } from "@/components/ui/button";
@@ -222,12 +222,23 @@ export function ProductDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant={product ? "outline" : "default"}
-          className="rounded-xl px-5 font-semibold shadow-sm"
-        >
-          {triggerLabel}
-        </Button>
+        {product ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 text-stone-300 hover:text-stone-900 hover:bg-stone-50 rounded-xl transition-colors bg-white"
+          >
+            <Pencil className="h-4 w-4" />
+            <span className="sr-only">Edit</span>
+          </Button>
+        ) : (
+          <Button
+            variant="default"
+            className="rounded-xl px-5 font-semibold shadow-sm"
+          >
+            {triggerLabel}
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-h-[90dvh] overflow-y-auto rounded-3xl border-stone-100 p-0 sm:max-w-3xl shadow-xl">
         <DialogHeader>

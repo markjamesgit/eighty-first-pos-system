@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { Search, Trash2, Plus, Sparkles, Layers, Box, Settings2, SlidersHorizontal, Image as ImageIcon, Upload } from "lucide-react";
+import { Search, Trash2, Plus, Sparkles, Layers, Box, Settings2, SlidersHorizontal, Image as ImageIcon, Upload, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -12,6 +12,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
@@ -319,9 +320,9 @@ export function MaintenanceView() {
                       ) : null}
                       <div className="flex items-center justify-end gap-2 pt-1 border-t border-stone-50">
                         <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-9 rounded-xl border-stone-100 px-4 font-bold text-xs shadow-sm bg-white"
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 text-stone-300 hover:text-stone-900 hover:bg-stone-50 rounded-xl transition-colors bg-white"
                           onClick={() => {
                             setEditingId(item.id!);
                             setForm({
@@ -334,7 +335,8 @@ export function MaintenanceView() {
                             setFormOpen(true);
                           }}
                         >
-                          Edit
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">Edit</span>
                         </Button>
                         <Button
                           variant="ghost"
@@ -430,9 +432,9 @@ export function MaintenanceView() {
                           <TableCell className="pl-4 pr-6 md:pr-8">
                             <div className="flex justify-start gap-2">
                               <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-9 rounded-xl border-stone-100 px-4 font-bold text-xs shadow-sm bg-white"
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 text-stone-300 hover:text-stone-900 hover:bg-stone-50 rounded-xl transition-colors bg-white"
                                 onClick={() => {
                                   setEditingId(item.id!);
                                   setForm({
@@ -445,7 +447,8 @@ export function MaintenanceView() {
                                   setFormOpen(true);
                                 }}
                               >
-                                Edit
+                                <Pencil className="h-4 w-4" />
+                                <span className="sr-only">Edit</span>
                               </Button>
                               <Button
                                 variant="ghost"
@@ -493,135 +496,122 @@ export function MaintenanceView() {
           }
         }}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl md:rounded-3xl border-stone-100 p-0 sm:max-w-2xl bg-white shadow-xl">
-          <DialogHeader>
-            <div className="border-b border-stone-100 bg-white px-6 py-6 md:px-8">
-              <DialogTitle className="text-xl font-bold text-stone-900">
-                {editingId ? "Edit Entry" : `Add ${sectionConfig.title} Entry`}
-              </DialogTitle>
-              <DialogDescription className="mt-1 text-sm font-medium text-stone-500">
-                Define the properties for this maintenance record.
-              </DialogDescription>
-            </div>
+        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl border-stone-100 p-0 sm:max-w-3xl bg-white shadow-xl">
+          <DialogHeader className="bg-white border-b border-stone-100 px-6 py-5">
+            <DialogTitle className="text-lg font-bold text-stone-900">
+              {editingId ? "Edit Entry" : `Add ${sectionConfig.title} Entry`}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-stone-500 mt-1">
+              Define the properties for this maintenance record.
+            </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-6 px-6 py-6 md:px-8 md:grid-cols-[1fr_200px]">
+          <div className="grid gap-6 px-6 py-6 md:grid-cols-[1fr_220px]">
             <div className="space-y-5">
-              <div className="space-y-4 rounded-xl border border-stone-100 bg-stone-50/30 p-5">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Identity Details</p>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-stone-700 uppercase tracking-tight">Name</label>
-                  <Input
-                    placeholder="e.g. Premium Blend"
-                    className="h-10 rounded-xl border-stone-100 bg-white shadow-sm focus-visible:ring-stone-950 font-medium"
-                    value={form.name}
-                    onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-stone-700 uppercase tracking-tight">Description</label>
-                  <Input
-                    placeholder="Identification notes..."
-                    className="h-10 rounded-xl border-stone-100 bg-white shadow-sm focus-visible:ring-stone-950 font-medium"
-                    value={form.description}
-                    onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                  />
-                </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Name</label>
+                <Input
+                  placeholder="e.g. Premium Blend"
+                  className="h-10 rounded-xl border-stone-200 shadow-none"
+                  value={form.name}
+                  onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Description</label>
+                <Input
+                  placeholder="Identification notes..."
+                  className="h-10 rounded-xl border-stone-200 shadow-none"
+                  value={form.description}
+                  onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                />
               </div>
 
-              <div className="rounded-xl border border-stone-100 bg-stone-50/30 p-5">
-                <p className="mb-4 text-[10px] font-bold uppercase tracking-widest text-stone-400">Configuration</p>
-                {maintenanceSection !== "modifiers" && maintenanceSection !== "categories" ? (
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-stone-700 uppercase tracking-tight">Price Delta</label>
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      className="h-10 rounded-xl border-stone-100 bg-white shadow-sm focus-visible:ring-stone-950 font-bold"
-                      value={form.price}
-                      onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
-                    />
-                  </div>
-                ) : (
-                  <p className="text-xs font-medium text-stone-500 italic">Financial metadata is not applicable for this registry.</p>
-                )}
-                <div className="mt-4 space-y-2">
-                  <label className="text-xs font-bold text-stone-700 uppercase tracking-tight">State</label>
-                  <Select
-                    value={form.isActive ? "active" : "inactive"}
-                    onValueChange={(value) =>
-                      setForm((p) => ({ ...p, isActive: value === "active" }))
-                    }
-                  >
-                    <SelectTrigger className="h-10 rounded-xl border-stone-100 bg-white shadow-sm font-medium">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-stone-100">
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
+              {maintenanceSection !== "modifiers" && maintenanceSection !== "categories" ? (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Price</label>
+                  <Input
+                    type="text"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="h-10 rounded-xl border-stone-200 shadow-none"
+                    value={form.price}
+                    onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
+                  />
                 </div>
+              ) : (
+                <p className="text-xs font-medium text-stone-500 italic">Financial metadata is not applicable for this registry.</p>
+              )}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Status</label>
+                <Select
+                  value={form.isActive ? "active" : "inactive"}
+                  onValueChange={(value) =>
+                    setForm((p) => ({ ...p, isActive: value === "active" }))
+                  }
+                >
+                  <SelectTrigger className="h-10 rounded-xl border-stone-200 shadow-none text-sm font-semibold">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
-            <aside className="space-y-4">
-              <div className="space-y-3 rounded-xl border border-stone-100 bg-stone-50/50 p-5">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Visual Asset</label>
-                <div className="relative group cursor-pointer">
-                  <div className="h-40 w-full rounded-2xl border-2 border-dashed border-stone-200 bg-white flex flex-col items-center justify-center gap-2 hover:border-stone-900 transition-all overflow-hidden relative">
-                    {form.imageUrl ? (
-                      <img src={form.imageUrl} className="h-full w-full object-cover" alt="" />
-                    ) : (
-                      <>
-                        <Upload className="h-6 w-6 text-stone-300" />
-                        <span className="text-[10px] font-bold uppercase text-stone-400 tracking-wider">Upload</span>
-                      </>
-                    )}
-                    {uploadingImage && (
-                      <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center">
-                        <div className="h-4 w-4 border-2 border-stone-900 border-t-transparent rounded-full animate-spin" />
-                      </div>
-                    )}
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        setUploadingImage(true);
-                        try {
-                          const url = await uploadProductImage(file);
-                          setForm((p) => ({ ...p, imageUrl: url }));
-                        } finally {
-                          setUploadingImage(false);
-                        }
-                      }}
-                      disabled={uploadingImage}
-                    />
-                  </div>
+            <aside className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Visual Asset</label>
+              <div className="relative group cursor-pointer">
+                <div className="h-40 w-full rounded-2xl border-2 border-dashed border-stone-200 bg-stone-50/50 flex flex-col items-center justify-center gap-2 hover:border-stone-900 transition-all overflow-hidden relative">
+                  {form.imageUrl ? (
+                    <img src={form.imageUrl} className="h-full w-full object-cover" alt="" />
+                  ) : (
+                    <>
+                      <Upload className="h-6 w-6 text-stone-300" />
+                      <span className="text-[10px] font-bold uppercase text-stone-400 tracking-wider">Upload</span>
+                    </>
+                  )}
+                  {uploadingImage && (
+                    <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center">
+                      <div className="h-4 w-4 border-2 border-stone-900 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setUploadingImage(true);
+                      try {
+                        const url = await uploadProductImage(file);
+                        setForm((p) => ({ ...p, imageUrl: url }));
+                      } finally {
+                        setUploadingImage(false);
+                      }
+                    }}
+                    disabled={uploadingImage}
+                  />
                 </div>
-                <p className="text-[10px] font-medium text-stone-400 text-center">Tap to upload high-res asset</p>
               </div>
+              <p className="text-[10px] font-medium text-stone-400 text-center mt-2">Tap to upload high-res asset</p>
             </aside>
-
-            <div className="flex justify-end gap-2 border-t border-stone-100 p-6 md:p-8 md:col-span-2 bg-stone-50/30">
-              <Button
-                variant="outline"
-                className="h-11 rounded-xl border-stone-100 bg-white px-6 font-bold text-xs shadow-sm hover:bg-stone-50 transition-all"
-                onClick={() => setFormOpen(false)}
-              >
-                Discard
-              </Button>
-              <Button
-                onClick={() => void handleSave()}
-                disabled={!readyToSave || loading}
-                className="h-11 rounded-xl bg-stone-900 px-8 text-xs font-bold text-white shadow-sm hover:bg-stone-800 transition-all"
-              >
-                {editingId ? "Update Record" : "Confirm Entry"}
-              </Button>
-            </div>
           </div>
+          <DialogFooter className="bg-white border-t border-stone-100 px-6 py-4 flex-row justify-end items-center gap-2">
+            <Button variant="secondary" onClick={() => setFormOpen(false)} className="rounded-xl font-semibold px-5 shadow-sm">
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void handleSave()}
+              disabled={!readyToSave || loading}
+              className="rounded-xl font-bold px-6 shadow-md shrink-0"
+            >
+              {editingId ? "Update Record" : "Confirm Entry"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
