@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
-import { Lock, Save, User, UserCircle, Palette, Store, GripHorizontal, ShieldCheck, Pencil, Upload, Eye, EyeOff } from "lucide-react";
+import { Lock, EyeOff, Eye, Upload, Pencil, ShieldCheck, Palette, Store, AlertTriangle, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getAdminConfig, saveAdminConfig, type AdminSystemConfig, DEFAULT_CONFIG } from "@/services/firebase/admin-config";
 import { getFirebaseAuth } from "@/services/firebase/client";
+import { wipeAllDatabaseCollections } from "@/services/firebase/database-reset";
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 import { useAuthStore } from "@/store/auth-store";
 import { uploadAdminImage } from "@/services/firebase/storage";
@@ -43,6 +44,10 @@ export function ProfileView() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [updatingPassword, setUpdatingPassword] = useState(false);
+
+  const [wipingDatabase, setWipingDatabase] = useState(false);
+  const [showWipeConfirm, setShowWipeConfirm] = useState(false);
+
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
 
@@ -135,6 +140,22 @@ export function ProfileView() {
       }
     } finally {
       setUpdatingPassword(false);
+    }
+  }
+
+  async function handleFactoryReset() {
+    if (confirm("Are you absolutely sure you want to permanently delete ALL business data? This cannot be undone.")) {
+       setWipingDatabase(true);
+       try {
+         const count = await wipeAllDatabaseCollections();
+         toast.success(`Factory reset complete! System purged exactly ${count} records.`);
+         setShowWipeConfirm(false);
+         setTimeout(() => window.location.reload(), 2000);
+       } catch (err) {
+         toast.error("An error occurred during factory reset.");
+       } finally {
+         setWipingDatabase(false);
+       }
     }
   }
 
@@ -303,10 +324,42 @@ export function ProfileView() {
                  <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">Confirm Password</label>
                  <Input type={showNewPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="h-11 rounded-xl border-stone-200" />
                </div>
-               <Button onClick={handleUpdatePassword} disabled={updatingPassword} variant="default" className="h-11 rounded-xl px-6 w-full md:w-auto font-bold bg-stone-900 text-white shrink-0">
-                 {updatingPassword ? "Updating..." : "Update"}
-               </Button>
+               <Button disabled={updatingPassword} onClick={() => void handleUpdatePassword()} className="h-11 w-full bg-stone-900 text-white rounded-xl text-xs font-bold md:w-auto md:px-8 shrink-0">
+               {updatingPassword ? "Updating..." : "Update Security"}
+             </Button>
             </div>
+          </Card>
+        </section>
+
+        {/* Danger Zone */}
+        <section className="space-y-4 pt-10">
+          <div>
+             <h2 className="text-sm font-bold text-red-600 flex items-center gap-2">
+               <AlertTriangle className="h-4 w-4" /> Danger Zone
+             </h2>
+             <p className="text-xs font-medium text-stone-500 mt-0.5">Destructive administrative actions.</p>
+          </div>
+          <Card className="p-4 md:p-6 border-red-100 shadow-sm rounded-2xl bg-red-50/50 space-y-4">
+             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+               <div>
+                  <h3 className="text-sm font-bold text-stone-900">Factory Reset System Data</h3>
+                  <p className="text-xs text-stone-500 max-w-sm mt-1 leading-relaxed">
+                    Permanently delete all products, ingredients, recipes, orders, alerts, and stock history from the active Firebase database. Admin configurations will remain intact.
+                  </p>
+               </div>
+               {!showWipeConfirm ? (
+                 <Button onClick={() => setShowWipeConfirm(true)} variant="outline" className="text-xs font-bold shrink-0 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700">
+                   Wipe Database
+                 </Button>
+               ) : (
+                 <div className="flex items-center gap-2 shrink-0">
+                   <Button onClick={() => setShowWipeConfirm(false)} variant="ghost" className="text-xs font-bold text-stone-500">Cancel</Button>
+                   <Button onClick={handleFactoryReset} disabled={wipingDatabase} className="text-xs font-bold bg-red-600 hover:bg-red-700 text-white shadow-md">
+                     {wipingDatabase ? "Purging Files..." : "Confirm Deletion"}
+                   </Button>
+                 </div>
+               )}
+             </div>
           </Card>
         </section>
       </div>
