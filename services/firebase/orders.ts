@@ -72,6 +72,7 @@ function mapOrder(snapshot: QueryDocumentSnapshot | DocumentSnapshot): OrderReco
     totalAmount: Number(data.totalAmount ?? 0),
     cashReceived: Number(data.cashReceived ?? 0),
     change: Number(data.change ?? 0),
+    customerName: data.customerName ? String(data.customerName) : undefined,
     status: (data.status as OrderStatus) ?? "pending",
     createdAt:
       data.createdAt && typeof data.createdAt === "object" && "toDate" in data.createdAt
@@ -120,9 +121,10 @@ export async function createOrder(params: {
   items: CartItem[];
   cashReceived: number;
   totalAmount: number;
+  customerName?: string;
 }) {
   const firestore = getFirestoreDb();
-  const { items, cashReceived, totalAmount } = params;
+  const { items, cashReceived, totalAmount, customerName } = params;
   const ingredientDeductions: Array<{
     ingredientId: string;
     ingredientName: string;
@@ -253,6 +255,7 @@ export async function createOrder(params: {
       totalAmount,
       cashReceived,
       change,
+      customerName,
       status: "pending",
       createdAt: serverTimestamp(),
       completedAt: null,

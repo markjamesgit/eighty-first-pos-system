@@ -221,7 +221,16 @@ export function ProductsView() {
                       <Badge variant="outline" className="h-5 border-stone-200 bg-stone-100/50 px-2 text-[9px] font-black uppercase tracking-widest">
                         {product.category}
                       </Badge>
-                      <span className="text-sm font-black text-stone-950">{formatCurrency(product.price)}</span>
+                      <div className="text-right flex flex-col items-end gap-0.5">
+                        {product.discount ? (
+                          <>
+                            <span className="text-sm font-black text-emerald-600">{formatCurrency(product.price - product.discount)}</span>
+                            <span className="text-[10px] font-medium text-stone-400 line-through leading-none">{formatCurrency(product.price)}</span>
+                          </>
+                        ) : (
+                          <span className="text-sm font-black text-stone-950">{formatCurrency(product.price)}</span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex justify-end gap-2">
                       <ProductDialog product={product} triggerLabel="Edit" onSaved={fetchProducts} />
@@ -242,11 +251,12 @@ export function ProductsView() {
               <Table>
                 <TableHeader className="bg-white">
                   <TableRow className="hover:bg-transparent border-stone-100">
-                    <TableHead className="h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Product</TableHead>
-                    <TableHead className="h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">Category</TableHead>
-                    <TableHead className="h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">Base Price</TableHead>
-                    <TableHead className="h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">Status</TableHead>
-                    <TableHead className="h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-right pr-6 md:pr-8">Actions</TableHead>
+                    <TableHead className="text-left h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Product</TableHead>
+                    <TableHead className="text-left h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Category</TableHead>
+                    <TableHead className="text-left h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Base Price</TableHead>
+                    <TableHead className="text-left h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Disc. Price</TableHead>
+                    <TableHead className="text-left h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Status</TableHead>
+                    <TableHead className="text-left h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 md:pr-8">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -288,21 +298,28 @@ export function ProductsView() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="pl-4">
                           <Badge variant="outline" className="bg-white border-stone-200 text-[10px] font-bold uppercase tracking-wider px-2 h-5 text-stone-500">
                             {product.category}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-center">
-                          <span className="font-bold text-stone-900 text-sm">{formatCurrency(product.price)}</span>
+                        <TableCell className="pl-4">
+                          <span className={cn("font-bold text-sm", product.discount ? "text-stone-400 line-through" : "text-stone-900")}>
+                            {formatCurrency(product.price)}
+                          </span>
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="pl-4">
+                          <span className="font-bold text-emerald-600 text-sm">
+                            {product.discount ? formatCurrency(product.price - product.discount) : "—"}
+                          </span>
+                        </TableCell>
+                        <TableCell className="pl-4">
                           <Badge variant={product.isActive ? "success" : "default"} className={cn("rounded-md h-5 px-3 text-[10px] font-bold uppercase tracking-wider transition-all", !product.isActive && "bg-stone-100 text-stone-500")}>
                             {product.isActive ? "Live" : "Inactive"}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right pr-6 md:pr-8">
-                          <div className="flex justify-end gap-2">
+                        <TableCell className="pl-4 pr-6 md:pr-8">
+                          <div className="flex justify-start gap-2">
                             <ProductDialog product={product} triggerLabel="Edit" onSaved={fetchProducts} />
                             <Button
                               variant="ghost"

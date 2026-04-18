@@ -32,6 +32,7 @@ type ProductFormState = {
   category: string;
   maintenanceLinkIds: string[];
   price: string;
+  discount: string;
   imageUrl: string;
   isActive: boolean;
 };
@@ -42,6 +43,7 @@ const initialValues: ProductFormState = {
   category: "",
   maintenanceLinkIds: [],
   price: "",
+  discount: "",
   imageUrl: "",
   isActive: true,
 };
@@ -99,6 +101,7 @@ export function ProductDialog({
       category: product.category,
       maintenanceLinkIds: product.maintenanceLinkIds ?? [],
       price: String(product.price),
+      discount: String(product.discount ?? ""),
       imageUrl: product.imageUrl ?? "",
       isActive: product.isActive,
     });
@@ -135,6 +138,7 @@ export function ProductDialog({
 
   function parseValues(): ProductFormValues {
     const parsedPrice = Number(values.price || "0");
+    const parsedDiscount = Number(values.discount || "0");
     const linkIds = values.maintenanceLinkIds.length ? values.maintenanceLinkIds : undefined;
 
     return {
@@ -144,6 +148,7 @@ export function ProductDialog({
       maintenanceLinkType: undefined,
       maintenanceLinkIds: linkIds,
       price: Number.isFinite(parsedPrice) ? parsedPrice : 0,
+      discount: Number.isFinite(parsedDiscount) ? parsedDiscount : 0,
       imageUrl: values.imageUrl.trim(),
       isActive: values.isActive,
     };
@@ -187,6 +192,10 @@ export function ProductDialog({
     }
     if (parsed.price < 0) {
       toast.error("Price should be zero or above.");
+      return;
+    }
+    if (parsed.discount && parsed.discount < 0) {
+      toast.error("Discount should be zero or above.");
       return;
     }
 
@@ -283,6 +292,22 @@ export function ProductDialog({
                     setValues((current) => ({
                       ...current,
                       price: event.target.value,
+                    }))
+                  }
+                  placeholder="0.00"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Discount</label>
+                <Input
+                  type="text"
+                  min="0"
+                  step="0.01"
+                  value={values.discount}
+                  onChange={(event) =>
+                    setValues((current) => ({
+                      ...current,
+                      discount: event.target.value,
                     }))
                   }
                   placeholder="0.00"

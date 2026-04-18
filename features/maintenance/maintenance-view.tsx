@@ -352,22 +352,22 @@ export function MaintenanceView() {
               <div className="hidden overflow-x-auto lg:block">
                 <Table>
                   <TableHeader className="bg-white">
-                  <TableRow className="hover:bg-transparent border-stone-100 h-12">
-                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Image</TableHead>
-                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Entry Name</TableHead>
-                    {(maintenanceSection === "variants" || maintenanceSection === "addons") && (
-                      <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">
-                        Description
+                    <TableRow className="hover:bg-transparent border-stone-100 h-12">
+                      <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Image</TableHead>
+                      <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Entry Name</TableHead>
+                      {(maintenanceSection === "variants" || maintenanceSection === "addons") && (
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">
+                          Description
+                        </TableHead>
+                      )}
+                      <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">
+                        {maintenanceSection === "variants" || maintenanceSection === "addons"
+                          ? "Price adjustment"
+                          : "Description"}
                       </TableHead>
-                    )}
-                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">
-                      {maintenanceSection === "variants" || maintenanceSection === "addons"
-                        ? "Price adjustment"
-                        : "Description"}
-                    </TableHead>
-                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">Status</TableHead>
-                    <TableHead className="text-right py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pr-6 md:pr-8">Actions</TableHead>
-                  </TableRow>
+                      <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Status</TableHead>
+                      <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 md:pr-8">Actions</TableHead>
+                    </TableRow>
                   </TableHeader>
                   <TableBody>
                     {loading ? (
@@ -397,38 +397,38 @@ export function MaintenanceView() {
                             </div>
                           </TableCell>
                           <TableCell className="pl-6 md:pl-8 py-4">
-                          <div className="flex flex-col">
-                            <span className="font-bold text-stone-900 text-sm tracking-tight">{item.name}</span>
-                          </div>
-                        </TableCell>
-                        {(maintenanceSection === "variants" || maintenanceSection === "addons") && (
-                          <TableCell className="text-center">
-                            <span className="line-clamp-1 text-[11px] font-medium text-stone-500 max-w-[200px] mx-auto">
-                              {item.description || "No supplemental details"}
+                            <div className="flex flex-col">
+                              <span className="font-bold text-stone-900 text-sm tracking-tight">{item.name}</span>
+                            </div>
+                          </TableCell>
+                          {(maintenanceSection === "variants" || maintenanceSection === "addons") && (
+                            <TableCell className="pl-4">
+                              <span className="line-clamp-1 text-[11px] font-medium text-stone-500 max-w-[200px] text-left">
+                                {item.description || "No supplemental details"}
+                              </span>
+                            </TableCell>
+                          )}
+                          <TableCell className="pl-4">
+                            {(maintenanceSection === "variants" || maintenanceSection === "addons") ? (
+                              <span className="font-bold text-stone-900 text-sm">+{formatCurrency(Number(item.price))}</span>
+                            ) : (
+                              <span className="line-clamp-1 text-[11px] font-medium text-stone-500 max-w-[200px] text-left">
+                                {item.description || "No supplemental details"}
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="pl-4 border-stone-100">
+                            <span
+                              className={cn(
+                                "inline-flex h-5 items-center rounded-full px-2.5 text-[9px] font-bold uppercase tracking-wider",
+                                item.isActive ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-stone-50 text-stone-400 border border-stone-100",
+                              )}
+                            >
+                              {item.isActive ? "Active" : "Inactive"}
                             </span>
                           </TableCell>
-                        )}
-                        <TableCell className="text-center">
-                          {(maintenanceSection === "variants" || maintenanceSection === "addons") ? (
-                            <span className="font-bold text-stone-900 text-sm">+{formatCurrency(Number(item.price))}</span>
-                          ) : (
-                            <span className="line-clamp-1 text-[11px] font-medium text-stone-500 max-w-[200px] mx-auto">
-                              {item.description || "No supplemental details"}
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center border-stone-100">
-                          <span
-                            className={cn(
-                              "inline-flex h-5 items-center rounded-full px-2.5 text-[9px] font-bold uppercase tracking-wider",
-                              item.isActive ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-stone-50 text-stone-400 border border-stone-100",
-                            )}
-                          >
-                            {item.isActive ? "Active" : "Inactive"}
-                          </span>
-                        </TableCell>
-                          <TableCell className="text-right pr-6 md:pr-8">
-                            <div className="flex justify-end gap-2">
+                          <TableCell className="pl-4 pr-6 md:pr-8">
+                            <div className="flex justify-start gap-2">
                               <Button
                                 variant="outline"
                                 size="sm"

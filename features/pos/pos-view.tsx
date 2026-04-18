@@ -13,6 +13,14 @@ import { useProductsStore } from "@/store/products-store";
 import { listMaintenanceItems } from "@/services/firebase/maintenance";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ProductConfigDialog } from "./product-config-dialog";
 import type { Product, CartItem } from "@/lib/types/domain";
 
@@ -37,6 +45,8 @@ export function PosView() {
   const [mtLoading, setMtLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("All");
   const [configProduct, setConfigProduct] = useState<Product | null>(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [customerName, setCustomerName] = useState("");
 
   useEffect(() => {
     void fetchProducts();
@@ -88,9 +98,12 @@ export function PosView() {
         items: cart,
         cashReceived,
         totalAmount: subtotal,
+        customerName: customerName.trim() || undefined,
       });
       toast.success(`Order ${result.orderId} processed.`);
       resetCart();
+      setCustomerName("");
+      setCheckoutOpen(false);
       await fetchProducts();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Checkout failed.");
@@ -170,12 +183,21 @@ export function PosView() {
                         </div>
                       )}
                     </div>
-                    <CardContent className="p-3 flex flex-col flex-1 justify-between gap-2">
+                    <CardContent className="p-3 flex flex-col flex-1 justify-between gap-1.5">
                        <div className="min-w-0">
                          <p className="font-bold text-stone-900 truncate leading-tight text-xs sm:text-sm">{product.name}</p>
                          <p className="text-[9px] uppercase font-bold tracking-widest text-stone-400 mt-0.5">{product.category}</p>
                        </div>
-                       <p className="font-black text-stone-900 text-sm">{formatCurrency(product.price)}</p>
+                       <div className="flex flex-col items-start leading-none gap-1">
+                         {product.discount ? (
+                           <>
+                             <p className="font-black text-emerald-600 text-sm">{formatCurrency(product.price - product.discount)}</p>
+                             <p className="text-[10px] text-stone-400 line-through font-medium leading-none">{formatCurrency(product.price)}</p>
+                           </>
+                         ) : (
+                           <p className="font-black text-stone-900 text-sm">{formatCurrency(product.price)}</p>
+                         )}
+                       </div>
                     </CardContent>
                   </Card>
                 );
@@ -325,8 +347,8 @@ export function PosView() {
 
           <Button
             className="h-10 sm:h-12 w-full text-xs sm:text-sm font-bold shadow-md md:shadow-lg transition-transform active:scale-[0.98] rounded-xl"
-            disabled={!cart.length || loading}
-            onClick={() => void handleCheckout()}
+            disabled={!cart.length || loading || cashReceived < subtotal}
+            onClick={() => setCheckoutOpen(true)}
           >
             {loading ? "Processing..." : "Finish Transaction"}
           </Button>
@@ -342,6 +364,37 @@ export function PosView() {
         allModifiers={modifiers}
         onConfirm={(selections) => configProduct && addItem(configProduct, selections)}
       />
+
+      <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
+        <DialogContent className="sm:max-w-md rounded-3xl border-stone-100 p-0 overflow-hidden shadow-xl">
+          <DialogHeader className="bg-white border-b border-stone-100 px-6 py-5">
+            <DialogTitle className="text-lg font-bold text-stone-900">Customer Nickname</DialogTitle>
+            <DialogDescription className="mt-1 text-sm text-stone-500">
+              Enter the customer's nickname to display on the order.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-6">
+            <div className="space-y-2.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Nickname (Optional)</label>
+              <Input
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="e.g. John"
+                className="h-11 rounded-xl shadow-none text-base border-stone-200"
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter className="bg-white border-t border-stone-100 px-6 py-4 flex flex-row justify-end gap-2">
+            <Button variant="secondary" onClick={() => setCheckoutOpen(false)} className="rounded-xl font-semibold w-24">
+              Cancel
+            </Button>
+            <Button onClick={() => void handleCheckout()} disabled={loading} className="rounded-xl font-bold w-24 shadow-md">
+              {loading ? "Saving..." : "Confirm"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -22,6 +22,7 @@ export interface Product {
   maintenanceLinkIds?: string[];
   description?: string;
   price: number;
+  discount?: number;
   imageUrl?: string;
   isActive: boolean;
   createdAt?: Date;
@@ -32,6 +33,7 @@ export interface CartItem {
   productId: string;
   name: string;
   price: number;
+  discount?: number;
   qty: number;
   category: string;
   itemType?: "product" | "variant" | "addon" | "modifier";
@@ -45,6 +47,7 @@ export interface OrderItem {
   name: string;
   qty: number;
   price: number;
+  discount?: number;
   itemType?: "product" | "variant" | "addon" | "modifier";
   variantId?: string;
   addonIds?: string[];
@@ -58,6 +61,7 @@ export interface OrderRecord {
   totalAmount: number;
   cashReceived: number;
   change: number;
+  customerName?: string;
   status: OrderStatus;
   createdAt?: Date;
   completedAt?: Date;
@@ -99,6 +103,7 @@ export interface ProductFormValues {
   maintenanceLinkIds?: string[];
   description?: string;
   price: number;
+  discount?: number;
   imageUrl?: string;
   isActive: boolean;
 }

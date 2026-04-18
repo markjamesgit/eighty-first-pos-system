@@ -38,8 +38,10 @@ export const usePosStore = create<PosState>((set) => ({
       const mIds = selections.modifiers.map(m => m.id);
       
       // Calculate total price: Base + Variant + Sum(Addons)
+      const baseProductPrice = product.price - (product.discount || 0);
       const optionsPrice = (selections.variant?.price || 0) + selections.addons.reduce((sum, a) => sum + (a.price || 0), 0);
-      const totalPrice = product.price + optionsPrice;
+      const MathTotalPrice = baseProductPrice + optionsPrice;
+      const totalPrice = MathTotalPrice < 0 ? 0 : MathTotalPrice;
 
       // Construct Display Name: Latte (Medium, Extra Shot)
       const parts = [];
@@ -66,6 +68,7 @@ export const usePosStore = create<PosState>((set) => ({
             productId: product.id,
             name: displayName,
             price: totalPrice,
+            discount: product.discount || 0,
             qty: 1,
             category: product.category,
             itemType: "product",

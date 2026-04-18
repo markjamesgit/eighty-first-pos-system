@@ -147,7 +147,7 @@ export function IngredientDialog({ onSaved, ingredient, triggerLabel }: Ingredie
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Initial Stock</label>
                 <Input
-                  type="number"
+                  type="text"
                   min="0"
                   step="0.01"
                   value={form.stockQty}
@@ -160,7 +160,7 @@ export function IngredientDialog({ onSaved, ingredient, triggerLabel }: Ingredie
             <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Low Stock Threshold</label>
               <Input
-                type="number"
+                type="text"
                 min="0"
                 step="0.01"
                 value={form.lowStockThreshold}

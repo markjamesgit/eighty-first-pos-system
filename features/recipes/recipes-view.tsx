@@ -275,7 +275,7 @@ export function RecipesView() {
                       <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Usage Amount</label>
                       <div className="relative">
                         <Input
-                          type="number"
+                          type="text"
                           min="0"
                           step="0.1"
                           className="h-10 rounded-xl shadow-none pr-12 text-sm font-semibold text-right"

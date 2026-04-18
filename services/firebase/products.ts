@@ -52,6 +52,7 @@ function mapProduct(
     maintenanceLinkIds: Array.isArray(data.maintenanceLinkIds) ? data.maintenanceLinkIds.map(String) : undefined,
     description: data.description ? String(data.description) : undefined,
     price: Number(data.price ?? 0),
+    discount: data.discount !== undefined ? Number(data.discount) : undefined,
     imageUrl: data.imageUrl ? String(data.imageUrl) : undefined,
     isActive: Boolean(data.isActive),
     createdAt:

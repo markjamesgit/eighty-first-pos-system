@@ -174,14 +174,14 @@ export function ReportsView() {
           <p className="text-sm text-stone-500 font-medium">Analyze sales performance and material consumption.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-           <Button variant="outline" size="sm" onClick={handleDownloadSales} className="h-10 flex-1 min-w-[140px] px-5 rounded-xl font-bold text-xs border-stone-100 hover:bg-stone-50 transition-all sm:flex-none shadow-sm">
-              <FileDown className="h-4 w-4 mr-2" />
-              Sales CSV
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDownloadIngredients} className="h-10 flex-1 min-w-[140px] px-5 rounded-xl font-bold text-xs border-stone-100 hover:bg-stone-50 transition-all sm:flex-none shadow-sm">
-              <FileDown className="h-4 w-4 mr-2" />
-              Usage CSV
-            </Button>
+          <Button variant="outline" size="sm" onClick={handleDownloadSales} className="h-10 flex-1 min-w-[140px] px-5 rounded-xl font-bold text-xs border-stone-100 hover:bg-stone-50 transition-all sm:flex-none shadow-sm">
+            <FileDown className="h-4 w-4 mr-2" />
+            Sales CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleDownloadIngredients} className="h-10 flex-1 min-w-[140px] px-5 rounded-xl font-bold text-xs border-stone-100 hover:bg-stone-50 transition-all sm:flex-none shadow-sm">
+            <FileDown className="h-4 w-4 mr-2" />
+            Usage CSV
+          </Button>
         </div>
       </div>
 
@@ -224,7 +224,7 @@ export function ReportsView() {
             Consumption
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="sales" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
           <Card className="overflow-hidden rounded-2xl md:rounded-3xl border-stone-100 bg-white shadow-sm">
             <CardHeader className="bg-white border-b border-stone-100 py-6 md:py-8 px-6 md:px-8">
@@ -272,70 +272,74 @@ export function ReportsView() {
                 </div>
               </aside>
               <div>
-              <div className="space-y-3 p-4 lg:hidden">
-                {filteredSales.length === 0 ? (
-                  <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-stone-100 bg-white opacity-40">
-                    <BarChart3 className="mb-2 h-10 w-10 text-stone-300" />
-                    <p className="text-[10px] font-black uppercase tracking-widest">Awaiting Parameters</p>
-                  </div>
-                ) : (
-                  paginatedSales.map((order) => (
-                    <article key={order.id} className="space-y-3 rounded-xl border border-stone-100 bg-white p-4 shadow-sm">
-                      <div className="flex items-start justify-between gap-3">
-                        <p className="text-sm font-black uppercase tracking-tighter text-stone-950">{order.orderId}</p>
-                        <Badge variant="outline" className="h-5 border-stone-200 bg-stone-50 px-2.5 text-[8px] font-black uppercase tracking-widest">
-                          {order.status}
-                        </Badge>
-                      </div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
-                        {order.createdAt ? formatDateTime(order.createdAt) : "-"}
-                      </p>
-                      <p className="text-sm font-black text-stone-950">{formatCurrency(order.totalAmount)}</p>
-                    </article>
-                  ))
-                )}
-              </div>
-              <div className="hidden overflow-x-auto lg:block">
-              <Table>
-                <TableHeader className="bg-white">
-                  <TableRow className="hover:bg-transparent border-stone-100 h-12">
-                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Order ID</TableHead>
-                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400">DateTime</TableHead>
-                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">Amount</TableHead>
-                    <TableHead className="text-right py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pr-6 md:pr-8">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+                <div className="space-y-3 p-4 lg:hidden">
                   {filteredSales.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="h-64 text-center">
-                         <div className="flex flex-col items-center justify-center opacity-40">
-                            <BarChart3 className="h-12 w-12 mb-3 text-stone-300" />
-                            <p className="text-[10px] font-black uppercase tracking-widest">Awaiting Parameters</p>
-                         </div>
-                      </TableCell>
-                    </TableRow>
+                    <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-stone-100 bg-white opacity-40">
+                      <BarChart3 className="mb-2 h-10 w-10 text-stone-300" />
+                      <p className="text-[10px] font-black uppercase tracking-widest">Awaiting Parameters</p>
+                    </div>
                   ) : (
                     paginatedSales.map((order) => (
-                      <TableRow key={order.id} className="hover:bg-stone-50/50 group transition-all border-stone-100 h-20">
-                        <TableCell className="pl-6 md:pl-8 py-4">
-                           <span className="font-bold text-sm tracking-tight text-stone-950 uppercase">{order.orderId}</span>
-                        </TableCell>
-                        <TableCell className="text-stone-500 text-[11px] font-medium">{order.createdAt ? formatDateTime(order.createdAt) : "-"}</TableCell>
-                        <TableCell className="text-center">
-                           <span className="font-bold text-stone-950 text-sm">{formatCurrency(order.totalAmount)}</span>
-                        </TableCell>
-                        <TableCell className="text-right pr-6 md:pr-8">
-                           <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider border-stone-200 bg-stone-50 px-2.5 h-6 shadow-sm">{order.status}</Badge>
-                        </TableCell>
-                      </TableRow>
+                      <article key={order.id} className="space-y-3 rounded-xl border border-stone-100 bg-white p-4 shadow-sm">
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-sm font-black uppercase tracking-tighter text-stone-950">{order.orderId}</p>
+                          <Badge variant="outline" className="h-5 border-stone-200 bg-stone-50 px-2.5 text-[8px] font-black uppercase tracking-widest">
+                            {order.status}
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
+                          {order.createdAt ? formatDateTime(order.createdAt) : "-"}
+                        </p>
+                        <p className="text-sm font-black text-stone-950">{formatCurrency(order.totalAmount)}</p>
+                      </article>
                     ))
                   )}
-                </TableBody>
-              </Table>
-              </div>
-              <div className="bg-white border-t border-stone-100 py-3">
-                 <TablePagination
+                </div>
+                <div className="hidden overflow-x-auto lg:block">
+                  <Table>
+                    <TableHeader className="bg-white">
+                      <TableRow className="hover:bg-transparent border-stone-100 h-12">
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Order ID</TableHead>
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Customer</TableHead>
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">DateTime</TableHead>
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Amount</TableHead>
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 md:pr-8">Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredSales.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={4} className="h-64 text-center">
+                            <div className="flex flex-col items-center justify-center opacity-40">
+                              <BarChart3 className="h-12 w-12 mb-3 text-stone-300" />
+                              <p className="text-[10px] font-black uppercase tracking-widest">Awaiting Parameters</p>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        paginatedSales.map((order) => (
+                          <TableRow key={order.id} className="hover:bg-stone-50/50 group transition-all border-stone-100 h-20">
+                            <TableCell className="pl-6 md:pl-8 py-4">
+                              <span className="font-bold text-sm tracking-tight text-stone-950 uppercase">{order.orderId}</span>
+                            </TableCell>
+                            <TableCell className="pl-4">
+                              <span className="font-bold text-sm text-stone-900">{order.customerName || "—"}</span>
+                            </TableCell>
+                            <TableCell className="pl-4 text-stone-500 text-[11px] font-medium">{order.createdAt ? formatDateTime(order.createdAt) : "-"}</TableCell>
+                            <TableCell className="pl-4">
+                              <span className="font-bold text-stone-950 text-sm">{formatCurrency(order.totalAmount)}</span>
+                            </TableCell>
+                            <TableCell className="pl-4 pr-6 md:pr-8">
+                              <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider border-stone-200 bg-stone-50 px-2.5 h-6 shadow-sm">{order.status}</Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                <div className="bg-white border-t border-stone-100 py-3">
+                  <TablePagination
                     currentPage={salesPage}
                     totalPages={salesTotalPages}
                     totalItems={filteredSales.length}
@@ -343,8 +347,8 @@ export function ReportsView() {
                     onPageChange={setSalesPage}
                     onPageSizeChange={setSalesPageSize}
                     pageSizeOptions={[10, 20, 30, 50]}
-                 />
-              </div>
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -389,72 +393,72 @@ export function ReportsView() {
                 </div>
               </aside>
               <div>
-              <div className="space-y-3 p-4 lg:hidden">
-                {filteredUsage.length === 0 ? (
-                  <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-stone-100 bg-white opacity-40">
-                    <FlaskConical className="mb-2 h-10 w-10 text-stone-300" />
-                    <p className="text-[10px] font-black uppercase tracking-widest">No Depletion Recorded</p>
-                  </div>
-                ) : (
-                  paginatedUsage.map((item) => (
-                    <article key={item.id} className="space-y-3 rounded-xl border border-stone-100 bg-white p-4 shadow-sm">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
-                        {item.createdAt ? formatDateTime(item.createdAt) : "-"}
-                      </p>
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-black text-stone-900">{item.ingredientName}</p>
-                        <p className="text-base font-black tracking-tighter text-red-600">
-                          {item.quantityChange} <span className="ml-1 text-[10px] text-stone-400">{item.unit}</span>
-                        </p>
-                      </div>
-                      <p className="truncate text-[10px] font-black uppercase tracking-tighter text-stone-300">
-                        #{item.referenceOrderId.slice(0, 12)}
-                      </p>
-                    </article>
-                  ))
-                )}
-              </div>
-              <div className="hidden overflow-x-auto lg:block">
-              <Table>
-                <TableHeader className="bg-white">
-                  <TableRow className="hover:bg-transparent border-stone-100 h-12">
-                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">DateTime</TableHead>
-                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400">Ingredient</TableHead>
-                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">Change</TableHead>
-                    <TableHead className="text-right py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pr-6 md:pr-8">Order context</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+                <div className="space-y-3 p-4 lg:hidden">
                   {filteredUsage.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="h-64 text-center">
-                         <div className="flex flex-col items-center justify-center opacity-40">
-                            <FlaskConical className="h-12 w-12 mb-3 text-stone-300" />
-                            <p className="text-[10px] font-black uppercase tracking-widest">No Depletion Recorded</p>
-                         </div>
-                      </TableCell>
-                    </TableRow>
+                    <div className="flex h-40 flex-col items-center justify-center rounded-xl border border-stone-100 bg-white opacity-40">
+                      <FlaskConical className="mb-2 h-10 w-10 text-stone-300" />
+                      <p className="text-[10px] font-black uppercase tracking-widest">No Depletion Recorded</p>
+                    </div>
                   ) : (
                     paginatedUsage.map((item) => (
-                      <TableRow key={item.id} className="hover:bg-stone-50/50 group border-stone-100 transition-all">
-                        <TableCell className="pl-6 md:pl-8 py-4 text-stone-500 font-medium text-[11px]">{item.createdAt ? formatDateTime(item.createdAt) : "-"}</TableCell>
-                        <TableCell>
-                           <span className="font-bold text-stone-900 text-sm">{item.ingredientName}</span>
-                        </TableCell>
-                        <TableCell className="text-center font-bold text-red-600 text-sm">
-                          {item.quantityChange} <span className="text-[10px] text-stone-400 ml-0.5">{item.unit}</span>
-                        </TableCell>
-                        <TableCell className="text-right pr-6 md:pr-8">
-                           <span className="text-[11px] font-semibold text-stone-300 uppercase tracking-tighter truncate max-w-[120px] inline-block">#{item.referenceOrderId.slice(0,12)}</span>
-                        </TableCell>
-                      </TableRow>
+                      <article key={item.id} className="space-y-3 rounded-xl border border-stone-100 bg-white p-4 shadow-sm">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
+                          {item.createdAt ? formatDateTime(item.createdAt) : "-"}
+                        </p>
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-black text-stone-900">{item.ingredientName}</p>
+                          <p className="text-base font-black tracking-tighter text-red-600">
+                            {item.quantityChange} <span className="ml-1 text-[10px] text-stone-400">{item.unit}</span>
+                          </p>
+                        </div>
+                        <p className="truncate text-[10px] font-black uppercase tracking-tighter text-stone-300">
+                          #{item.referenceOrderId.slice(0, 12)}
+                        </p>
+                      </article>
                     ))
                   )}
-                </TableBody>
-              </Table>
-              </div>
-              <div className="bg-white border-t border-stone-100 py-3">
-                 <TablePagination
+                </div>
+                <div className="hidden overflow-x-auto lg:block">
+                  <Table>
+                    <TableHeader className="bg-white">
+                      <TableRow className="hover:bg-transparent border-stone-100 h-12">
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">DateTime</TableHead>
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Ingredient</TableHead>
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Change</TableHead>
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 md:pr-8">Order context</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUsage.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={4} className="h-64 text-center">
+                            <div className="flex flex-col items-center justify-center opacity-40">
+                              <FlaskConical className="h-12 w-12 mb-3 text-stone-300" />
+                              <p className="text-[10px] font-black uppercase tracking-widest">No Depletion Recorded</p>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        paginatedUsage.map((item) => (
+                          <TableRow key={item.id} className="hover:bg-stone-50/50 group border-stone-100 transition-all">
+                            <TableCell className="pl-6 md:pl-8 py-4 text-stone-500 font-medium text-[11px]">{item.createdAt ? formatDateTime(item.createdAt) : "-"}</TableCell>
+                            <TableCell className="pl-4">
+                              <span className="font-bold text-stone-900 text-sm">{item.ingredientName}</span>
+                            </TableCell>
+                            <TableCell className="pl-4 font-bold text-red-600 text-sm">
+                              {item.quantityChange} <span className="text-[10px] text-stone-400 ml-0.5">{item.unit}</span>
+                            </TableCell>
+                            <TableCell className="pl-4 pr-6 md:pr-8">
+                              <span className="text-[11px] font-semibold text-stone-300 uppercase tracking-tighter truncate max-w-[120px] inline-block">#{item.referenceOrderId.slice(0, 12)}</span>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                <div className="bg-white border-t border-stone-100 py-3">
+                  <TablePagination
                     currentPage={usagePage}
                     totalPages={usageTotalPages}
                     totalItems={filteredUsage.length}
@@ -462,8 +466,8 @@ export function ReportsView() {
                     onPageChange={setUsagePage}
                     onPageSizeChange={setUsagePageSize}
                     pageSizeOptions={[10, 20, 30, 50]}
-                 />
-              </div>
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>

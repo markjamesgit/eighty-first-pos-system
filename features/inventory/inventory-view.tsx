@@ -324,13 +324,13 @@ export function InventoryView() {
               <Table>
                 <TableHeader className="bg-white">
                   <TableRow className="hover:bg-transparent border-stone-100 h-12">
-                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Ingredient</TableHead>
-                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">In Stock</TableHead>
-                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">Unit</TableHead>
-                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">Status</TableHead>
-                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400">Usage context</TableHead>
-                    <TableHead className="py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 text-center">Adjustments</TableHead>
-                    <TableHead className="text-right py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pr-6 md:pr-8">Actions</TableHead>
+                    <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Ingredient</TableHead>
+                    <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">In Stock</TableHead>
+                    <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Unit</TableHead>
+                    <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Status</TableHead>
+                    <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Usage context</TableHead>
+                    <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Adjustments</TableHead>
+                    <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 md:pr-8">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -359,20 +359,20 @@ export function InventoryView() {
                               <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mt-0.5">ID: {item.id.slice(0, 8)}</span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex flex-col items-center">
+                          <TableCell className="pl-4">
+                            <div className="flex flex-col items-start">
                               <span className={cn("text-base font-black tracking-tighter", isLow ? "text-red-600" : "text-emerald-700")}>
                                 {item.stockQty.toLocaleString()}
                               </span>
                               {isLow && <Badge variant="destructive" className="mt-1 h-3.5 text-[7px] font-black uppercase tracking-widest px-2 rounded-full shadow-sm">Low Stock</Badge>}
                             </div>
                           </TableCell>
-                          <TableCell className="text-center">
+                          <TableCell className="pl-4">
                             <Badge variant="outline" className="bg-white border-stone-200 text-[10px] font-bold uppercase tracking-wider px-2 h-5 text-stone-500">
                               {item.unit}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-center">
+                          <TableCell className="pl-4">
                             <span
                               className={cn(
                                 "inline-flex h-5 items-center rounded-md px-2.5 text-[10px] font-bold uppercase tracking-wider",
@@ -382,13 +382,13 @@ export function InventoryView() {
                               {item.isActive ? "Active" : "Inactive"}
                             </span>
                           </TableCell>
-                          <TableCell className="max-w-[220px]">
+                          <TableCell className="max-w-[220px] pl-4">
                             <p className="truncate text-xs font-medium text-stone-500 leading-tight" title={usage}>
                               {usage || "No products linked"}
                             </p>
                           </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex items-center justify-center gap-2">
+                          <TableCell className="pl-4">
+                            <div className="flex items-center justify-start gap-2">
                               <div className="flex items-center rounded-xl border border-stone-200 bg-white p-0.5 shadow-sm overflow-hidden ring-1 ring-stone-100/50">
                                 <button
                                   onClick={() => {
@@ -423,8 +423,8 @@ export function InventoryView() {
                               </Button>
                             </div>
                           </TableCell>
-                          <TableCell className="text-right pr-6 md:pr-8">
-                            <div className="flex justify-end gap-2">
+                          <TableCell className="pl-4 pr-6 md:pr-8">
+                            <div className="flex justify-start gap-2">
                               <IngredientDialog ingredient={item} onSaved={fetchData} />
                               <Button
                                 variant="ghost"
