@@ -24,7 +24,8 @@ export async function uploadProductImage(file: File) {
   );
 
   if (!response.ok) {
-    throw new Error("Unable to upload image to Cloudinary.");
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody?.error?.message || "Unable to upload image to Cloudinary.");
   }
 
   const payload = (await response.json()) as { secure_url?: string };
@@ -56,7 +57,8 @@ export async function uploadAdminImage(file: File) {
   );
 
   if (!response.ok) {
-    throw new Error("Unable to upload image to Cloudinary.");
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody?.error?.message || "Unable to upload image to Cloudinary.");
   }
 
   const payload = (await response.json()) as { secure_url?: string };

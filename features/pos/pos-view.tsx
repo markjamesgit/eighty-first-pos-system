@@ -190,7 +190,7 @@ export function PosView() {
                       isInactive ? "opacity-60 grayscale cursor-not-allowed" : "hover:border-stone-300 hover:shadow-md"
                     )}
                   >
-                    <div className="relative aspect-[4/3] bg-stone-50 border-b border-stone-100 flex shrink-0 items-center justify-center text-stone-200">
+                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone-50 border-b border-stone-100 flex shrink-0 items-center justify-center text-stone-200">
                       {product.imageUrl ? (
                         <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
                       ) : <ImageIcon className="h-8 w-8" />}
