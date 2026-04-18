@@ -75,12 +75,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Global Alerts Engine
   useEffect(() => {
     const activeAlerts: AlertRecord[] = [];
-    
+
     // Inventory
     if (ingredients.length > 0) {
       ingredients.forEach((item) => {
         const baseId = `inv_alert_${item.id}`;
-        
+
         if (item.stockQty <= 0) {
           activeAlerts.push({
             id: baseId,
@@ -175,11 +175,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Icon className="h-4 w-4" />
                 {item.label}
               </div>
-              
+
               {item.href === "/alerts" && unreadCount > 0 && (
-                 <span className="flex h-5 items-center justify-center rounded-full bg-red-500 px-2 text-[10px] font-black text-white shadow-sm">
-                   {unreadCount}
-                 </span>
+                <span className="flex h-5 items-center justify-center rounded-full bg-red-500 px-2 text-[10px] font-black text-white shadow-sm">
+                  {unreadCount}
+                </span>
               )}
             </Link>
           );
@@ -219,10 +219,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col md:grid md:grid-cols-[230px_1fr] lg:grid-cols-[250px_1fr]">
         <aside className="sticky top-0 hidden h-[100dvh] flex-col border-r border-stone-200 bg-white p-4 md:flex shadow-[4px_0_24px_-12px_rgba(0,0,0,0.05)] z-10 transition-all">
           {sidebarContent}
-          <div className="absolute bottom-4 left-4 right-4">
+          <div className="absolute bottom-4 left-4 right-4 bg-white pb-1 pt-2">
+            <div className="mb-3 flex items-center gap-3 px-1">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 border border-stone-200 shrink-0">
+                <span className="text-[11px] font-black text-stone-600">{user?.email?.charAt(0).toUpperCase() || "A"}</span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[10px] font-bold text-stone-900">{user?.email || "Administrator"}</p>
+                <p className="truncate text-[9px] font-black uppercase tracking-widest text-emerald-500">Active</p>
+              </div>
+            </div>
             <Button
               variant="outline"
-              className="w-full justify-start gap-3 border-stone-200"
+              className="w-full justify-start gap-3 border-stone-200 shadow-sm"
               onClick={() => {
                 void logoutAdmin();
               }}
@@ -263,10 +272,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               />
               <aside className="absolute left-0 top-0 flex h-[100dvh] w-[85%] max-w-[320px] flex-col border-r border-stone-100 bg-white p-4 shadow-2xl transition-transform">
                 {sidebarContent}
-                <div className="absolute bottom-4 left-4 right-4">
+                <div className="absolute bottom-4 left-4 right-4 bg-white pb-1 pt-2">
+                  <div className="mb-3 flex items-center gap-3 px-1">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 border border-stone-200 shrink-0 shadow-sm">
+                      <span className="text-[11px] font-black text-stone-600">{user?.email?.charAt(0).toUpperCase() || "A"}</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[11px] font-bold text-stone-900">{user?.email || "Administrator"}</p>
+                      <p className="truncate text-[9px] font-black uppercase tracking-widest text-emerald-500">Active Session</p>
+                    </div>
+                  </div>
                   <Button
                     variant="outline"
-                    className="w-full justify-start gap-3 border-stone-200"
+                    className="w-full justify-start gap-3 border-stone-200 shadow-sm"
                     onClick={() => {
                       void logoutAdmin();
                     }}
