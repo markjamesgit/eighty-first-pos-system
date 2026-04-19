@@ -267,7 +267,7 @@ export function ProductDialog({
             </DialogDescription>
           </div>
         </DialogHeader>
-        <div className="grid gap-5 sm:gap-6 px-5 sm:px-6 pb-6 md:grid-cols-[1fr_220px]">
+        <div className="grid gap-5 sm:gap-6 px-5 sm:px-6 pb-6 lg:grid-cols-[1fr_220px]">
           <div className="space-y-4 sm:space-y-5">
             <div className="space-y-3 rounded-2xl border border-stone-100 bg-white p-4 sm:p-5 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
               <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Basic Details</p>

@@ -174,19 +174,19 @@ export function ProfileView() {
       <div className="space-y-6">
         {/* Brand Identity */}
         <section className="space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-0">
             <div>
                <h2 className="text-sm font-bold text-stone-900 flex items-center gap-2">
                  <Store className="h-4 w-4 text-stone-400" /> Store Information
                </h2>
                <p className="text-xs font-medium text-stone-500 mt-0.5">Set down your shop's name and visual logo.</p>
             </div>
-            <Button onClick={handleSaveConfig} disabled={savingConfig} className="h-10 md:h-8 rounded-xl md:rounded-lg px-4 text-xs font-bold w-full md:w-auto">
+            <Button onClick={handleSaveConfig} disabled={savingConfig} className="h-10 lg:h-8 rounded-xl lg:rounded-lg px-4 text-xs font-bold w-full lg:w-auto">
                Save Identity
             </Button>
           </div>
-          <Card className="p-4 md:p-6 border-stone-100 shadow-sm rounded-2xl bg-white flex flex-col md:flex-row gap-6 md:gap-8">
-            <div className="shrink-0 flex justify-center md:justify-start">
+          <Card className="p-4 lg:p-6 border-stone-100 shadow-sm rounded-2xl bg-white flex flex-col lg:flex-row gap-6 lg:gap-8">
+            <div className="shrink-0 flex justify-center lg:justify-start">
               <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={(e) => void handleImageUpload(e.target.files?.[0])} />
               <button disabled={uploadingImage} onClick={() => fileInputRef.current?.click()} className="group relative flex h-[100px] w-[100px] overflow-hidden rounded-[20px] bg-stone-50 border border-stone-100 transition-all hover:border-stone-300">
                 {config.logoUrl ? (
@@ -219,16 +219,16 @@ export function ProfileView() {
 
         {/* Security Layers */}
         <section className="space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-0">
             <div>
                <h2 className="text-sm font-bold text-stone-900 flex items-center gap-2">
                  <ShieldCheck className="h-4 w-4 text-stone-400" /> Backup PIN Code
                </h2>
                <p className="text-xs font-medium text-stone-500 mt-0.5">Set a secure emergency recovery PIN.</p>
             </div>
-            <Button onClick={handleSaveConfig} disabled={savingConfig} className="h-10 md:h-8 rounded-xl md:rounded-lg px-4 text-xs font-bold w-full md:w-auto">Save PIN</Button>
+            <Button onClick={handleSaveConfig} disabled={savingConfig} className="h-10 lg:h-8 rounded-xl lg:rounded-lg px-4 text-xs font-bold w-full lg:w-auto">Save PIN</Button>
           </div>
-          <Card className="p-4 md:p-6 border-stone-100 shadow-sm rounded-2xl bg-white space-y-4">
+          <Card className="p-4 lg:p-6 border-stone-100 shadow-sm rounded-2xl bg-white space-y-4">
             <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">Recovery PIN Code</label>
             <div className="flex gap-2 w-full max-w-sm">
                  {Array.from({ length: 6 }).map((_, i) => (
@@ -259,18 +259,18 @@ export function ProfileView() {
 
         {/* System Aesthetics */}
         <section className="space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-0">
              <div>
                <h2 className="text-sm font-bold text-stone-900 flex items-center gap-2">
                  <Palette className="h-4 w-4 text-stone-400" /> Theme & Appearance
                </h2>
                <p className="text-xs font-medium text-stone-500 mt-0.5">Personalize the application's visual style.</p>
              </div>
-             <Button onClick={() => setConfig(c => ({...c, primaryColor: DEFAULT_CONFIG.primaryColor, fontFamily: DEFAULT_CONFIG.fontFamily}))} variant="outline" className="h-10 md:h-8 rounded-xl md:rounded-lg px-4 text-xs font-bold text-stone-600 w-full md:w-auto">
+             <Button onClick={() => setConfig(c => ({...c, primaryColor: DEFAULT_CONFIG.primaryColor, fontFamily: DEFAULT_CONFIG.fontFamily}))} variant="outline" className="h-10 lg:h-8 rounded-xl lg:rounded-lg px-4 text-xs font-bold text-stone-600 w-full lg:w-auto">
                Reset Defaults
              </Button>
           </div>
-          <Card className="p-4 md:p-6 border-stone-100 shadow-sm rounded-2xl bg-white space-y-6">
+          <Card className="p-4 lg:p-6 border-stone-100 shadow-sm rounded-2xl bg-white space-y-6">
             <div className="space-y-2.5">
                <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">Theme Color</label>
                <div className="flex flex-wrap gap-2">
@@ -320,8 +320,8 @@ export function ProfileView() {
              </h2>
              <p className="text-xs font-medium text-stone-500 mt-0.5">Update your administrator password.</p>
           </div>
-          <Card className="p-4 md:p-6 border-stone-100 shadow-sm rounded-2xl bg-white space-y-4">
-            <div className="flex flex-col md:flex-row gap-4 items-end">
+          <Card className="p-4 lg:p-6 border-stone-100 shadow-sm rounded-2xl bg-white space-y-4">
+            <div className="flex flex-col lg:flex-row gap-4 items-end">
                <div className="w-full space-y-1.5">
                  <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">Current Password</label>
                  <div className="relative">
@@ -349,7 +349,7 @@ export function ProfileView() {
                    </button>
                  </div>
                </div>
-               <Button disabled={updatingPassword} onClick={() => void handleUpdatePassword()} className="h-11 w-full bg-stone-900 text-white rounded-xl text-xs font-bold md:w-auto md:px-8 shrink-0">
+               <Button disabled={updatingPassword} onClick={() => void handleUpdatePassword()} className="h-11 w-full bg-stone-900 text-white rounded-xl text-xs font-bold lg:w-auto lg:px-8 shrink-0">
                {updatingPassword ? "Updating..." : "Update Security"}
              </Button>
             </div>
@@ -364,8 +364,8 @@ export function ProfileView() {
              </h2>
              <p className="text-xs font-medium text-stone-500 mt-0.5">Permanently erase business data.</p>
           </div>
-          <Card className="p-4 md:p-6 border-red-100 shadow-sm rounded-2xl bg-red-50/50 space-y-4">
-             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <Card className="p-4 lg:p-6 border-red-100 shadow-sm rounded-2xl bg-red-50/50 space-y-4">
+             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                <div>
                   <h3 className="text-sm font-bold text-stone-900">Factory Reset System Data</h3>
                   <p className="text-xs text-stone-500 max-w-sm mt-1 leading-relaxed">

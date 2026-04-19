@@ -191,7 +191,7 @@ export function MaintenanceView() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-stone-950">{sectionConfig.title}</h1>
           <p className="text-sm font-medium text-stone-500">{sectionConfig.desc}</p>
@@ -210,8 +210,8 @@ export function MaintenanceView() {
       </div>
 
       <div>
-        <Card className="overflow-hidden rounded-2xl md:rounded-3xl border-stone-100 bg-white shadow-sm">
-          <CardHeader className="border-b border-stone-100 bg-white py-6 px-6 md:px-8">
+        <Card className="overflow-hidden rounded-2xl lg:rounded-3xl border-stone-100 bg-white shadow-sm">
+          <CardHeader className="border-b border-stone-100 bg-white py-6 px-6 lg:px-8">
             <CardTitle className="text-xl font-bold tracking-tight text-stone-900">{sectionConfig.title} Registry</CardTitle>
             <CardDescription className="text-sm font-medium text-stone-500">Manage your system metadata and menu organization.</CardDescription>
           </CardHeader>
@@ -355,8 +355,8 @@ export function MaintenanceView() {
                 <Table>
                   <TableHeader className="bg-white">
                     <TableRow className="hover:bg-transparent border-stone-100 h-12">
-                      <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Image</TableHead>
-                      <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Entry Name</TableHead>
+                      <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 lg:pl-8">Image</TableHead>
+                      <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 lg:pl-8">Entry Name</TableHead>
                       {(maintenanceSection === "addons") && (
                         <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">
                           Description
@@ -368,7 +368,7 @@ export function MaintenanceView() {
                           : "Description"}
                       </TableHead>
                       <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Status</TableHead>
-                      <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 md:pr-8">Actions</TableHead>
+                      <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 lg:pr-8">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -386,7 +386,7 @@ export function MaintenanceView() {
                     ) : (
                       paginatedItems.map((item) => (
                         <TableRow key={item.id} className="h-20 border-stone-100 transition-all hover:bg-stone-50/50">
-                          <TableCell className="pl-6 md:pl-8">
+                          <TableCell className="pl-6 lg:pl-8">
                             <div className="h-12 w-12 overflow-hidden rounded-xl border border-stone-100 bg-stone-50">
                               {item.imageUrl ? (
                                 // eslint-disable-next-line @next/next/no-img-element
@@ -398,7 +398,7 @@ export function MaintenanceView() {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="pl-6 md:pl-8 py-4">
+                          <TableCell className="pl-6 lg:pl-8 py-4">
                             <div className="flex flex-col">
                               <span className="font-bold text-stone-900 text-sm tracking-tight">{item.name}</span>
                             </div>
@@ -429,7 +429,7 @@ export function MaintenanceView() {
                               {item.isActive ? "Active" : "Inactive"}
                             </span>
                           </TableCell>
-                          <TableCell className="pl-4 pr-6 md:pr-8">
+                          <TableCell className="pl-4 pr-6 lg:pr-8">
                             <div className="flex justify-start gap-2">
                               <Button
                                 variant="ghost"
@@ -505,7 +505,7 @@ export function MaintenanceView() {
               Define the properties for this maintenance record.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-6 px-6 py-6 md:grid-cols-[1fr_220px]">
+          <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1fr_220px]">
             <div className="space-y-5">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Name</label>

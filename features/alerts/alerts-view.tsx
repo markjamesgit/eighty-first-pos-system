@@ -84,7 +84,7 @@ export function AlertsView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <h1 className="text-2xl font-bold text-stone-900 tracking-tight flex items-center gap-3">
              Incident Control
@@ -93,14 +93,14 @@ export function AlertsView() {
         </div>
       </div>
 
-      <Card className="overflow-hidden rounded-2xl md:rounded-3xl border-stone-100 bg-white shadow-sm">
-        <CardHeader className={cn("bg-white border-b border-stone-100 py-6 px-6 md:px-8", realtimeAlerts.some(a => a.level === "critical") ? "border-red-100" : "border-stone-100")}>
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <Card className="overflow-hidden rounded-2xl lg:rounded-3xl border-stone-100 bg-white shadow-sm">
+        <CardHeader className={cn("bg-white border-b border-stone-100 py-6 px-6 lg:px-8", realtimeAlerts.some(a => a.level === "critical") ? "border-red-100" : "border-stone-100")}>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="space-y-1">
                   <CardTitle className="text-xl font-bold text-stone-900 tracking-tight">Alert Registry</CardTitle>
                   <CardDescription className="text-sm font-medium text-stone-500">Real-time consolidated telemetry stream.</CardDescription>
               </div>
-              <Badge variant="outline" className="bg-stone-50/50 px-4 h-8 rounded-full font-bold text-[11px] text-stone-400 border-stone-100 shadow-sm self-start md:self-center">{user?.email || "No user"}</Badge>
+              <Badge variant="outline" className="bg-stone-50/50 px-4 h-8 rounded-full font-bold text-[11px] text-stone-400 border-stone-100 shadow-sm self-start lg:self-center">{user?.email || "No user"}</Badge>
             </div>
         </CardHeader>
         <CardContent className="grid p-0 lg:grid-cols-[240px_1fr]">

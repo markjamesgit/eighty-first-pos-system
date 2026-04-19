@@ -168,7 +168,7 @@ export function ReportsView() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Business Intelligence</h1>
           <p className="text-sm text-stone-500 font-medium">Analyze sales performance and material consumption.</p>
@@ -185,12 +185,12 @@ export function ReportsView() {
         </div>
       </div>
 
-      <Card className="border-stone-100 shadow-sm rounded-2xl md:rounded-3xl bg-white overflow-hidden">
+      <Card className="border-stone-100 shadow-sm rounded-2xl lg:rounded-3xl bg-white overflow-hidden">
         <CardHeader className="bg-white border-b border-stone-100 py-6 px-8">
           <CardTitle className="text-xs font-bold uppercase tracking-wider text-stone-500">Parameter Configuration</CardTitle>
         </CardHeader>
-        <CardContent className="p-6 md:p-8">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:gap-6">
+        <CardContent className="p-6 lg:p-8">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:gap-6">
             <div className="flex-1 space-y-2.5">
               <div className="flex items-center gap-2 mb-1">
                 <CalendarIcon className="h-3 w-3 text-stone-400" />
@@ -205,7 +205,7 @@ export function ReportsView() {
               </div>
               <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-12 rounded-xl border-stone-200 font-medium focus:ring-stone-900" />
             </div>
-            <Button onClick={() => void handleGenerate()} disabled={loading} className="h-12 w-full gap-2 rounded-xl bg-stone-900 px-6 text-xs font-bold text-white shadow-sm transition-all hover:bg-stone-800 md:w-auto md:px-10">
+            <Button onClick={() => void handleGenerate()} disabled={loading} className="h-12 w-full gap-2 rounded-xl bg-stone-900 px-6 text-xs font-bold text-white shadow-sm transition-all hover:bg-stone-800 lg:w-auto lg:px-10">
               <Search className="h-4 w-4" />
               {loading ? "Processing..." : "Generate Analysis"}
             </Button>
@@ -214,26 +214,26 @@ export function ReportsView() {
       </Card>
 
       <Tabs defaultValue="sales" className="w-full">
-        <TabsList className="mb-6 flex w-full gap-1 rounded-2xl bg-stone-100/50 p-1 md:inline-flex md:w-auto">
-          <TabsTrigger value="sales" className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-6 h-10 rounded-xl font-bold text-xs data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all shadow-sm">
+        <TabsList className="mb-6 flex w-full gap-1 rounded-2xl bg-stone-100/50 p-1 lg:inline-flex lg:w-auto">
+          <TabsTrigger value="sales" className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 lg:px-6 h-10 rounded-xl font-bold text-xs data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all shadow-sm">
             <TrendingUp className="h-4 w-4" />
             Revenue Stream
           </TabsTrigger>
-          <TabsTrigger value="ingredients" className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-6 h-10 rounded-xl font-bold text-xs data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all">
+          <TabsTrigger value="ingredients" className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 lg:px-6 h-10 rounded-xl font-bold text-xs data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all">
             <FlaskConical className="h-4 w-4" />
             Consumption
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="sales" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <Card className="overflow-hidden rounded-2xl md:rounded-3xl border-stone-100 bg-white shadow-sm">
-            <CardHeader className="bg-white border-b border-stone-100 py-6 md:py-8 px-6 md:px-8">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <Card className="overflow-hidden rounded-2xl lg:rounded-3xl border-stone-100 bg-white shadow-sm">
+            <CardHeader className="bg-white border-b border-stone-100 py-6 lg:py-8 px-6 lg:px-8">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div>
                   <CardTitle className="text-xl font-bold text-stone-900 tracking-tight">Sales Summary</CardTitle>
                   <CardDescription className="text-stone-500 font-medium text-sm">Consolidated transaction list for the chosen parameters.</CardDescription>
                 </div>
-                <div className="bg-stone-900 px-6 py-4 rounded-2xl shadow-sm text-center md:text-right border border-stone-800">
+                <div className="bg-stone-900 px-6 py-4 rounded-2xl shadow-sm text-center lg:text-right border border-stone-800">
                   <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1">Period Revenue</p>
                   <p className="text-2xl font-black text-white">{formatCurrency(totalSales)}</p>
                 </div>
@@ -299,11 +299,11 @@ export function ReportsView() {
                   <Table>
                     <TableHeader className="bg-white">
                       <TableRow className="hover:bg-transparent border-stone-100 h-12">
-                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Order ID</TableHead>
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 lg:pl-8">Order ID</TableHead>
                         <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Customer</TableHead>
                         <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">DateTime</TableHead>
                         <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Amount</TableHead>
-                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 md:pr-8">Status</TableHead>
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 lg:pr-8">Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -319,7 +319,7 @@ export function ReportsView() {
                       ) : (
                         paginatedSales.map((order) => (
                           <TableRow key={order.id} className="hover:bg-stone-50/50 group transition-all border-stone-100 h-20">
-                            <TableCell className="pl-6 md:pl-8 py-4">
+                            <TableCell className="pl-6 lg:pl-8 py-4">
                               <span className="font-bold text-sm tracking-tight text-stone-950 uppercase">{order.orderId}</span>
                             </TableCell>
                             <TableCell className="pl-4">
@@ -329,7 +329,7 @@ export function ReportsView() {
                             <TableCell className="pl-4">
                               <span className="font-bold text-stone-950 text-sm">{formatCurrency(order.totalAmount)}</span>
                             </TableCell>
-                            <TableCell className="pl-4 pr-6 md:pr-8">
+                            <TableCell className="pl-4 pr-6 lg:pr-8">
                               <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider border-stone-200 bg-stone-50 px-2.5 h-6 shadow-sm">{order.status}</Badge>
                             </TableCell>
                           </TableRow>
@@ -355,8 +355,8 @@ export function ReportsView() {
         </TabsContent>
 
         <TabsContent value="ingredients" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <Card className="overflow-hidden rounded-2xl md:rounded-3xl border-stone-100 bg-white shadow-sm">
-            <CardHeader className="bg-white border-b border-stone-100 py-6 md:py-8 px-6 md:px-8">
+          <Card className="overflow-hidden rounded-2xl lg:rounded-3xl border-stone-100 bg-white shadow-sm">
+            <CardHeader className="bg-white border-b border-stone-100 py-6 lg:py-8 px-6 lg:px-8">
               <CardTitle className="text-xl font-bold text-stone-900 tracking-tight">Ingredient Flux</CardTitle>
               <CardDescription className="text-stone-500 font-medium text-sm">Atomic breakdown of material consumption logs.</CardDescription>
             </CardHeader>
@@ -422,10 +422,10 @@ export function ReportsView() {
                   <Table>
                     <TableHeader className="bg-white">
                       <TableRow className="hover:bg-transparent border-stone-100 h-12">
-                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">DateTime</TableHead>
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 lg:pl-8">DateTime</TableHead>
                         <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Ingredient</TableHead>
                         <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Change</TableHead>
-                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 md:pr-8">Order context</TableHead>
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 lg:pr-8">Order context</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -441,14 +441,14 @@ export function ReportsView() {
                       ) : (
                         paginatedUsage.map((item) => (
                           <TableRow key={item.id} className="hover:bg-stone-50/50 group border-stone-100 transition-all">
-                            <TableCell className="pl-6 md:pl-8 py-4 text-stone-500 font-medium text-[11px]">{item.createdAt ? formatDateTime(item.createdAt) : "-"}</TableCell>
+                            <TableCell className="pl-6 lg:pl-8 py-4 text-stone-500 font-medium text-[11px]">{item.createdAt ? formatDateTime(item.createdAt) : "-"}</TableCell>
                             <TableCell className="pl-4">
                               <span className="font-bold text-stone-900 text-sm">{item.ingredientName}</span>
                             </TableCell>
                             <TableCell className="pl-4 font-bold text-red-600 text-sm">
                               {item.quantityChange} <span className="text-[10px] text-stone-400 ml-0.5">{item.unit}</span>
                             </TableCell>
-                            <TableCell className="pl-4 pr-6 md:pr-8">
+                            <TableCell className="pl-4 pr-6 lg:pr-8">
                               <span className="text-[11px] font-semibold text-stone-300 uppercase tracking-tighter truncate max-w-[120px] inline-block">#{item.referenceOrderId.slice(0, 12)}</span>
                             </TableCell>
                           </TableRow>

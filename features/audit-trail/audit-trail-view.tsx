@@ -68,7 +68,7 @@ export function AuditTrailView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-stone-900 tracking-tight flex items-center gap-3">
             System Surveillance
@@ -79,7 +79,7 @@ export function AuditTrailView() {
         </div>
       </div>
 
-      <Card className="overflow-hidden rounded-2xl md:rounded-3xl border-stone-100 bg-white shadow-sm">
+      <Card className="overflow-hidden rounded-2xl lg:rounded-3xl border-stone-100 bg-white shadow-sm">
         <CardHeader className="bg-white border-b border-stone-100 pb-5 px-6">
           <CardTitle className="text-xl font-bold text-stone-900 tracking-tight">Activity stream</CardTitle>
           <CardDescription className="text-sm font-medium text-stone-500">Real-time telemetry of system-wide alterations.</CardDescription>
@@ -171,11 +171,11 @@ export function AuditTrailView() {
               <Table>
                 <TableHeader className="bg-white">
                   <TableRow className="hover:bg-transparent border-stone-100 h-12">
-                    <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8 w-[140px]">Gateway</TableHead>
+                    <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 lg:pl-8 w-[140px]">Gateway</TableHead>
                     <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 w-[140px]">Event Type</TableHead>
                     <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Description</TableHead>
                     <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 w-[160px]">Actor</TableHead>
-                    <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 md:pr-8 w-[180px]">Timestamp</TableHead>
+                    <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 lg:pr-8 w-[180px]">Timestamp</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -200,7 +200,7 @@ export function AuditTrailView() {
                   ) : (
                     paginated.map((entry) => (
                       <TableRow key={entry.id} className="hover:bg-stone-50/50 transition-all border-stone-100 group">
-                        <TableCell className="pl-6 md:pl-8 py-4">
+                        <TableCell className="pl-6 lg:pl-8 py-4">
                           <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider border-stone-100 bg-white h-5 shadow-sm">
                             {entry.module}
                           </Badge>
@@ -219,7 +219,7 @@ export function AuditTrailView() {
                             <span className="text-xs font-bold text-stone-700">{entry.performedBy}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="pl-4 pr-6 md:pr-8">
+                        <TableCell className="pl-4 pr-6 lg:pr-8">
                           <span className="text-[11px] font-bold text-stone-400 uppercase tracking-widest">
                             {entry.createdAt ? formatDateTime(entry.createdAt) : "-"}
                           </span>

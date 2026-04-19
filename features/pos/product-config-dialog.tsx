@@ -163,7 +163,7 @@ export function ProductConfigDialog({
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-8 md:h-9 font-semibold rounded-lg shrink-0 self-start sm:self-auto w-full sm:w-auto" 
+                          className="h-8 lg:h-9 font-semibold rounded-lg shrink-0 self-start sm:self-auto w-full sm:w-auto" 
                           onClick={() => { setSelectedVariant(v); setQuantity(1); }}
                         >
                           Select
@@ -207,7 +207,7 @@ export function ProductConfigDialog({
                           </Button>
                         </div>
                       ) : (
-                        <Button variant="outline" size="sm" className="h-8 md:h-9 font-semibold rounded-lg shrink-0 self-start sm:self-auto w-full sm:w-auto" onClick={() => updateAddon(a, 1)}>
+                        <Button variant="outline" size="sm" className="h-8 lg:h-9 font-semibold rounded-lg shrink-0 self-start sm:self-auto w-full sm:w-auto" onClick={() => updateAddon(a, 1)}>
                           Add
                         </Button>
                       )}

@@ -13,13 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ImageIcon } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 import { listIngredients } from "@/services/firebase/ingredients";
 import { listIngredientUsageForRange } from "@/services/firebase/orders";
 import { getSalesSummaryByDateRange, getSalesSummaryByFilter } from "@/services/firebase/sales";
+import { listProducts } from "@/services/firebase/products";
 import { subscribeToAdminConfig, type AdminSystemConfig, DEFAULT_CONFIG } from "@/services/firebase/admin-config";
-import type { SalesSummary } from "@/lib/types/domain";
+import type { Product, SalesSummary } from "@/lib/types/domain";
 
 export function DashboardView() {
   const [filter, setFilter] = useState<"today" | "weekly" | "monthly" | "custom">("today");
@@ -33,8 +35,18 @@ export function DashboardView() {
     Array<{ ingredientName: string; quantityChange: number }>
   >([]);
   const [sysConfig, setSysConfig] = useState<AdminSystemConfig>(DEFAULT_CONFIG);
+  const [productsMap, setProductsMap] = useState<Record<string, Product>>({});
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+    void listProducts().then((items) => {
+      const map: Record<string, Product> = {};
+      items.forEach((item) => {
+        map[item.id] = item;
+      });
+      setProductsMap(map);
+    });
     return subscribeToAdminConfig(setSysConfig);
   }, []);
 
@@ -124,18 +136,18 @@ export function DashboardView() {
   }, [summary]);
 
   const topProducts = useMemo(() => {
-    const counts = new Map<string, { name: string; qty: number }>();
+    const counts = new Map<string, { id: string; name: string; qty: number }>();
     summary.forEach((item) => {
       item.topProducts.forEach((product) => {
         const existing = counts.get(product.productId);
         if (existing) {
           existing.qty += product.qty;
         } else {
-          counts.set(product.productId, { name: product.name, qty: product.qty });
+          counts.set(product.productId, { id: product.productId, name: product.name, qty: product.qty });
         }
       });
     });
-    return Array.from(counts.values()).sort((a, b) => b.qty - a.qty).slice(0, 5);
+    return Array.from(counts.values()).sort((a, b) => b.qty - a.qty);
   }, [summary]);
 
   const ingredientStats = useMemo(() => {
@@ -155,7 +167,6 @@ export function DashboardView() {
 
     const topUsed = Array.from(usageCounts.entries())
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
       .map(([name]) => name);
 
     return { lowStockCount, criticalCount, topUsed };
@@ -174,7 +185,7 @@ export function DashboardView() {
   return (
     <div className="space-y-6">
       <Card className="overflow-hidden border-transparent shadow-lg transition-colors" style={motifStyle}>
-        <CardContent className="flex flex-col gap-5 p-6 md:flex-row md:items-end md:justify-between">
+        <CardContent className="flex flex-col gap-5 p-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-90">Control Center</p>
             <h1 className="mt-1 text-2xl font-black tracking-tight">{greeting}, {sysConfig.adminName || "Admin"}</h1>
@@ -182,7 +193,7 @@ export function DashboardView() {
               Real-time business pulse with sales, top products, and inventory signals.
             </p>
           </div>
-          <div className="w-full md:w-[220px]">
+          <div className="w-full lg:w-[220px]">
             <label className="mb-1 block text-[10px] font-black uppercase tracking-widest opacity-90">Date Filter</label>
             <Select
               value={filter}
@@ -204,7 +215,7 @@ export function DashboardView() {
         </CardContent>
       </Card>
       {filter === "custom" && (
-        <div className="grid grid-cols-2 gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-4">
           <div className="space-y-1">
             <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Start date</label>
             <Input type="date" value={customStartDate} onChange={(event) => setCustomStartDate(event.target.value)} className="bg-white" />
@@ -230,9 +241,25 @@ export function DashboardView() {
           </CardHeader>
         </Card>
         <Card className="border-stone-100 shadow-sm rounded-2xl">
-          <CardHeader className="gap-1 p-4 sm:p-5">
-            <CardDescription className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-stone-500">Top Product</CardDescription>
-            <CardTitle className="text-sm sm:text-lg font-bold text-stone-900 truncate">{topProducts[0]?.name ?? "No sales yet"}</CardTitle>
+          <CardHeader className="gap-1 p-4 sm:p-5 h-full flex flex-col justify-center">
+            <CardDescription className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-stone-500 mb-2">Top Product</CardDescription>
+            {topProducts[0] ? (
+              <div className="flex items-center gap-2 sm:gap-3">
+                {productsMap[topProducts[0].id]?.imageUrl ? (
+                   <img src={productsMap[topProducts[0].id].imageUrl} alt={topProducts[0].name} className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 overflow-hidden rounded-xl bg-stone-100 object-cover" />
+                ) : (
+                   <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-400">
+                     <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                   </div>
+                )}
+                <div className="flex flex-col min-w-0">
+                  <span className="text-sm sm:text-base font-black text-stone-900 truncate leading-tight">{topProducts[0].name}</span>
+                  <span className="text-[9px] sm:text-[10px] uppercase tracking-wider font-bold text-stone-500 truncate">{productsMap[topProducts[0].id]?.category || "Unknown"}</span>
+                </div>
+              </div>
+            ) : (
+              <CardTitle className="text-sm sm:text-lg font-bold text-stone-900 truncate">No sales yet</CardTitle>
+            )}
           </CardHeader>
         </Card>
         <Card className="border-stone-100 shadow-sm rounded-2xl">
@@ -255,83 +282,106 @@ export function DashboardView() {
             <CardTitle className="text-base font-bold text-stone-900">Revenue Flow</CardTitle>
             <CardDescription className="text-xs">Sales performance across timeframe.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[260px] sm:h-[350px] lg:h-full lg:min-h-[400px] p-3 sm:p-6 sm:pt-0 pb-3 flex-grow">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={summary} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
-                <XAxis 
-                  dataKey="dateKey" 
-                  tickLine={false} 
-                  axisLine={false} 
-                  fontSize={10} 
-                  tickMargin={12}
-                  stroke="#a8a29e" 
-                  tickFormatter={(val: string) => {
-                    if (!val) return "";
-                    const parts = val.split("-");
-                    if (parts.length === 3) return `${parts[1]}/${parts[2]}`;
-                    return val;
-                  }}
-                />
-                <YAxis 
-                  tickFormatter={(value) => `₱${value}`} 
-                  tickLine={false} 
-                  axisLine={false} 
-                  fontSize={10} 
-                  tickMargin={12}
-                  stroke="#a8a29e"
-                />
-                <Tooltip 
-                  cursor={{ fill: '#fafaf9' }}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #f5f5f4', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)', padding: '8px 12px' }}
-                  formatter={(value) => [`₱${Number(value).toFixed(2)}`, "Revenue"]} 
-                  labelStyle={{ fontWeight: "600", color: "#44403c", marginBottom: "4px", fontSize: "11px" }}
-                  itemStyle={{ fontSize: "12px", fontWeight: "600", color: "#1c1917" }}
-                />
-                <Bar 
-                  dataKey="totalSales" 
-                  fill="#292524" 
-                  radius={[4, 4, 0, 0]} 
-                  barSize={24}
-                  animationDuration={1000}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+          <CardContent className="h-[260px] sm:h-[350px] lg:h-full lg:min-h-[400px] p-3 sm:p-6 sm:pt-0 pb-3 flex-grow relative">
+            {mounted ? (
+              <div className="absolute inset-0 p-3 sm:p-6 sm:pt-0 pb-3">
+                <ResponsiveContainer width="99%" height="100%">
+                  <BarChart data={summary} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
+                    <XAxis 
+                      dataKey="dateKey" 
+                      tickLine={false} 
+                      axisLine={false} 
+                      fontSize={10} 
+                      tickMargin={12}
+                      stroke="#a8a29e" 
+                      tickFormatter={(val: string) => {
+                        if (!val) return "";
+                        const parts = val.split("-");
+                        if (parts.length === 3) return `${parts[1]}/${parts[2]}`;
+                        return val;
+                      }}
+                    />
+                    <YAxis 
+                      tickFormatter={(value) => `₱${value}`} 
+                      tickLine={false} 
+                      axisLine={false} 
+                      fontSize={10} 
+                      tickMargin={12}
+                      stroke="#a8a29e"
+                    />
+                    <Tooltip 
+                      cursor={{ fill: '#fafaf9' }}
+                      contentStyle={{ borderRadius: '8px', border: '1px solid #f5f5f4', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)', padding: '8px 12px' }}
+                      formatter={(value) => [`₱${Number(value).toFixed(2)}`, "Revenue"]} 
+                      labelStyle={{ fontWeight: "600", color: "#44403c", marginBottom: "4px", fontSize: "11px" }}
+                      itemStyle={{ fontSize: "12px", fontWeight: "600", color: "#1c1917" }}
+                    />
+                    <Bar 
+                      dataKey="totalSales" 
+                      fill="#292524" 
+                      radius={[4, 4, 0, 0]} 
+                      barSize={24}
+                      animationDuration={1000}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 
-        <div className="flex flex-col gap-4 sm:gap-6">
-          <Card className="flex-1 border-stone-100 shadow-sm rounded-2xl overflow-hidden">
-            <CardHeader className="pb-1 pt-5 px-5 sm:p-6 sm:pb-2">
+        <div className="flex flex-col gap-4 sm:gap-6 lg:h-[400px]">
+          <Card className="flex-1 border-stone-100 shadow-sm rounded-2xl overflow-hidden flex flex-col min-h-0">
+            <CardHeader className="pb-1 pt-5 px-5 sm:p-6 sm:pb-2 shrink-0">
               <CardTitle className="text-sm sm:text-base font-bold text-stone-900">Top Sellers</CardTitle>
             </CardHeader>
-            <CardContent className="px-5 pb-5 sm:px-6 flex flex-col gap-1">
-              {topProducts.map((product) => (
-                <div key={product.name} className="flex items-center justify-between py-2.5 border-b border-stone-100 last:border-0">
-                  <span className="font-semibold text-stone-800 text-sm">{product.name}</span>
-                  <span className="text-xs font-medium text-stone-500">{product.qty} sold</span>
-                </div>
-              ))}
+            <CardContent className="px-5 pb-5 sm:px-6 flex flex-col gap-1 overflow-y-auto custom-scrollbar flex-1 min-h-[120px]">
+              {topProducts.map((product) => {
+                const pd = productsMap[product.id];
+                return (
+                  <div key={product.name} className="flex items-center justify-between py-2 border-b border-stone-100 last:border-0 shrink-0">
+                    <div className="flex items-center gap-3">
+                      {pd?.imageUrl ? (
+                        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-stone-100 relative group">
+                           <img src={pd.imageUrl} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                        </div>
+                      ) : (
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-400">
+                          <ImageIcon className="h-4 w-4" />
+                        </div>
+                      )}
+                      <div>
+                        <span className="block font-bold text-stone-800 text-sm leading-none mb-1">{product.name}</span>
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-stone-500">{pd?.category || "Unknown"}</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-black text-stone-900 bg-stone-100 px-2.5 py-1 rounded-lg">{product.qty} sold</span>
+                    </div>
+                  </div>
+                );
+              })}
               {!topProducts.length ? (
-                <div className="flex py-8 items-center justify-center">
+                <div className="flex py-8 items-center justify-center shrink-0">
                   <p className="text-xs text-stone-400">No recent sales data</p>
                 </div>
               ) : null}
             </CardContent>
           </Card>
 
-          <Card className="flex-1 border-stone-100 shadow-sm rounded-2xl overflow-hidden">
-            <CardHeader className="pb-1 pt-5 px-5 sm:p-6 sm:pb-2">
+          <Card className="flex-1 border-stone-100 shadow-sm rounded-2xl overflow-hidden flex flex-col min-h-0">
+            <CardHeader className="pb-1 pt-5 px-5 sm:p-6 sm:pb-2 shrink-0">
               <CardTitle className="text-sm sm:text-base font-bold text-stone-900">Top Ingredients</CardTitle>
             </CardHeader>
-            <CardContent className="px-5 pb-5 sm:px-6 flex flex-col gap-1">
+            <CardContent className="px-5 pb-5 sm:px-6 flex flex-col gap-1 overflow-y-auto custom-scrollbar flex-1 min-h-[120px]">
               {ingredientStats.topUsed.map((ingredient) => (
-                <div key={ingredient} className="flex items-center justify-between py-2 sm:py-2.5 border-b border-stone-100 last:border-0">
+                <div key={ingredient} className="flex items-center justify-between py-2 sm:py-2.5 border-b border-stone-100 last:border-0 shrink-0">
                   <span className="font-semibold text-stone-800 text-xs sm:text-sm">{ingredient}</span>
                   <span className="text-[10px] sm:text-xs font-medium text-stone-500">High usage</span>
                 </div>
               ))}
               {!ingredientStats.topUsed.length ? (
-                <div className="flex py-6 sm:py-8 items-center justify-center">
+                <div className="flex py-6 sm:py-8 items-center justify-center shrink-0">
                   <p className="text-xs text-stone-400">No recent usage data</p>
                 </div>
               ) : null}

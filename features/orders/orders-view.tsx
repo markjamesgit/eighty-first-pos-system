@@ -143,7 +143,7 @@ export function OrdersView() {
       </div>
 
       <Tabs defaultValue="active" className="w-full">
-        <TabsList className="mb-6 inline-flex w-full flex-wrap gap-1 rounded-2xl bg-stone-100/50 p-1 md:w-auto">
+        <TabsList className="mb-6 inline-flex w-full flex-wrap gap-1 rounded-2xl bg-stone-100/50 p-1 lg:w-auto">
           <TabsTrigger value="active" className="flex items-center gap-2 px-6 h-10 rounded-xl font-bold text-xs data-[state=active]:bg-stone-900 data-[state=active]:text-white transition-all shadow-sm">
             <Clock className="h-4 w-4" />
             Active Service
@@ -160,7 +160,7 @@ export function OrdersView() {
         </TabsList>
 
         <TabsContent value="active" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <Card className="overflow-hidden rounded-2xl md:rounded-3xl border-stone-100 bg-white shadow-sm">
+          <Card className="overflow-hidden rounded-2xl lg:rounded-3xl border-stone-100 bg-white shadow-sm">
             <CardHeader className="bg-white border-b border-stone-100 pb-5 px-6">
               <CardTitle className="text-xl font-bold text-stone-900 tracking-tight">Active Queue</CardTitle>
               <CardDescription className="text-stone-500 font-medium text-sm">Monitoring orders currently being processed in the kitchen.</CardDescription>
@@ -254,12 +254,12 @@ export function OrdersView() {
                   <Table>
                     <TableHeader className="bg-white">
                       <TableRow className="hover:bg-transparent border-stone-100 h-12">
-                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Order ID</TableHead>
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 lg:pl-8">Order ID</TableHead>
                         <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Customer</TableHead>
                         <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Order Items</TableHead>
                         <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Amount Due</TableHead>
                         <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Received At</TableHead>
-                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 md:pr-8">Actions</TableHead>
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 lg:pr-8">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -276,7 +276,7 @@ export function OrdersView() {
                       ) : (
                         filteredActiveOrders.map((order) => (
                           <TableRow key={order.id} className="group hover:bg-stone-50/50 transition-all border-stone-100">
-                            <TableCell className="pl-6 md:pl-8 py-4">
+                            <TableCell className="pl-6 lg:pl-8 py-4">
                               <button
                                 type="button"
                                 onClick={() => setSelectedOrder(order)}
@@ -305,7 +305,7 @@ export function OrdersView() {
                                 {order.createdAt ? formatDateTime(order.createdAt).split(",")[1] : "-"}
                               </span>
                             </TableCell>
-                            <TableCell className="pl-4 pr-6 md:pr-8 w-44">
+                            <TableCell className="pl-4 pr-6 lg:pr-8 w-44">
                               <div className="flex items-center gap-2">
                                 <Button
                                   size="sm"
@@ -336,7 +336,7 @@ export function OrdersView() {
         </TabsContent>
 
         <TabsContent value="history" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <Card className="overflow-hidden rounded-2xl md:rounded-3xl border-stone-100 bg-white shadow-sm">
+          <Card className="overflow-hidden rounded-2xl lg:rounded-3xl border-stone-100 bg-white shadow-sm">
             <CardHeader className="bg-white border-b border-stone-100 pb-5 px-6">
               <CardTitle className="text-xl font-bold text-stone-900 tracking-tight">Order Logs</CardTitle>
               <CardDescription className="text-stone-500 font-medium text-sm">A comprehensive record of all finalized transactions.</CardDescription>
@@ -432,11 +432,11 @@ export function OrdersView() {
                   <Table>
                     <TableHeader className="bg-white">
                       <TableRow className="hover:bg-transparent border-stone-100 h-12">
-                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Order Ref</TableHead>
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 lg:pl-8">Order Ref</TableHead>
                         <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Customer</TableHead>
                         <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Net Amount</TableHead>
                         <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Status</TableHead>
-                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pr-6 md:pr-8 pl-4">Completion Time</TableHead>
+                        <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pr-6 lg:pr-8 pl-4">Completion Time</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -452,7 +452,7 @@ export function OrdersView() {
                       ) : (
                         paginatedHistory.map((order) => (
                           <TableRow key={order.id} className="hover:bg-stone-50/50 transition-all border-stone-100">
-                            <TableCell className="pl-6 md:pl-8 py-5">
+                            <TableCell className="pl-6 lg:pl-8 py-5">
                               <button
                                 type="button"
                                 onClick={() => setSelectedOrder(order)}
@@ -468,7 +468,7 @@ export function OrdersView() {
                                 {order.status}
                               </Badge>
                             </TableCell>
-                            <TableCell className="pl-4 pr-6 md:pr-8 text-[11px] font-bold text-stone-400 uppercase tracking-widest">
+                            <TableCell className="pl-4 pr-6 lg:pr-8 text-[11px] font-bold text-stone-400 uppercase tracking-widest">
                               {order.completedAt ? formatDateTime(order.completedAt) : "-"}
                             </TableCell>
                           </TableRow>

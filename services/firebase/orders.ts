@@ -385,25 +385,54 @@ export async function completeOrder(orderId: string) {
 export async function cancelOrder(orderId: string) {
   const firestore = getFirestoreDb();
   const activeRef = doc(firestore, ACTIVE_ORDERS_COLLECTION, orderId);
-  const snapshot = await getDoc(activeRef);
-
-  if (!snapshot.exists()) {
-    throw new Error("Order not found.");
-  }
-
-  const data = snapshot.data();
-  const batch = writeBatch(firestore);
   const historyRef = doc(collection(firestore, ORDER_HISTORY_COLLECTION));
 
-  batch.set(historyRef, {
-    ...data,
-    status: "cancelled" as OrderStatus,
-    completedAt: serverTimestamp(),
-    archivedAt: serverTimestamp(),
-  });
-  batch.delete(activeRef);
+  await runTransaction(firestore, async (transaction) => {
+    const activeSnapshot = await transaction.get(activeRef);
+    if (!activeSnapshot.exists()) {
+      throw new Error("Order not found.");
+    }
 
-  await batch.commit();
+    const data = activeSnapshot.data();
+    const dayKey = data.dayKey || getDayKey();
+    const salesRef = doc(firestore, SALES_COLLECTION, `daily_${dayKey}`);
+    const salesSnapshot = await transaction.get(salesRef);
+
+    transaction.set(historyRef, {
+      ...data,
+      status: "cancelled" as OrderStatus,
+      completedAt: serverTimestamp(),
+      archivedAt: serverTimestamp(),
+    });
+    transaction.delete(activeRef);
+
+    if (salesSnapshot.exists()) {
+      const salesData = salesSnapshot.data();
+      const currentTopProducts = (salesData.topProducts || []) as SalesSummary["topProducts"];
+      const orderItems = (data.items || []) as OrderItem[];
+      
+      const counts = new Map<string, { productId: string; name: string; qty: number }>();
+      currentTopProducts.forEach((item) => counts.set(item.productId, { ...item }));
+      
+      orderItems.forEach((item) => {
+        const existing = counts.get(item.productId);
+        if (existing) {
+          existing.qty = Math.max(0, existing.qty - item.qty);
+        }
+      });
+      
+      // Filter out products with 0 qty
+      const newTopProducts = Array.from(counts.values()).filter(p => p.qty > 0);
+
+      transaction.update(salesRef, {
+        totalSales: Math.max(0, (salesData.totalSales ?? 0) - (data.totalAmount ?? 0)),
+        orderCount: Math.max(0, (salesData.orderCount ?? 0) - 1),
+        topProducts: newTopProducts,
+        updatedAt: serverTimestamp(),
+      });
+    }
+  });
+
   await addAuditEntrySafe({
     module: "Orders",
     action: "cancel",

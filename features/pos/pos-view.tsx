@@ -124,8 +124,8 @@ export function PosView() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-4.5rem)] md:h-[calc(100vh-6rem)] gap-2 md:gap-0 mt-1 md:mt-0">
-      <div className="flex md:hidden bg-stone-100/50 p-1 rounded-2xl gap-1 shrink-0 w-full mb-1">
+    <div className="flex flex-col h-[calc(100dvh-4.5rem)] lg:h-[calc(100vh-6rem)] gap-2 lg:gap-0 mt-1 lg:mt-0">
+      <div className="flex lg:hidden bg-stone-100/50 p-1 rounded-2xl gap-1 shrink-0 w-full mb-1">
         <Button 
           variant={mobileTab === "products" ? "default" : "ghost"} 
           className={cn("flex-1 rounded-xl h-10 font-bold text-xs transition-all", mobileTab === "products" ? "bg-stone-900 text-white shadow-sm" : "")}
@@ -145,9 +145,9 @@ export function PosView() {
         </Button>
       </div>
 
-      <div className="flex-1 flex flex-col md:grid md:grid-cols-[1fr_300px] lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_400px] md:gap-5 lg:gap-6 overflow-hidden">
-        <div className={cn("flex-col space-y-2 lg:space-y-3 overflow-hidden min-h-0 md:h-full border border-stone-100 md:border-none rounded-2xl md:rounded-none bg-white md:bg-transparent shadow-sm md:shadow-none", mobileTab === "products" ? "flex flex-1" : "hidden md:flex")}>
-        <div className="sticky top-0 z-10 bg-white/90 md:bg-stone-50/90 backdrop-blur-md pt-3 pb-2 border-b border-stone-100">
+      <div className="flex-1 flex flex-col lg:grid lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_400px] lg:gap-6 overflow-hidden">
+        <div className={cn("flex-col space-y-2 lg:space-y-3 overflow-hidden min-h-0 lg:h-full border border-stone-100 lg:border-none rounded-2xl lg:rounded-none bg-white lg:bg-transparent shadow-sm lg:shadow-none", mobileTab === "products" ? "flex flex-1" : "hidden lg:flex")}>
+        <div className="sticky top-0 z-10 bg-white/90 lg:bg-stone-50/90 backdrop-blur-md pt-3 pb-2 border-b border-stone-100">
           <div className="w-full overflow-x-auto no-scrollbar px-2 pb-1">
             <div className="flex w-max space-x-1.5">
               <Button
@@ -179,11 +179,11 @@ export function PosView() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-2 pb-2 md:pb-20 md:pr-2 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-2 pb-2 lg:pb-20 lg:pr-2 custom-scrollbar">
           {mtLoading ? (
             <div className="py-20 text-center text-stone-400 font-medium text-sm">Syncing store data...</div>
           ) : (
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
               {filteredProducts.map((product) => {
                 const isInactive = !product.isActive;
                 return (
@@ -237,7 +237,7 @@ export function PosView() {
         </div>
       </div>
 
-      <Card className={cn("flex-col overflow-hidden rounded-t-3xl rounded-b-none md:rounded-2xl border-stone-100 border-x-0 border-b-0 md:border-x md:border-b bg-white shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] md:shadow-sm shrink-0 md:h-full", mobileTab === "cart" ? "flex flex-1 h-full shadow-none w-full border-x border-b rounded-2xl" : "hidden md:flex")}>
+      <Card className={cn("flex-col overflow-hidden rounded-t-3xl rounded-b-none lg:rounded-2xl border-stone-100 border-x-0 border-b-0 lg:border-x lg:border-b bg-white shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] lg:shadow-sm shrink-0 lg:h-full", mobileTab === "cart" ? "flex flex-1 h-full shadow-none w-full border-x border-b rounded-2xl" : "hidden lg:flex")}>
         <CardHeader className="flex flex-row items-center justify-between border-b border-stone-100 bg-white px-4 py-3 sm:px-5 sm:py-4">
           <div className="min-w-0">
             <CardTitle className="flex items-center gap-2 text-sm sm:text-base font-bold text-stone-900">
@@ -330,7 +330,7 @@ export function PosView() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 md:hidden">
+          <div className="flex flex-col gap-2 lg:hidden">
              <div className="flex items-center justify-between bg-stone-50 p-2.5 rounded-xl border border-stone-100">
                <span className="hidden">Cash Tendered</span>
                <div className="flex items-center gap-1.5 w-full">
@@ -352,7 +352,7 @@ export function PosView() {
              </div>
           </div>
 
-          <div className="hidden md:block space-y-2 rounded-xl border border-stone-100 bg-stone-50/50 p-4">
+          <div className="hidden lg:block space-y-2 rounded-xl border border-stone-100 bg-stone-50/50 p-4">
             <label className="block text-xs font-semibold uppercase tracking-wider text-stone-500">
               Cash Tendered
             </label>
@@ -375,7 +375,7 @@ export function PosView() {
           </div>
 
           <Button
-            className="h-10 sm:h-12 w-full text-xs sm:text-sm font-bold shadow-md md:shadow-lg transition-transform active:scale-[0.98] rounded-xl"
+            className="h-10 sm:h-12 w-full text-xs sm:text-sm font-bold shadow-md lg:shadow-lg transition-transform active:scale-[0.98] rounded-xl"
             disabled={!cart.length || loading || cashReceived < subtotal}
             onClick={() => setCheckoutOpen(true)}
           >

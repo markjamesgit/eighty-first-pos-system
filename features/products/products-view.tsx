@@ -92,7 +92,7 @@ export function ProductsView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-stone-950">Product Management</h1>
           <p className="text-sm text-stone-500 font-medium">
@@ -102,12 +102,12 @@ export function ProductsView() {
         <ProductDialog triggerLabel="Add New Product" onSaved={fetchProducts} />
       </div>
 
-      <Card className="overflow-hidden rounded-2xl md:rounded-3xl border-stone-100 bg-white shadow-sm">
-        <CardHeader className="bg-white pb-4 md:pb-5 border-b border-stone-100 px-4 md:px-6">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      <Card className="overflow-hidden rounded-2xl lg:rounded-3xl border-stone-100 bg-white shadow-sm">
+        <CardHeader className="bg-white pb-4 lg:pb-5 border-b border-stone-100 px-4 lg:px-6">
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <CardTitle className="text-lg md:text-xl font-bold text-stone-900 tracking-tight">Menu Catalog</CardTitle>
-              <CardDescription className="text-xs md:text-sm font-medium text-stone-500">
+              <CardTitle className="text-lg lg:text-xl font-bold text-stone-900 tracking-tight">Menu Catalog</CardTitle>
+              <CardDescription className="text-xs lg:text-sm font-medium text-stone-500">
                 Manage your digital menu and sellable products.
               </CardDescription>
             </div>
@@ -115,7 +115,7 @@ export function ProductsView() {
         </CardHeader>
 
         <div className="grid p-0 lg:grid-cols-[260px_1fr]">
-          <aside className="space-y-5 border-b border-stone-100 bg-white p-4 md:p-5 lg:border-b-0 lg:border-r">
+          <aside className="space-y-5 border-b border-stone-100 bg-white p-4 lg:p-5 lg:border-b-0 lg:border-r">
             <div>
               <h3 className="flex items-center gap-2 text-sm font-bold text-stone-900">
                 <SlidersHorizontal className="h-4 w-4 text-stone-400" />
@@ -251,12 +251,12 @@ export function ProductsView() {
               <Table>
                 <TableHeader className="bg-white">
                   <TableRow className="hover:bg-transparent border-stone-100">
-                    <TableHead className="text-left h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Product</TableHead>
+                    <TableHead className="text-left h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 lg:pl-8">Product</TableHead>
                     <TableHead className="text-left h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Category</TableHead>
                     <TableHead className="text-left h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Base Price</TableHead>
                     <TableHead className="text-left h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Disc. Price</TableHead>
                     <TableHead className="text-left h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">Status</TableHead>
-                    <TableHead className="text-left h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 md:pr-8">Actions</TableHead>
+                    <TableHead className="text-left h-10 py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4 pr-6 lg:pr-8">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -281,8 +281,8 @@ export function ProductsView() {
                   ) : (
                     paginatedProducts.map((product) => (
                       <TableRow key={product.id} className="group hover:bg-stone-50/50 transition-all border-stone-100">
-                        <TableCell className="py-3 pl-6 md:pl-8">
-                          <div className="flex items-center gap-3 md:gap-4">
+                        <TableCell className="py-3 pl-6 lg:pl-8">
+                          <div className="flex items-center gap-3 lg:gap-4">
                             <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-stone-50 border border-stone-100 shadow-sm group-hover:scale-105 transition-transform">
                               {product.imageUrl ? (
                                 <img src={product.imageUrl} alt="" className="h-full w-full object-cover" />
@@ -318,7 +318,7 @@ export function ProductsView() {
                             {product.isActive ? "Live" : "Inactive"}
                           </Badge>
                         </TableCell>
-                        <TableCell className="pl-4 pr-6 md:pr-8">
+                        <TableCell className="pl-4 pr-6 lg:pr-8">
                           <div className="flex justify-start gap-2">
                             <ProductDialog product={product} triggerLabel="Edit" onSaved={fetchProducts} />
                             <Button

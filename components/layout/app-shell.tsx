@@ -150,15 +150,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Link href="/profile" style={motifStyle} className="block mb-6 shrink-0 rounded-xl p-4 shadow-sm transition-all hover:shadow-md hover:opacity-90 cursor-pointer group">
         <div className="flex items-center gap-3">
           {sysConfig.logoUrl ? (
-            <img src={sysConfig.logoUrl} alt="Logo" className="h-10 w-10 md:h-12 md:w-12 rounded-lg object-cover bg-white shrink-0" />
+            <img src={sysConfig.logoUrl} alt="Logo" className="h-10 w-10 lg:h-12 lg:w-12 rounded-lg object-cover bg-white shrink-0" />
           ) : (
-            <div className={`h-10 w-10 md:h-12 md:w-12 rounded-lg flex items-center justify-center shrink-0 ${isLightMotif ? 'bg-black/5' : 'bg-white/10'}`}>
+            <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-lg flex items-center justify-center shrink-0 ${isLightMotif ? 'bg-black/5' : 'bg-white/10'}`}>
               <Coffee className={`h-5 w-5 ${isLightMotif ? 'text-stone-700' : 'text-stone-200'}`} />
             </div>
           )}
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-[0.2em] opacity-90 transition-colors truncate">{sysConfig.shopName || "Coffee POS"}</p>
-            <h1 className="text-base md:text-lg font-semibold truncate leading-tight mt-0.5">{sysConfig.adminName || "System Administrator"}</h1>
+            <h1 className="text-base lg:text-lg font-semibold truncate leading-tight mt-0.5">{sysConfig.adminName || "System Administrator"}</h1>
           </div>
         </div>
         <div className={`mt-4 flex items-center justify-between border-t pt-3 ${isLightMotif ? 'border-black/10' : 'border-white/20'}`}>
@@ -236,8 +236,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="absolute top-[20%] -right-[10%] w-[45%] h-[50%] bg-amber-100/20 rounded-full blur-[140px]" />
         <div className="absolute -bottom-[20%] left-[10%] w-[50%] h-[50%] bg-orange-50/30 rounded-full blur-[120px]" />
       </div>
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-[1600px] flex-col md:grid md:grid-cols-[230px_1fr] lg:grid-cols-[250px_1fr]">
-        <aside className="sticky top-0 hidden h-[100dvh] flex-col border-r border-stone-200 bg-white p-4 md:flex shadow-[4px_0_24px_-12px_rgba(0,0,0,0.05)] z-10 transition-all">
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-[1600px] flex-col lg:grid lg:grid-cols-[230px_1fr] xl:grid-cols-[250px_1fr]">
+        <aside className="sticky top-0 hidden h-[100dvh] flex-col border-r border-stone-200 bg-white p-4 lg:flex shadow-[4px_0_24px_-12px_rgba(0,0,0,0.05)] z-10 transition-all">
           {sidebarContent}
           <div className="absolute bottom-4 left-4 right-4 bg-white pb-1 pt-2">
             <div className="mb-3 flex items-center gap-3 px-1">
@@ -262,7 +262,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </aside>
         <div className="flex flex-col min-w-0 flex-1">
-          <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 px-4 py-3 backdrop-blur md:hidden">
+          <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
             <div className="flex items-center justify-between gap-3">
               <Button
                 type="button"
@@ -283,7 +283,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </header>
           {mobileNavOpen ? (
-            <div className="fixed inset-0 z-40 md:hidden">
+            <div className="fixed inset-0 z-40 lg:hidden">
               <button
                 type="button"
                 className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm transition-opacity"
@@ -316,7 +316,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </aside>
             </div>
           ) : null}
-          <main className="p-4 md:p-6 lg:p-8">{children}</main>
+          <main className="p-4 lg:p-6 lg:p-8">{children}</main>
         </div>
       </div>
     </div>
