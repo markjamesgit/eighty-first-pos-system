@@ -35,6 +35,7 @@ type ProductFormState = {
   discount: string;
   imageUrl: string;
   isActive: boolean;
+  customPrices: Record<string, string>;
 };
 
 const initialValues: ProductFormState = {
@@ -46,6 +47,7 @@ const initialValues: ProductFormState = {
   discount: "",
   imageUrl: "",
   isActive: true,
+  customPrices: {},
 };
 
 export function ProductDialog({
@@ -104,6 +106,9 @@ export function ProductDialog({
       discount: String(product.discount ?? ""),
       imageUrl: product.imageUrl ?? "",
       isActive: product.isActive,
+      customPrices: product.customPrices
+        ? Object.fromEntries(Object.entries(product.customPrices).map(([k, v]) => [k, String(v)]))
+        : {},
     });
   }, [product, open]);
 
@@ -141,6 +146,16 @@ export function ProductDialog({
     const parsedDiscount = Number(values.discount || "0");
     const linkIds = values.maintenanceLinkIds.length ? values.maintenanceLinkIds : undefined;
 
+    const parsedCustomPrices: Record<string, number> = {};
+    for (const [id, priceStr] of Object.entries(values.customPrices)) {
+      if (values.maintenanceLinkIds.includes(id) && priceStr.trim() !== '') {
+        const p = Number(priceStr);
+        if (Number.isFinite(p) && p >= 0) {
+          parsedCustomPrices[id] = p;
+        }
+      }
+    }
+
     return {
       name: values.name.trim(),
       description: values.description.trim() || undefined,
@@ -151,6 +166,7 @@ export function ProductDialog({
       discount: Number.isFinite(parsedDiscount) ? parsedDiscount : 0,
       imageUrl: values.imageUrl.trim(),
       isActive: values.isActive,
+      customPrices: Object.keys(parsedCustomPrices).length > 0 ? parsedCustomPrices : undefined,
     };
   }
 
@@ -359,22 +375,43 @@ export function ProductDialog({
                     {group.items.map((option) => {
                       const isSelected = values.maintenanceLinkIds.includes(option.id);
                       return (
-                        <Button
-                          key={option.id}
-                          type="button"
-                          variant={isSelected ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => {
-                            setValues((current) => {
-                              const newIds = isSelected
-                                ? current.maintenanceLinkIds.filter((id) => id !== option.id)
-                                : [...current.maintenanceLinkIds, option.id];
-                              return { ...current, maintenanceLinkIds: newIds };
-                            });
-                          }}
-                        >
-                          {option.name}
-                        </Button>
+                        <div key={option.id} className="flex flex-col gap-1 items-stretch">
+                          <Button
+                            type="button"
+                            variant={isSelected ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => {
+                              setValues((current) => {
+                                const newIds = isSelected
+                                  ? current.maintenanceLinkIds.filter((id) => id !== option.id)
+                                  : [...current.maintenanceLinkIds, option.id];
+                                return { ...current, maintenanceLinkIds: newIds };
+                              });
+                            }}
+                          >
+                            {option.name}
+                          </Button>
+                          {isSelected && group.key === "Variants" && (
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="+₱ Price"
+                              className="h-7 text-xs w-full text-center px-1"
+                              value={values.customPrices?.[option.id] ?? ""}
+                              onChange={(e) =>
+                                setValues((current) => ({
+                                  ...current,
+                                  customPrices: {
+                                    ...(current.customPrices || {}),
+                                    [option.id]: e.target.value,
+                                  },
+                                }))
+                              }
+                              title={`Set exact product price for ${option.name}.`}
+                            />
+                          )}
+                        </div>
                       );
                     })}
                     {!group.items.length && (

@@ -7,6 +7,7 @@ type Selections = {
   variant?: { id: string; name: string; price: number };
   addons: { id: string; name: string; price: number }[];
   modifiers: { id: string; name: string }[];
+  quantity?: number;
 };
 
 type PosState = {
@@ -37,11 +38,11 @@ export const usePosStore = create<PosState>((set) => ({
       const aIds = selections.addons.map(a => a.id);
       const mIds = selections.modifiers.map(m => m.id);
       
-      // Calculate total price: Base + Variant + Sum(Addons)
-      const baseProductPrice = product.price - (product.discount || 0);
-      const optionsPrice = (selections.variant?.price || 0) + selections.addons.reduce((sum, a) => sum + (a.price || 0), 0);
-      const MathTotalPrice = baseProductPrice + optionsPrice;
-      const totalPrice = MathTotalPrice < 0 ? 0 : MathTotalPrice;
+      // Calculate total price: Variant overrides Base, Addons sum on top
+      const baseProductPrice = selections.variant ? selections.variant.price : product.price;
+      const finalBasePrice = baseProductPrice - (product.discount || 0);
+      const addonsPrice = selections.addons.reduce((sum, a) => sum + (a.price || 0), 0);
+      const totalPrice = finalBasePrice < 0 ? 0 : finalBasePrice;
 
       // Construct Display Name: Latte (Medium, Extra Shot)
       const parts = [];
@@ -56,7 +57,7 @@ export const usePosStore = create<PosState>((set) => ({
       if (existing) {
         return {
           cart: state.cart.map((item) =>
-            item === existing ? { ...item, qty: item.qty + 1 } : item,
+            item === existing ? { ...item, qty: item.qty + (selections.quantity || 1), addonsPrice: (item.addonsPrice || 0) + addonsPrice } : item,
           ),
         };
       }
@@ -68,8 +69,9 @@ export const usePosStore = create<PosState>((set) => ({
             productId: product.id,
             name: displayName,
             price: totalPrice,
+            addonsPrice: addonsPrice,
             discount: product.discount || 0,
-            qty: 1,
+            qty: selections.quantity || 1,
             category: product.category,
             itemType: "product",
             variantId: vId,
@@ -102,5 +104,5 @@ export const usePosStore = create<PosState>((set) => ({
 }));
 
 export function getCartSubtotal(cart: CartItem[]) {
-  return cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  return cart.reduce((sum, item) => sum + (item.price * item.qty) + (item.addonsPrice || 0), 0);
 }

@@ -304,7 +304,7 @@ export function MaintenanceView() {
                           </div>
                         </div>
                       </div>
-                      {(maintenanceSection === "variants" || maintenanceSection === "addons") ? (
+                      {(maintenanceSection === "addons") ? (
                         <p className="text-sm font-bold text-stone-900">
                           Price adjustment: <span className="text-emerald-600">+{formatCurrency(Number(item.price))}</span>
                         </p>
@@ -313,7 +313,7 @@ export function MaintenanceView() {
                           {item.description || "No supplemental details provided."}
                         </p>
                       )}
-                      {(maintenanceSection === "variants" || maintenanceSection === "addons") ? (
+                      {(maintenanceSection === "addons") ? (
                         <p className="text-xs font-medium text-stone-500">
                           {item.description || "No supplemental details"}
                         </p>
@@ -357,13 +357,13 @@ export function MaintenanceView() {
                     <TableRow className="hover:bg-transparent border-stone-100 h-12">
                       <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Image</TableHead>
                       <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-6 md:pl-8">Entry Name</TableHead>
-                      {(maintenanceSection === "variants" || maintenanceSection === "addons") && (
+                      {(maintenanceSection === "addons") && (
                         <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">
                           Description
                         </TableHead>
                       )}
                       <TableHead className="text-left py-0 text-xs font-semibold uppercase tracking-wider text-stone-400 pl-4">
-                        {maintenanceSection === "variants" || maintenanceSection === "addons"
+                        {maintenanceSection === "addons"
                           ? "Price adjustment"
                           : "Description"}
                       </TableHead>
@@ -373,10 +373,10 @@ export function MaintenanceView() {
                   </TableHeader>
                   <TableBody>
                     {loading ? (
-                      <TableRow><TableCell colSpan={maintenanceSection === "variants" || maintenanceSection === "addons" ? 6 : 5} className="h-64 text-center text-stone-400 font-medium italic animate-pulse text-xs uppercase tracking-widest opacity-40">Syncing with Cloud Registry...</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={maintenanceSection === "addons" ? 6 : 5} className="h-64 text-center text-stone-400 font-medium italic animate-pulse text-xs uppercase tracking-widest opacity-40">Syncing with Cloud Registry...</TableCell></TableRow>
                     ) : paginatedItems.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={maintenanceSection === "variants" || maintenanceSection === "addons" ? 6 : 5} className="h-64 text-center">
+                        <TableCell colSpan={maintenanceSection === "addons" ? 6 : 5} className="h-64 text-center">
                           <div className="flex flex-col items-center justify-center opacity-40">
                             <Sparkles className="h-12 w-12 mb-3 text-stone-300" />
                             <p className="text-[10px] font-black uppercase tracking-widest text-stone-600">No matching records</p>
@@ -403,7 +403,7 @@ export function MaintenanceView() {
                               <span className="font-bold text-stone-900 text-sm tracking-tight">{item.name}</span>
                             </div>
                           </TableCell>
-                          {(maintenanceSection === "variants" || maintenanceSection === "addons") && (
+                          {(maintenanceSection === "addons") && (
                             <TableCell className="pl-4">
                               <span className="line-clamp-1 text-[11px] font-medium text-stone-500 max-w-[200px] text-left">
                                 {item.description || "No supplemental details"}
@@ -411,7 +411,7 @@ export function MaintenanceView() {
                             </TableCell>
                           )}
                           <TableCell className="pl-4">
-                            {(maintenanceSection === "variants" || maintenanceSection === "addons") ? (
+                            {(maintenanceSection === "addons") ? (
                               <span className="font-bold text-stone-900 text-sm">+{formatCurrency(Number(item.price))}</span>
                             ) : (
                               <span className="line-clamp-1 text-[11px] font-medium text-stone-500 max-w-[200px] text-left">
@@ -526,7 +526,7 @@ export function MaintenanceView() {
                 />
               </div>
 
-              {maintenanceSection !== "modifiers" && maintenanceSection !== "categories" ? (
+              {maintenanceSection === "addons" ? (
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Price</label>
                   <Input
@@ -540,7 +540,7 @@ export function MaintenanceView() {
                   />
                 </div>
               ) : (
-                <p className="text-xs font-medium text-stone-500 italic">Financial metadata is not applicable for this registry.</p>
+                <p className="text-xs font-medium text-stone-500 italic">Prices are now configured individually inside product menus.</p>
               )}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Status</label>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check } from "lucide-react";
+import { Check, Plus, Minus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +25,7 @@ interface ProductConfigDialogProps {
     variant?: any;
     addons: any[];
     modifiers: any[];
+    quantity?: number;
   }) => void;
 }
 
@@ -40,44 +41,58 @@ export function ProductConfigDialog({
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
   const [selectedModifiers, setSelectedModifiers] = useState<any[]>([]);
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     if (open) {
       setSelectedVariant(null);
       setSelectedAddons([]);
       setSelectedModifiers([]);
+      setQuantity(1);
     }
   }, [open, product]);
 
   if (!product) return null;
 
+  const overridePrice = (item: any) => ({
+    ...item,
+    price: product.customPrices?.[item.id] !== undefined ? product.customPrices[item.id] : item.price,
+  });
+
   const availableVariants = allVariants.filter(
     (v) => v.isActive && product.maintenanceLinkIds?.includes(v.id),
-  );
+  ).map(overridePrice);
   const availableAddons = allAddons.filter(
     (a) => a.isActive && product.maintenanceLinkIds?.includes(a.id),
-  );
+  ).map(overridePrice);
   const availableModifiers = allModifiers.filter(
     (m) => m.isActive && product.maintenanceLinkIds?.includes(m.id),
-  );
+  ).map(overridePrice);
 
-  const totalExtras = (selectedVariant?.price || 0) + selectedAddons.reduce((sum, a) => sum + (a.price || 0), 0);
-  const finalPrice = product.price + totalExtras;
+  const totalAddons = selectedAddons.reduce((sum, a) => sum + (a.price || 0), 0);
+  const basePrice = selectedVariant ? selectedVariant.price : product.price;
+  const finalPrice = (basePrice * quantity) + totalAddons;
 
-  const toggleAddon = (item: any) => {
-    setSelectedAddons(prev => 
-      prev.find(p => p.id === item.id) 
-        ? prev.filter(p => p.id !== item.id) 
-        : [...prev, item]
-    );
+  const updateAddon = (item: any, delta: number) => {
+    setSelectedAddons(prev => {
+      if (delta > 0) return [...prev, item];
+      const index = prev.findIndex(p => p.id === item.id);
+      if (index === -1) return prev;
+      const next = [...prev];
+      next.splice(index, 1);
+      return next;
+    });
   };
 
-  const toggleModifier = (item: any) => {
-    setSelectedModifiers(prev => 
-      prev.find(p => p.id === item.id) 
-        ? prev.filter(p => p.id !== item.id) 
-        : [...prev, item]
-    );
+  const updateModifier = (item: any, delta: number) => {
+    setSelectedModifiers(prev => {
+      if (delta > 0) return [...prev, item];
+      const index = prev.findIndex(p => p.id === item.id);
+      if (index === -1) return prev;
+      const next = [...prev];
+      next.splice(index, 1);
+      return next;
+    });
   };
 
   const handleConfirm = () => {
@@ -85,6 +100,7 @@ export function ProductConfigDialog({
       variant: selectedVariant,
       addons: selectedAddons,
       modifiers: selectedModifiers,
+      quantity,
     });
     onOpenChange(false);
   };
@@ -103,24 +119,59 @@ export function ProductConfigDialog({
           {availableVariants.length > 0 && (
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Choose Size (Variant)</p>
-              <div className="grid grid-cols-2 gap-2">
-                {availableVariants.map((v) => (
-                  <button
-                    key={v.id}
-                    onClick={() => setSelectedVariant(v)}
-                    className={cn(
-                      "flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-semibold transition-all",
-                      selectedVariant?.id === v.id 
-                        ? "border-stone-900 bg-stone-900 text-white" 
-                        : "border-stone-100 bg-white text-stone-600 hover:border-stone-300"
-                    )}
-                  >
-                    <span>{v.name}</span>
-                    <span className={cn("text-[10px] font-bold opacity-70", selectedVariant?.id === v.id ? "text-stone-300" : "text-stone-400")}>
-                      +{formatCurrency(v.price)}
-                    </span>
-                  </button>
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {availableVariants.map((v) => {
+                  const isActive = selectedVariant?.id === v.id;
+                  return (
+                    <div
+                      key={v.id}
+                      className={cn(
+                        "flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl border transition-all",
+                        isActive ? "border-stone-900 bg-stone-50/50" : "border-stone-100 bg-white"
+                      )}
+                    >
+                      <div>
+                        <p className={cn("text-sm font-semibold", isActive ? "text-stone-900" : "text-stone-600")}>{v.name}</p>
+                        <p className={cn("text-[10px] font-bold mt-0.5", isActive ? "text-stone-600" : "text-stone-400")}>
+                          {formatCurrency(v.price)}
+                        </p>
+                      </div>
+                      {isActive ? (
+                        <div className="flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white p-1 shadow-sm shrink-0 self-start sm:self-auto">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-7 w-7 rounded-md hover:bg-stone-100" 
+                            onClick={() => {
+                              if (quantity > 1) setQuantity(quantity - 1);
+                              else { setSelectedVariant(null); setQuantity(1); }
+                            }}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="w-5 text-center text-xs font-bold">{quantity}</span>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-7 w-7 rounded-md hover:bg-stone-100" 
+                            onClick={() => setQuantity(quantity + 1)}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-8 md:h-9 font-semibold rounded-lg shrink-0 self-start sm:self-auto w-full sm:w-auto" 
+                          onClick={() => { setSelectedVariant(v); setQuantity(1); }}
+                        >
+                          Select
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -128,26 +179,39 @@ export function ProductConfigDialog({
           {availableAddons.length > 0 && (
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Extras & Addons</p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {availableAddons.map((a) => {
-                  const active = selectedAddons.find(p => p.id === a.id);
+                  const count = selectedAddons.filter((p) => p.id === a.id).length;
                   return (
-                    <button
+                    <div
                       key={a.id}
-                      onClick={() => toggleAddon(a)}
                       className={cn(
-                        "flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-semibold transition-all text-left",
-                        active 
-                          ? "border-stone-900 bg-stone-50/50 text-stone-900" 
-                          : "border-stone-100 bg-white text-stone-600 hover:border-stone-300"
+                        "flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl border transition-all",
+                        count > 0 ? "border-stone-900 bg-stone-50/50" : "border-stone-100 bg-white"
                       )}
                     >
-                      <div className="min-w-0 pr-2">
-                        <p className="truncate leading-none">{a.name}</p>
-                        <p className="text-[10px] opacity-60 mt-1 leading-none">+{formatCurrency(a.price)}</p>
+                      <div className="min-w-0">
+                        <p className={cn("truncate text-sm font-semibold", count > 0 ? "text-stone-900" : "text-stone-600")}>{a.name}</p>
+                        <p className={cn("text-[10px] font-bold mt-0.5", count > 0 ? "text-emerald-600" : "text-stone-400 opacity-70")}>
+                          +{formatCurrency(a.price)}
+                        </p>
                       </div>
-                      {active && <Check className="h-4 w-4 text-stone-950 shrink-0" />}
-                    </button>
+                      {count > 0 ? (
+                        <div className="flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white p-1 shadow-sm shrink-0 self-start sm:self-auto">
+                          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md hover:bg-stone-100" onClick={() => updateAddon(a, -1)}>
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="w-5 text-center text-xs font-bold text-stone-900">{count}</span>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md hover:bg-stone-100" onClick={() => updateAddon(a, 1)}>
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button variant="outline" size="sm" className="h-8 md:h-9 font-semibold rounded-lg shrink-0 self-start sm:self-auto w-full sm:w-auto" onClick={() => updateAddon(a, 1)}>
+                          Add
+                        </Button>
+                      )}
+                    </div>
                   );
                 })}
               </div>
@@ -159,20 +223,32 @@ export function ProductConfigDialog({
               <p className="text-xs font-semibold uppercase tracking-wider text-stone-500">Special Instructions</p>
               <div className="flex flex-wrap gap-2">
                 {availableModifiers.map((m) => {
-                  const active = selectedModifiers.find(p => p.id === m.id);
+                  const count = selectedModifiers.filter((p) => p.id === m.id).length;
                   return (
-                    <button
+                    <div
                       key={m.id}
-                      onClick={() => toggleModifier(m)}
                       className={cn(
-                        "px-4 py-2 rounded-xl border text-xs font-semibold transition-all",
-                        active 
-                          ? "border-stone-900 bg-stone-900 text-white" 
-                          : "border-stone-100 bg-white text-stone-500 hover:border-stone-300"
+                        "flex items-center gap-2 p-1.5 pl-3 rounded-xl border transition-all",
+                        count > 0 ? "border-stone-900 bg-stone-50/50" : "border-stone-100 bg-white"
                       )}
                     >
-                      {m.name}
-                    </button>
+                      <span className={cn("text-xs font-semibold mr-1", count > 0 ? "text-stone-900" : "text-stone-500")}>{m.name}</span>
+                      {count > 0 ? (
+                        <div className="flex items-center gap-1 rounded-lg border border-stone-200 bg-white p-0.5 shadow-sm">
+                          <Button variant="ghost" size="icon" className="h-6 w-6 rounded-md hover:bg-stone-100" onClick={() => updateModifier(m, -1)}>
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="w-4 text-center text-[10px] font-bold text-stone-900">{count}</span>
+                          <Button variant="ghost" size="icon" className="h-6 w-6 rounded-md hover:bg-stone-100" onClick={() => updateModifier(m, 1)}>
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button variant="outline" size="sm" className="h-7 text-[10px] px-3 font-semibold rounded-lg" onClick={() => updateModifier(m, 1)}>
+                          Add
+                        </Button>
+                      )}
+                    </div>
                   );
                 })}
               </div>

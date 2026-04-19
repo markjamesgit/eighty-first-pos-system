@@ -1,6 +1,6 @@
 export type UserRole = "admin";
 
-export type OrderStatus = "pending" | "completed";
+export type OrderStatus = "pending" | "completed" | "cancelled";
 
 export type StockHistoryType = "sale" | "manual_add" | "manual_remove" | "edit" | "manual_restock" | "manual_correction";
 
@@ -25,6 +25,7 @@ export interface Product {
   discount?: number;
   imageUrl?: string;
   isActive: boolean;
+  customPrices?: Record<string, number>;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -40,6 +41,7 @@ export interface CartItem {
   variantId?: string;
   addonIds?: string[];
   modifierIds?: string[];
+  addonsPrice?: number;
 }
 
 export interface OrderItem {
@@ -52,6 +54,7 @@ export interface OrderItem {
   variantId?: string;
   addonIds?: string[];
   modifierIds?: string[];
+  addonsPrice?: number;
 }
 
 export interface OrderRecord {
@@ -106,6 +109,7 @@ export interface ProductFormValues {
   discount?: number;
   imageUrl?: string;
   isActive: boolean;
+  customPrices?: Record<string, number>;
 }
 
 export interface StockAdjustmentValues {

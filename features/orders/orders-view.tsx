@@ -24,7 +24,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import type { OrderRecord } from "@/lib/types/domain";
-import { completeOrder, listOrderHistory, subscribeToActiveOrders } from "@/services/firebase/orders";
+import { completeOrder, cancelOrder, listOrderHistory, subscribeToActiveOrders } from "@/services/firebase/orders";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { ClipboardCheck, Clock, Search, SlidersHorizontal } from "lucide-react";
 
@@ -37,7 +37,8 @@ export function OrdersView() {
   const [pageSize, setPageSize] = useState(10);
   const [activeSearch, setActiveSearch] = useState("");
   const [historySearch, setHistorySearch] = useState("");
-  const [historyStatus, setHistoryStatus] = useState<"all" | "completed">("all");
+  const [historyStatus, setHistoryStatus] = useState<"all" | "completed" | "cancelled">("all");
+  const [historyDate, setHistoryDate] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<OrderRecord | null>(null);
 
   useEffect(() => {
@@ -80,9 +81,17 @@ export function OrdersView() {
         !query ||
         order.orderId.toLowerCase().includes(query) ||
         order.items.some((item) => item.name.toLowerCase().includes(query));
-      return matchesStatus && matchesSearch;
+
+      let orderDateStr = "";
+      if (order.createdAt) {
+        const d = new Date(order.createdAt);
+        orderDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      }
+      const matchesDate = !historyDate || orderDateStr === historyDate;
+
+      return matchesStatus && matchesSearch && matchesDate;
     });
-  }, [historyOrders, historySearch, historyStatus]);
+  }, [historyOrders, historySearch, historyStatus, historyDate]);
 
   const paginatedHistory = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
@@ -93,7 +102,7 @@ export function OrdersView() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [historySearch, historyStatus, pageSize]);
+  }, [historySearch, historyStatus, historyDate, pageSize]);
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -107,6 +116,16 @@ export function OrdersView() {
       toast.success("Order marked as completed.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to complete order.");
+    }
+  }
+
+  async function handleCancel(orderId: string) {
+    if (!window.confirm("Are you sure you want to completely cancel this order? This cannot be undone.")) return;
+    try {
+      await cancelOrder(orderId);
+      toast.success("Order cancelled successfully.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to cancel order.");
     }
   }
 
@@ -190,7 +209,7 @@ export function OrdersView() {
                           <button
                             type="button"
                             onClick={() => setSelectedOrder(order)}
-                            className="text-left text-sm font-black uppercase tracking-tighter text-stone-950 underline-offset-4 hover:underline"
+                            className="text-left text-sm font-black uppercase tracking-tighter text-stone-900 underline underline-offset-4 decoration-stone-300 hover:decoration-stone-900 transition-colors"
                           >
                             {order.orderId}
                           </button>
@@ -205,15 +224,27 @@ export function OrdersView() {
                             </Badge>
                           ))}
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-black text-stone-900">{formatCurrency(order.totalAmount)}</span>
-                          <Button
-                            size="sm"
-                            onClick={() => void handleComplete(order.id)}
-                            className="h-9 rounded-xl bg-stone-900 px-4 text-[10px] font-black uppercase tracking-widest text-white shadow-md transition-all hover:bg-emerald-600"
-                          >
-                            Finalize
-                          </Button>
+                        <div className="flex flex-col gap-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-black text-stone-900">{formatCurrency(order.totalAmount)}</span>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => void handleCancel(order.id)}
+                                className="h-9 rounded-xl border-rose-100 bg-white px-3 text-[10px] font-black uppercase tracking-widest text-rose-600 shadow-sm transition-all hover:bg-rose-50 hover:text-rose-700"
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => void handleComplete(order.id)}
+                                className="h-9 rounded-xl bg-stone-900 px-4 text-[10px] font-black uppercase tracking-widest text-white shadow-md transition-all hover:bg-emerald-600"
+                              >
+                                Finalize
+                              </Button>
+                            </div>
+                          </div>
                         </div>
                       </article>
                     ))
@@ -249,7 +280,7 @@ export function OrdersView() {
                               <button
                                 type="button"
                                 onClick={() => setSelectedOrder(order)}
-                                className="font-bold text-sm uppercase tracking-tight text-stone-950 underline-offset-4 hover:underline"
+                                className="font-black text-sm uppercase tracking-tight text-stone-900 underline underline-offset-4 decoration-stone-300 hover:decoration-stone-900 transition-colors"
                               >
                                 {order.orderId}
                               </button>
@@ -274,14 +305,24 @@ export function OrdersView() {
                                 {order.createdAt ? formatDateTime(order.createdAt).split(",")[1] : "-"}
                               </span>
                             </TableCell>
-                            <TableCell className="pl-4 pr-6 md:pr-8 w-24">
-                              <Button
-                                size="sm"
-                                onClick={() => void handleComplete(order.id)}
-                                className="h-9 px-6 font-bold text-xs bg-stone-900 text-white rounded-xl shadow-sm hover:bg-emerald-600 transition-all active:scale-95"
-                              >
-                                Finalize
-                              </Button>
+                            <TableCell className="pl-4 pr-6 md:pr-8 w-44">
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => void handleCancel(order.id)}
+                                  className="h-9 px-3 font-bold text-xs bg-white text-rose-600 border-rose-100 hover:bg-rose-50 hover:text-rose-700 transition-all active:scale-95 shadow-sm rounded-xl"
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() => void handleComplete(order.id)}
+                                  className="h-9 px-4 font-bold text-xs bg-stone-900 text-white rounded-xl shadow-sm hover:bg-emerald-600 transition-all active:scale-95"
+                                >
+                                  Finalize
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))
@@ -329,8 +370,22 @@ export function OrdersView() {
                     <SelectContent className="rounded-xl border-stone-200">
                       <SelectItem value="all">All Status</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
+                  <div className="space-y-1">
+                    <Input
+                      type="date"
+                      className="h-10 rounded-xl border-stone-200 bg-white font-medium text-stone-600 focus-visible:ring-stone-950 px-3 cursor-pointer"
+                      value={historyDate}
+                      onChange={(e) => setHistoryDate(e.target.value)}
+                    />
+                    {historyDate && (
+                      <button onClick={() => setHistoryDate("")} className="text-[10px] text-stone-400 hover:text-stone-900 font-bold uppercase tracking-widest pl-1 transition-colors">
+                        Clear Date Filter
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="hidden lg:block space-y-2">
                   <div className="rounded-xl border border-stone-100 bg-stone-50/30 p-4">
@@ -357,11 +412,11 @@ export function OrdersView() {
                           <button
                             type="button"
                             onClick={() => setSelectedOrder(order)}
-                            className="text-left text-sm font-black uppercase tracking-tighter text-stone-900 underline-offset-4 hover:underline"
+                            className="text-left text-sm font-black uppercase tracking-tighter text-stone-900 underline underline-offset-4 decoration-stone-300 hover:decoration-stone-900 transition-colors"
                           >
                             {order.orderId}
                           </button>
-                          <Badge variant="success" className="h-5 rounded-full px-2.5 text-[8px] font-black uppercase tracking-[0.1em] shadow-sm">
+                          <Badge variant={order.status === "completed" ? "success" : "destructive"} className="h-5 rounded-full px-2.5 text-[8px] font-black uppercase tracking-[0.1em] shadow-sm">
                             {order.status}
                           </Badge>
                         </div>
@@ -401,7 +456,7 @@ export function OrdersView() {
                               <button
                                 type="button"
                                 onClick={() => setSelectedOrder(order)}
-                                className="font-black text-sm uppercase tracking-tighter text-stone-900 underline-offset-4 hover:underline"
+                                className="font-black text-sm uppercase tracking-tighter text-stone-900 underline underline-offset-4 decoration-stone-300 hover:decoration-stone-900 transition-colors"
                               >
                                 {order.orderId}
                               </button>
@@ -409,7 +464,7 @@ export function OrdersView() {
                             <TableCell className="pl-4 font-bold text-stone-900 text-sm">{order.customerName || "—"}</TableCell>
                             <TableCell className="pl-4 font-black text-stone-950 text-sm">{formatCurrency(order.totalAmount)}</TableCell>
                             <TableCell className="pl-4">
-                              <Badge variant="success" className="rounded-full text-[8px] font-black uppercase tracking-[0.1em] px-2.5 h-4 shadow-sm">
+                              <Badge variant={order.status === "completed" ? "success" : "destructive"} className="rounded-full text-[8px] font-black uppercase tracking-[0.1em] px-2.5 h-4 shadow-sm">
                                 {order.status}
                               </Badge>
                             </TableCell>
@@ -441,87 +496,80 @@ export function OrdersView() {
       </Tabs>
 
       <Dialog open={!!selectedOrder} onOpenChange={(open) => !open && setSelectedOrder(null)}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl rounded-3xl border-stone-100 p-0 shadow-2xl bg-white flex flex-col">
-          <DialogHeader className="bg-white border-b border-stone-100 px-6 py-5">
-            <DialogTitle className="text-lg font-bold text-stone-900">
-              Order Details {selectedOrder ? `• ${selectedOrder.orderId}` : ""}
-            </DialogTitle>
-            <DialogDescription className="text-xs text-stone-500 mt-1">
-              Review information including items, totals, and payment details.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="p-6">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md rounded-2xl border-stone-100 sm:p-8 p-6 shadow-2xl bg-[#fafafa] flex flex-col font-mono text-stone-900 custom-scrollbar">
+          <DialogTitle className="sr-only">Receipt for {selectedOrder?.orderId}</DialogTitle>
+          <div className="mx-auto w-full max-w-sm">
             {selectedOrder ? (
-              <div className="space-y-4">
-                <div className="grid gap-3 rounded-xl border border-stone-100 bg-stone-50/30 p-4 sm:grid-cols-2">
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Status</p>
-                    <p className="mt-1 text-sm font-semibold text-stone-900">{selectedOrder.status}</p>
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 bg-stone-900 text-white rounded-full flex items-center justify-center mb-4">
+                  <ClipboardCheck className="h-8 w-8" />
+                </div>
+                <h2 className="text-xl font-black uppercase tracking-widest mb-1 text-center">Receipt</h2>
+                <p className="text-xs text-stone-500 mb-6 text-center">{selectedOrder.orderId}</p>
+
+                <div className="w-full border-b-[2px] border-dashed border-stone-300 mb-6"></div>
+
+                <div className="w-full space-y-2 text-xs sm:text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-stone-500">Date</span>
+                    <span className="text-right">{selectedOrder.createdAt ? formatDateTime(selectedOrder.createdAt) : "-"}</span>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Total Items</p>
-                    <p className="mt-1 text-sm font-semibold text-stone-900">{selectedOrderTotalItems}</p>
+                  <div className="flex justify-between">
+                    <span className="text-stone-500">Customer</span>
+                    <span className="text-right font-bold">{selectedOrder.customerName || "Walk-in"}</span>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Created At</p>
-                    <p className="mt-1 text-sm font-semibold text-stone-900">
-                      {selectedOrder.createdAt ? formatDateTime(selectedOrder.createdAt) : "-"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Customer Nickname</p>
-                    <p className="mt-1 text-sm font-semibold text-stone-900">
-                      {selectedOrder.customerName || "No Nickname"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Completed At</p>
-                    <p className="mt-1 text-sm font-semibold text-stone-900">
-                      {selectedOrder.completedAt ? formatDateTime(selectedOrder.completedAt) : "-"}
-                    </p>
+                  <div className="flex justify-between">
+                    <span className="text-stone-500">Status</span>
+                    <span className="text-right uppercase font-bold">{selectedOrder.status}</span>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-stone-100 bg-white overflow-hidden shadow-sm">
-                  <div className="border-b border-stone-100 px-4 py-3">
-                    <p className="text-sm font-bold text-stone-900">Ordered Items</p>
+                <div className="w-full border-b border-dashed border-stone-300 my-6"></div>
+
+                <div className="w-full space-y-3 text-xs sm:text-sm">
+                  <div className="flex justify-between text-stone-400 uppercase tracking-widest text-[10px] font-bold mb-1">
+                    <span>Qty x Item</span>
+                    <span>Amount</span>
                   </div>
-                  <div className="space-y-2 p-4">
-                    {selectedOrder.items.map((item, index) => (
-                      <div
-                        key={`${item.productId}-${index}`}
-                        className="flex items-center justify-between rounded-lg border border-stone-100 bg-stone-50/40 px-3 py-2"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-stone-900">{item.name}</p>
-                          <p className="text-xs text-stone-500">
-                            {formatCurrency(item.price)} x {item.qty}
-                          </p>
-                        </div>
-                        <p className="text-sm font-bold text-stone-900">{formatCurrency(item.price * item.qty)}</p>
+                  {selectedOrder.items.map((item, index) => (
+                    <div key={`${item.productId}-${index}`} className="flex items-start justify-between gap-2 overflow-hidden w-full">
+                      <div className="pr-2 flex-1 min-w-0 break-words overflow-hidden">
+                        <p className="font-bold leading-tight break-words text-wrap">{item.qty} x {item.name}</p>
+                        <p className="text-[10px] sm:text-xs text-stone-500 mt-0.5 break-words whitespace-normal leading-tight">@{formatCurrency(item.price)} ea {item.addonsPrice ? `(+${formatCurrency(item.addonsPrice)} addons)` : ''}</p>
                       </div>
-                    ))}
+                      <p className="font-bold shrink-0 text-right pt-[1px]">{formatCurrency((item.price * item.qty) + (item.addonsPrice || 0))}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="w-full border-b-[2px] border-dashed border-stone-300 my-6"></div>
+
+                <div className="w-full space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-stone-500">Total Items</span>
+                    <span>{selectedOrderTotalItems}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-stone-500">Net Amount</span>
+                    <span className="font-black text-base">{formatCurrency(selectedOrder.totalAmount)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-stone-500">Cash Received</span>
+                    <span>{formatCurrency(selectedOrder.cashReceived)}</span>
+                  </div>
+                  <div className="flex justify-between font-black text-lg mt-2 pt-2 border-t border-stone-200">
+                    <span>CHANGE</span>
+                    <span>{formatCurrency(selectedOrder.change)}</span>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-stone-100 bg-stone-50/30 p-5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-stone-600">Total Amount</span>
-                    <span className="font-bold text-stone-900">{formatCurrency(selectedOrder.totalAmount)}</span>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between text-sm">
-                    <span className="text-stone-600">Cash Received</span>
-                    <span className="font-bold text-stone-900">{formatCurrency(selectedOrder.cashReceived)}</span>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between border-t border-stone-100 pt-3 text-sm">
-                    <span className="text-stone-600">Change</span>
-                    <span className="font-bold text-stone-900">{formatCurrency(selectedOrder.change)}</span>
-                  </div>
+                <div className="mt-8 mb-2 flex flex-col items-center opacity-40">
+                  <div className="h-10 w-48 bg-[repeating-linear-gradient(90deg,#1c1917_0,#1c1917_3px,transparent_3px,transparent_6px,#1c1917_6px,#1c1917_8px,transparent_8px,transparent_12px)]"></div>
+                  <p className="text-[10px] uppercase tracking-widest mt-2 font-bold">Thank you</p>
                 </div>
               </div>
             ) : null}
           </div>
-
         </DialogContent>
       </Dialog>
     </div>

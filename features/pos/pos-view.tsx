@@ -269,7 +269,9 @@ export function PosView() {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold leading-snug text-stone-900">{item.name}</p>
-                  <p className="mt-0.5 text-xs text-stone-500">{formatCurrency(item.price)} each</p>
+                  <p className="mt-0.5 text-xs text-stone-500">
+                    {formatCurrency(item.price)} each {item.addonsPrice ? <span className="text-emerald-600 font-medium">(+{formatCurrency(item.addonsPrice)} addons)</span> : ""}
+                  </p>
                 </div>
                 <Button
                   variant="ghost"

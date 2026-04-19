@@ -382,6 +382,36 @@ export async function completeOrder(orderId: string) {
   });
 }
 
+export async function cancelOrder(orderId: string) {
+  const firestore = getFirestoreDb();
+  const activeRef = doc(firestore, ACTIVE_ORDERS_COLLECTION, orderId);
+  const snapshot = await getDoc(activeRef);
+
+  if (!snapshot.exists()) {
+    throw new Error("Order not found.");
+  }
+
+  const data = snapshot.data();
+  const batch = writeBatch(firestore);
+  const historyRef = doc(collection(firestore, ORDER_HISTORY_COLLECTION));
+
+  batch.set(historyRef, {
+    ...data,
+    status: "cancelled" as OrderStatus,
+    completedAt: serverTimestamp(),
+    archivedAt: serverTimestamp(),
+  });
+  batch.delete(activeRef);
+
+  await batch.commit();
+  await addAuditEntrySafe({
+    module: "Orders",
+    action: "cancel",
+    description: `Cancelled order ${orderId}`,
+    performedBy: "admin",
+  });
+}
+
 export async function listOrderHistory(
   cursor?: QueryDocumentSnapshot,
   orderLimit = 10,

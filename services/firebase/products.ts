@@ -55,6 +55,7 @@ function mapProduct(
     discount: data.discount !== undefined ? Number(data.discount) : undefined,
     imageUrl: data.imageUrl ? String(data.imageUrl) : undefined,
     isActive: Boolean(data.isActive),
+    customPrices: data.customPrices as Record<string, number> | undefined,
     createdAt:
       data.createdAt && typeof data.createdAt === "object" && "toDate" in data.createdAt
         ? (data.createdAt as { toDate: () => Date }).toDate()
