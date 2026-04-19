@@ -13,12 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ImageIcon } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { ImageIcon, RefreshCw } from "lucide-react";
+import { formatCurrency, getDayKey } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { listIngredients } from "@/services/firebase/ingredients";
 import { listIngredientUsageForRange } from "@/services/firebase/orders";
-import { getSalesSummaryByDateRange, getSalesSummaryByFilter } from "@/services/firebase/sales";
+import { getSalesSummaryByDateRange, getSalesSummaryByFilter, syncDailySalesSummary } from "@/services/firebase/sales";
 import { listProducts } from "@/services/firebase/products";
 import { subscribeToAdminConfig, type AdminSystemConfig, DEFAULT_CONFIG } from "@/services/firebase/admin-config";
 import type { Product, SalesSummary } from "@/lib/types/domain";
@@ -37,6 +38,58 @@ export function DashboardView() {
   const [sysConfig, setSysConfig] = useState<AdminSystemConfig>(DEFAULT_CONFIG);
   const [productsMap, setProductsMap] = useState<Record<string, Product>>({});
   const [mounted, setMounted] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+
+  const fetchSalesData = (currentFilter: typeof filter, start?: string, end?: string) => {
+    const range = getRangeForFilter(currentFilter === "custom" ? "today" : currentFilter);
+    const startDate =
+      currentFilter === "custom" && start ? new Date(`${start}T00:00:00`) : range.startDate;
+    const endDate =
+      currentFilter === "custom" && end ? new Date(`${end}T23:59:59`) : range.endDate;
+
+    if (currentFilter === "custom") {
+      if (!start || !end) {
+        setSummary([]);
+        setIngredientUsage([]);
+        return;
+      }
+      if (startDate > endDate) {
+        setSummary([]);
+        setIngredientUsage([]);
+        return;
+      }
+    }
+
+    const salesPromise =
+      currentFilter === "custom"
+        ? getSalesSummaryByDateRange(startDate, endDate)
+        : getSalesSummaryByFilter(currentFilter);
+    void salesPromise.then(setSummary).catch(() => setSummary([]));
+
+    void listIngredientUsageForRange({ startDate, endDate })
+      .then((rows) =>
+        setIngredientUsage(
+          rows.map((row) => ({
+            ingredientName: row.ingredientName,
+            quantityChange: row.quantityChange,
+          })),
+        ),
+      )
+      .catch(() => setIngredientUsage([]));
+  };
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      await syncDailySalesSummary(getDayKey(new Date()));
+      fetchSalesData(filter, customStartDate, customEndDate);
+      toast.success("Dashboard data synchronized with order history.");
+    } catch (err) {
+      toast.error("Failed to sync data.");
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -75,31 +128,7 @@ export function DashboardView() {
   }
 
   useEffect(() => {
-    const range = getRangeForFilter(filter === "custom" ? "today" : filter);
-    const startDate =
-      filter === "custom" && customStartDate ? new Date(`${customStartDate}T00:00:00`) : range.startDate;
-    const endDate =
-      filter === "custom" && customEndDate ? new Date(`${customEndDate}T23:59:59`) : range.endDate;
-
-    if (filter === "custom") {
-      if (!customStartDate || !customEndDate) {
-        setSummary([]);
-        setIngredientUsage([]);
-        return;
-      }
-      if (startDate > endDate) {
-        toast.error("Custom range start date cannot be later than end date.");
-        setSummary([]);
-        setIngredientUsage([]);
-        return;
-      }
-    }
-
-    const salesPromise =
-      filter === "custom"
-        ? getSalesSummaryByDateRange(startDate, endDate)
-        : getSalesSummaryByFilter(filter);
-    void salesPromise.then(setSummary).catch(() => setSummary([]));
+    fetchSalesData(filter, customStartDate, customEndDate);
 
     void listIngredients()
       .then((rows) =>
@@ -113,16 +142,6 @@ export function DashboardView() {
         ),
       )
       .catch(() => setIngredients([]));
-    void listIngredientUsageForRange({ startDate, endDate })
-      .then((rows) =>
-        setIngredientUsage(
-          rows.map((row) => ({
-            ingredientName: row.ingredientName,
-            quantityChange: row.quantityChange,
-          })),
-        ),
-      )
-      .catch(() => setIngredientUsage([]));
   }, [filter, customStartDate, customEndDate]);
 
   const totals = useMemo(() => {
@@ -193,24 +212,42 @@ export function DashboardView() {
               Real-time business pulse with sales, top products, and inventory signals.
             </p>
           </div>
-          <div className="w-full lg:w-[220px]">
-            <label className="mb-1 block text-[10px] font-black uppercase tracking-widest opacity-90">Date Filter</label>
-            <Select
-              value={filter}
-              onValueChange={(value: "today" | "weekly" | "monthly" | "custom") => setFilter(value)}
-            >
-              <SelectTrigger className={`w-full transition-colors ${isLightMotif ? "bg-black/5 border-black/10 text-stone-900" : "bg-white/10 border-white/20 text-white"}`}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {DASHBOARD_FILTERS.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-                <SelectItem value="custom">Custom Range</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 w-full lg:w-auto">
+            <div className="flex sm:block">
+              <Button
+                onClick={() => void handleSync()}
+                disabled={syncing}
+                variant="outline"
+                size="icon"
+                title="Sync Data"
+                className={`h-10 w-10 border shadow-none rounded-xl transition-all active:scale-95 ${
+                  isLightMotif 
+                    ? "bg-stone-100/50 border-stone-200 text-stone-600 hover:bg-stone-200/50 hover:text-stone-900" 
+                    : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+              </Button>
+            </div>
+            <div className="w-full lg:w-[220px]">
+              <label className="mb-1 block text-[10px] font-black uppercase tracking-widest opacity-90">Date Filter</label>
+              <Select
+                value={filter}
+                onValueChange={(value: "today" | "weekly" | "monthly" | "custom") => setFilter(value)}
+              >
+                <SelectTrigger className={`w-full transition-colors h-10 ${isLightMotif ? "bg-black/5 border-black/10 text-stone-900" : "bg-white/10 border-white/20 text-white"}`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DASHBOARD_FILTERS.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="custom">Custom Range</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -246,11 +283,11 @@ export function DashboardView() {
             {topProducts[0] ? (
               <div className="flex items-center gap-2 sm:gap-3">
                 {productsMap[topProducts[0].id]?.imageUrl ? (
-                   <img src={productsMap[topProducts[0].id].imageUrl} alt={topProducts[0].name} className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 overflow-hidden rounded-xl bg-stone-100 object-cover" />
+                  <img src={productsMap[topProducts[0].id].imageUrl} alt={topProducts[0].name} className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 overflow-hidden rounded-xl bg-stone-100 object-cover" />
                 ) : (
-                   <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-400">
-                     <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4" />
-                   </div>
+                  <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-400">
+                    <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                  </div>
                 )}
                 <div className="flex flex-col min-w-0">
                   <span className="text-sm sm:text-base font-black text-stone-900 truncate leading-tight">{topProducts[0].name}</span>
@@ -287,13 +324,13 @@ export function DashboardView() {
               <div className="absolute inset-0 p-3 sm:p-6 sm:pt-0 pb-3">
                 <ResponsiveContainer width="99%" height="100%">
                   <BarChart data={summary} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
-                    <XAxis 
-                      dataKey="dateKey" 
-                      tickLine={false} 
-                      axisLine={false} 
-                      fontSize={10} 
+                    <XAxis
+                      dataKey="dateKey"
+                      tickLine={false}
+                      axisLine={false}
+                      fontSize={10}
                       tickMargin={12}
-                      stroke="#a8a29e" 
+                      stroke="#a8a29e"
                       tickFormatter={(val: string) => {
                         if (!val) return "";
                         const parts = val.split("-");
@@ -301,25 +338,25 @@ export function DashboardView() {
                         return val;
                       }}
                     />
-                    <YAxis 
-                      tickFormatter={(value) => `₱${value}`} 
-                      tickLine={false} 
-                      axisLine={false} 
-                      fontSize={10} 
+                    <YAxis
+                      tickFormatter={(value) => `₱${value}`}
+                      tickLine={false}
+                      axisLine={false}
+                      fontSize={10}
                       tickMargin={12}
                       stroke="#a8a29e"
                     />
-                    <Tooltip 
+                    <Tooltip
                       cursor={{ fill: '#fafaf9' }}
                       contentStyle={{ borderRadius: '8px', border: '1px solid #f5f5f4', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)', padding: '8px 12px' }}
-                      formatter={(value) => [`₱${Number(value).toFixed(2)}`, "Revenue"]} 
+                      formatter={(value) => [`₱${Number(value).toFixed(2)}`, "Revenue"]}
                       labelStyle={{ fontWeight: "600", color: "#44403c", marginBottom: "4px", fontSize: "11px" }}
                       itemStyle={{ fontSize: "12px", fontWeight: "600", color: "#1c1917" }}
                     />
-                    <Bar 
-                      dataKey="totalSales" 
-                      fill="#292524" 
-                      radius={[4, 4, 0, 0]} 
+                    <Bar
+                      dataKey="totalSales"
+                      fill="#292524"
+                      radius={[4, 4, 0, 0]}
                       barSize={24}
                       animationDuration={1000}
                     />
@@ -343,7 +380,7 @@ export function DashboardView() {
                     <div className="flex items-center gap-3">
                       {pd?.imageUrl ? (
                         <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-stone-100 relative group">
-                           <img src={pd.imageUrl} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                          <img src={pd.imageUrl} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
                         </div>
                       ) : (
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-400">

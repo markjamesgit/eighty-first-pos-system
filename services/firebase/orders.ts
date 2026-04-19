@@ -297,17 +297,8 @@ export async function createOrder(params: {
       });
     });
 
-    transaction.set(
-      salesRef,
-      {
-        dateKey: dayKey,
-        totalSales: (existingSales?.totalSales ?? 0) + totalAmount,
-        orderCount: (existingSales?.orderCount ?? 0) + 1,
-        topProducts: mergeTopProducts(existingSales?.topProducts, items),
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true },
-    );
+    // We no longer update sales_summary here. 
+    // Revenue is now recorded only when the order is officially "completed".
   });
 
   await Promise.all(
@@ -362,18 +353,38 @@ export async function completeOrder(orderId: string) {
   }
 
   const data = snapshot.data();
+  const dayKey = data.dayKey || getDayKey();
+  const salesRef = doc(firestore, SALES_COLLECTION, `daily_${dayKey}`);
   const batch = writeBatch(firestore);
   const historyRef = doc(collection(firestore, ORDER_HISTORY_COLLECTION));
 
-  batch.set(historyRef, {
-    ...data,
-    status: "completed" as OrderStatus,
-    completedAt: serverTimestamp(),
-    archivedAt: serverTimestamp(),
-  });
-  batch.delete(activeRef);
+  // Note: We use a simple batch here, but if we want to be perfectly atomic with the summary update, 
+  // we normally use a transaction. However, keeping the current architecture:
+  await runTransaction(firestore, async (transaction) => {
+    const salesSnapshot = await transaction.get(salesRef);
+    const existingSales = salesSnapshot.exists() ? salesSnapshot.data() : undefined;
+    
+    transaction.set(historyRef, {
+      ...data,
+      status: "completed" as OrderStatus,
+      completedAt: serverTimestamp(),
+      archivedAt: serverTimestamp(),
+    });
+    transaction.delete(activeRef);
 
-  await batch.commit();
+    transaction.set(
+      salesRef,
+      {
+        dateKey: dayKey,
+        totalSales: (existingSales?.totalSales ?? 0) + (data.totalAmount ?? 0),
+        orderCount: (existingSales?.orderCount ?? 0) + 1,
+        topProducts: mergeTopProducts(existingSales?.topProducts, data.items || []),
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
+  });
+
   await addAuditEntrySafe({
     module: "Orders",
     action: "complete",
@@ -385,54 +396,27 @@ export async function completeOrder(orderId: string) {
 export async function cancelOrder(orderId: string) {
   const firestore = getFirestoreDb();
   const activeRef = doc(firestore, ACTIVE_ORDERS_COLLECTION, orderId);
+  const snapshot = await getDoc(activeRef);
+
+  if (!snapshot.exists()) {
+    throw new Error("Order not found.");
+  }
+
+  const data = snapshot.data();
+  const batch = writeBatch(firestore);
   const historyRef = doc(collection(firestore, ORDER_HISTORY_COLLECTION));
 
-  await runTransaction(firestore, async (transaction) => {
-    const activeSnapshot = await transaction.get(activeRef);
-    if (!activeSnapshot.exists()) {
-      throw new Error("Order not found.");
-    }
-
-    const data = activeSnapshot.data();
-    const dayKey = data.dayKey || getDayKey();
-    const salesRef = doc(firestore, SALES_COLLECTION, `daily_${dayKey}`);
-    const salesSnapshot = await transaction.get(salesRef);
-
-    transaction.set(historyRef, {
-      ...data,
-      status: "cancelled" as OrderStatus,
-      completedAt: serverTimestamp(),
-      archivedAt: serverTimestamp(),
-    });
-    transaction.delete(activeRef);
-
-    if (salesSnapshot.exists()) {
-      const salesData = salesSnapshot.data();
-      const currentTopProducts = (salesData.topProducts || []) as SalesSummary["topProducts"];
-      const orderItems = (data.items || []) as OrderItem[];
-      
-      const counts = new Map<string, { productId: string; name: string; qty: number }>();
-      currentTopProducts.forEach((item) => counts.set(item.productId, { ...item }));
-      
-      orderItems.forEach((item) => {
-        const existing = counts.get(item.productId);
-        if (existing) {
-          existing.qty = Math.max(0, existing.qty - item.qty);
-        }
-      });
-      
-      // Filter out products with 0 qty
-      const newTopProducts = Array.from(counts.values()).filter(p => p.qty > 0);
-
-      transaction.update(salesRef, {
-        totalSales: Math.max(0, (salesData.totalSales ?? 0) - (data.totalAmount ?? 0)),
-        orderCount: Math.max(0, (salesData.orderCount ?? 0) - 1),
-        topProducts: newTopProducts,
-        updatedAt: serverTimestamp(),
-      });
-    }
+  // Since we only record to sales_summary on COMPLETE now, 
+  // cancelling a pending order doesn't need to touch the summary.
+  batch.set(historyRef, {
+    ...data,
+    status: "cancelled" as OrderStatus,
+    completedAt: serverTimestamp(),
+    archivedAt: serverTimestamp(),
   });
+  batch.delete(activeRef);
 
+  await batch.commit();
   await addAuditEntrySafe({
     module: "Orders",
     action: "cancel",

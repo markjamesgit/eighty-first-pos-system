@@ -109,3 +109,51 @@ export async function getSalesSummaryByDateRange(startDate: Date, endDate: Date)
       return date >= normalizedStart && date <= normalizedEnd;
     });
 }
+
+export async function syncDailySalesSummary(dayKey: string) {
+  const db = getFirestoreDb();
+  const snapshot = await getDocs(
+    query(
+      collection(db, "orders_history"),
+      where("dayKey", "==", dayKey),
+      where("status", "==", "completed"),
+    )
+  );
+
+  let totalSales = 0;
+  let orderCount = 0;
+  const topProductsMap = new Map<string, { productId: string; name: string; qty: number }>();
+
+  snapshot.docs.forEach((snap) => {
+    const data = snap.data();
+    totalSales += Number(data.totalAmount || 0);
+    orderCount += 1;
+
+    (data.items || []).forEach((item: any) => {
+      if (!item.productId) return;
+      const existing = topProductsMap.get(item.productId);
+      if (existing) {
+        existing.qty += Number(item.qty || 0);
+      } else {
+        topProductsMap.set(item.productId, {
+          productId: item.productId,
+          name: item.name,
+          qty: Number(item.qty || 0),
+        });
+      }
+    });
+  });
+
+  const docRef = doc(db, SALES_COLLECTION, buildSummaryId(dayKey));
+  await setDoc(
+    docRef,
+    {
+      dateKey: dayKey,
+      totalSales,
+      orderCount,
+      topProducts: Array.from(topProductsMap.values()),
+      updatedAt: new Date(),
+    },
+    { merge: true },
+  );
+}
