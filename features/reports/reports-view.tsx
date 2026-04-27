@@ -11,6 +11,7 @@ import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import type { OrderRecord } from "@/lib/types/domain";
 import { listIngredientUsageForRange, listOrderHistoryForRange } from "@/services/firebase/orders";
+import { useAuthStore } from "@/store/auth-store";
 import {
   FileDown,
   Search,
@@ -29,6 +30,7 @@ function toCsv(rows: string[][]) {
 }
 
 export function ReportsView() {
+  const user = useAuthStore((state) => state.user);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(false);
@@ -87,13 +89,20 @@ export function ReportsView() {
   }, [salesPage, usagePage, salesTotalPages, usageTotalPages]);
 
   async function handleGenerate() {
+    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+    if (!effectiveClientId) {
+      toast.error("No active client ID found.");
+      return;
+    }
     setLoading(true);
     try {
       const rows = await listOrderHistoryForRange({
+        clientId: effectiveClientId,
         startDate: startDate ? new Date(`${startDate}T00:00:00`) : undefined,
         endDate: endDate ? new Date(`${endDate}T23:59:59`) : undefined,
       });
       const ingredientRows = await listIngredientUsageForRange({
+        clientId: effectiveClientId,
         startDate: startDate ? new Date(`${startDate}T00:00:00`) : undefined,
         endDate: endDate ? new Date(`${endDate}T23:59:59`) : undefined,
       });

@@ -59,7 +59,7 @@ export function ProfileView() {
     const effectiveClientId = user?.masqueradeClientId || user?.clientId;
     if (effectiveClientId) {
       void loadConfig(effectiveClientId);
-    } else if (user && !user.loading) {
+    } else if (user) {
       setLoading(false);
     }
   }, [user]);

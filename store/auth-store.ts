@@ -42,6 +42,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           firebaseUser.getIdTokenResult()
         ]);
         
+        const roleFromClaims = tokenResult.claims.role as string | undefined;
+        const clientIdFromClaims = tokenResult.claims.clientId as string | undefined;
         const finalRole = (roleFromClaims || profile?.role) as UserRole | undefined;
 
         set({
