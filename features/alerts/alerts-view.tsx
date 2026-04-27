@@ -182,7 +182,9 @@ export function AlertsView() {
                   variant="outline"
                   className="w-full gap-2 rounded-xl border-stone-100 text-stone-500 hover:bg-red-50 hover:text-red-600 transition-all font-bold text-xs"
                   onClick={() => {
-                    void wipeAllAlerts().then(() => toast.success("All alert data wiped successfully."));
+                    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+                    if (!effectiveClientId) return;
+                    void wipeAllAlerts(effectiveClientId).then(() => toast.success("All alert data wiped successfully."));
                   }}
                 >
                   <Trash2 className="h-4 w-4" />
