@@ -24,8 +24,8 @@ export async function GET(request: Request) {
       topClients,
       recentLogs: recentLogs.map(log => ({
         ...log,
-        timestamp: log.timestamp && typeof log.timestamp.toDate === "function" 
-          ? { seconds: log.timestamp.seconds, nanoseconds: log.timestamp.nanoseconds }
+        timestamp: log.timestamp && typeof (log.timestamp as any).toDate === "function" 
+          ? { seconds: (log.timestamp as any).seconds, nanoseconds: (log.timestamp as any).nanoseconds }
           : log.timestamp
       }))
     });
