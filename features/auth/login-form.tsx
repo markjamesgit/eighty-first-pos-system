@@ -66,7 +66,7 @@ export function LoginForm() {
     if (recoveryPin.length !== 6) return;
     setVerifyingPin(true);
     try {
-      const config = await getAdminConfig();
+      const config = await getAdminConfig("system");
       if (config.secondaryPin === recoveryPin && config.secondaryPin) {
         let authStored = "";
         if (typeof window !== "undefined") {
