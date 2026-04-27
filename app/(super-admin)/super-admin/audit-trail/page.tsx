@@ -46,6 +46,9 @@ type AuditLog = {
   userId: string;
   timestamp: any;
   metadata?: any;
+  module?: string;
+  description?: string;
+  performedBy?: string;
 };
 
 export default function SuperAdminAuditTrailPage() {
