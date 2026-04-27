@@ -8,12 +8,8 @@ import {
   type User,
 } from "firebase/auth";
 import {
-  collection,
   doc,
   getDoc,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
 } from "firebase/firestore";
 import type { AppUser } from "@/lib/types/domain";
 import { addAuditEntrySafe } from "./audit-trail";
@@ -25,32 +21,20 @@ export async function loginAdmin(email: string, password: string) {
   await ensureAuthPersistence();
 
   const auth = getFirebaseAuth();
-  const firestore = getFirestoreDb();
   const credential = await signInWithEmailAndPassword(auth, email, password);
-  const userDoc = doc(collection(firestore, USERS_COLLECTION), credential.user.uid);
-  const existing = await getDoc(userDoc);
 
-  if (existing.exists()) {
-    await updateDoc(userDoc, {
-      lastLoginAt: serverTimestamp(),
-    });
-  } else {
-    await setDoc(userDoc, {
-      uid: credential.user.uid,
-      email: credential.user.email,
-      displayName: credential.user.email?.split("@")[0] ?? "Admin",
-      role: "admin",
-      createdAt: serverTimestamp(),
-      lastLoginAt: serverTimestamp(),
-    });
-  }
+  // Fetch client ID for audit logging
+  const profile = await getCurrentAdminProfile(credential.user.uid);
+  const clientId = profile?.clientId;
 
   await addAuditEntrySafe({
+    clientId: clientId || "system",
     module: "Auth",
     action: "login",
     description: `User logged in: ${credential.user.email ?? email}`,
     performedBy: credential.user.email ?? email,
   });
+
 
   return credential.user;
 }
@@ -86,12 +70,21 @@ export async function getCurrentAdminProfile(uid: string): Promise<AppUser | nul
 
 export async function logoutAdmin() {
   const auth = getFirebaseAuth();
-  const email = auth.currentUser?.email ?? "admin";
+  const user = auth.currentUser;
+  const email = user?.email ?? "admin";
+  
+  // We need to try and get the clientId before they sign out
+  // This is best effort - usually it's in the auth store, but since we're in a service,
+  // we'll try to peek it from the user profile if possible, or just log it without clientId.
+  // Actually, we can just log it. If clientId is missing, it won't show in tenant logs but will be in global.
+  
   await signOut(auth);
   await addAuditEntrySafe({
+    clientId: "system",
     module: "Auth",
     action: "logout",
     description: `User logged out: ${email}`,
     performedBy: email,
   });
 }
+

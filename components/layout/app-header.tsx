@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BellRing, ChevronDown } from "lucide-react";
+import { useAuthStore } from "@/store/auth-store";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,12 +18,15 @@ import { formatDateTime } from "@/lib/utils";
 import Link from "next/link";
 
 export function AppHeader() {
+  const user = useAuthStore(state => state.user);
   const [alerts, setAlerts] = useState<SystemAlert[]>([]);
   const [alertsOpen, setAlertsOpen] = useState(false);
 
   useEffect(() => {
-    return subscribeToAlerts(setAlerts, 5);
-  }, []);
+    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+    if (!user || !effectiveClientId || user.role === "super_admin") return;
+    return subscribeToAlerts(effectiveClientId, setAlerts, 5);
+  }, [user]);
 
   const unreadAlertIds = alerts.filter(a => !a.isRead).map(a => a.id);
   const unreadCount = unreadAlertIds.length;

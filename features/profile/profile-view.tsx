@@ -7,9 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getAdminConfig, saveAdminConfig, type AdminSystemConfig, DEFAULT_CONFIG } from "@/services/firebase/admin-config";
-import { getFirebaseAuth } from "@/services/firebase/client";
+import { getFirebaseAuth, getFirestoreDb } from "@/services/firebase/client";
 import { wipeAllDatabaseCollections } from "@/services/firebase/database-reset";
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import { useAuthStore } from "@/store/auth-store";
 import { uploadAdminImage } from "@/services/firebase/storage";
 
@@ -52,13 +53,36 @@ export function ProfileView() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  useEffect(() => {
-    void loadConfig();
-  }, []);
+  const [tenantName, setTenantName] = useState("");
 
-  async function loadConfig() {
+  useEffect(() => {
+    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+    if (effectiveClientId) {
+      void loadConfig(effectiveClientId);
+    } else if (user && !user.loading) {
+      setLoading(false);
+    }
+  }, [user]);
+
+  async function loadConfig(clientId: string) {
     try {
-      const data = await getAdminConfig();
+      const data = await getAdminConfig(clientId);
+      
+      let tName = "";
+      try {
+        const db = getFirestoreDb();
+        const clientSnap = await getDoc(doc(db, "clients", clientId));
+        if (clientSnap.exists()) {
+          tName = clientSnap.data().name || "";
+          setTenantName(tName);
+        }
+      } catch (err) {
+        console.warn("Could not fetch tenant name", err);
+      }
+
+      if (data.shopName === DEFAULT_CONFIG.shopName && tName) {
+        data.shopName = tName;
+      }
       setConfig(data);
     } catch (e) {
       toast.error("Failed to load settings.");
@@ -68,9 +92,12 @@ export function ProfileView() {
   }
 
   async function handleSaveConfig() {
+    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+    if (!effectiveClientId) return;
+    
     setSavingConfig(true);
     try {
-      await saveAdminConfig(config);
+      await saveAdminConfig(effectiveClientId, config);
       toast.success("System configurations updated.");
     } catch (e) {
       toast.error("Failed to save configurations.");
@@ -145,10 +172,13 @@ export function ProfileView() {
   }
 
   async function handleFactoryReset() {
+    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+    if (!effectiveClientId) return;
+
     if (confirm("Are you absolutely sure you want to permanently delete ALL business data? This cannot be undone.")) {
        setWipingDatabase(true);
        try {
-         const count = await wipeAllDatabaseCollections();
+         const count = await wipeAllDatabaseCollections(effectiveClientId);
          toast.success(`Factory reset complete! System purged exactly ${count} records.`);
          setShowWipeConfirm(false);
          setTimeout(() => window.location.reload(), 2000);
@@ -206,7 +236,9 @@ export function ProfileView() {
             </div>
             <div className="flex-1 space-y-4">
               <div className="space-y-1.5">
-                 <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">Shop Name</label>
+                 <label className="text-[11px] font-bold uppercase tracking-wider text-stone-600">
+                   Shop Name {tenantName && <span className="text-stone-400 font-normal ml-1">(Tenant: {tenantName})</span>}
+                 </label>
                  <Input value={config.shopName} onChange={(e) => setConfig({ ...config, shopName: e.target.value })} className="h-11 rounded-xl border-stone-200" />
               </div>
               <div className="space-y-1.5">

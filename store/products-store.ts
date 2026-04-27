@@ -10,7 +10,7 @@ type ProductsState = {
   hydrated: boolean;
   error: string | null;
   setProducts: (products: Product[]) => void;
-  fetchProducts: () => Promise<void>;
+  fetchProducts: (clientId?: string) => Promise<void>;
 };
 
 export const useProductsStore = create<ProductsState>((set) => ({
@@ -19,10 +19,14 @@ export const useProductsStore = create<ProductsState>((set) => ({
   hydrated: false,
   error: null,
   setProducts: (products) => set({ products, hydrated: true }),
-  fetchProducts: async () => {
+  fetchProducts: async (clientId?: string) => {
     set({ loading: true, error: null });
     try {
-      const products = await listProducts();
+      if (!clientId) {
+        set({ loading: false, error: "Client ID is required" });
+        return;
+      }
+      const products = await listProducts(clientId);
       set({ products, hydrated: true, loading: false });
     } catch (error) {
       const message =

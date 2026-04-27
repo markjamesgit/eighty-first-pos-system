@@ -7,6 +7,7 @@ import { subscribeToAlerts, syncAlertRecordsSafe, type SystemAlert } from "@/ser
 import { subscribeToIngredients } from "@/services/firebase/ingredients";
 import { subscribeToActiveOrders } from "@/services/firebase/orders";
 import { subscribeToAdminConfig, type AdminSystemConfig, DEFAULT_CONFIG } from "@/services/firebase/admin-config";
+import { addAuditEntrySafe } from "@/services/firebase/audit-trail";
 import type { AlertRecord, IngredientItem, OrderRecord } from "@/lib/types/domain";
 import {
   BarChart3,
@@ -18,15 +19,18 @@ import {
   LogOut,
   Package,
   Settings2,
+  ShieldCheck,
   Warehouse,
   ChevronDown,
   Menu,
   X,
 } from "lucide-react";
 import { logoutAdmin } from "@/services/firebase/auth";
+import { getAuth } from "firebase/auth";
 import { useAuthStore } from "@/store/auth-store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
 
 const navigation = [
   { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
@@ -36,7 +40,6 @@ const navigation = [
   { href: "/inventory", label: "Inventory", icon: Warehouse },
   { href: "/orders", label: "Orders", icon: ClipboardList },
   { href: "/reports", label: "Reports", icon: FileSpreadsheet },
-  { href: "/audit-trail", label: "Audit Trail", icon: FileClock },
   { href: "/alerts", label: "Alerts", icon: BellRing },
 ];
 
@@ -54,26 +57,96 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [alerts, setAlerts] = useState<SystemAlert[]>([]);
   const [ingredients, setIngredients] = useState<IngredientItem[]>([]);
   const [activeOrders, setActiveOrders] = useState<OrderRecord[]>([]);
+  const effectiveClientId = user?.masqueradeClientId || user?.clientId || (user?.role === "super_admin" ? "system" : null);
+  const isMasquerading = user?.role === "super_admin" && !!user.masqueradeClientId;
+  const isRegularAdmin = (user?.role === "admin" || user?.role === "client_admin" || user?.role === "cashier") && !!user.clientId;
+  const shouldConnect = isMasquerading || isRegularAdmin;
+
+  const [tenantName, setTenantName] = useState<string | null>(null);
 
   useEffect(() => {
-    return subscribeToAlerts(setAlerts, 50);
-  }, []);
+    if (!shouldConnect || !effectiveClientId || effectiveClientId === "system") {
+      setTenantName(null);
+      return;
+    }
+
+    import("@/services/firebase/client").then(({ getFirestoreDb }) => {
+      import("firebase/firestore").then(({ doc, getDoc }) => {
+        const db = getFirestoreDb();
+        getDoc(doc(db, "clients", effectiveClientId))
+          .then((snap) => {
+            if (snap.exists()) {
+              setTenantName(snap.data().name || null);
+            }
+          })
+          .catch((err) => {
+            console.warn("Tenant name fetch failed (offline or connection issue):", err);
+          });
+      });
+    }).catch(err => console.error("Dynamic import failed:", err));
+  }, [effectiveClientId, shouldConnect]);
 
   useEffect(() => {
-    return subscribeToIngredients(setIngredients);
-  }, []);
+    if (!shouldConnect || !effectiveClientId) return;
+    return subscribeToAlerts(effectiveClientId, setAlerts, 50);
+  }, [user, shouldConnect, effectiveClientId]);
 
   useEffect(() => {
-    return subscribeToActiveOrders(setActiveOrders, 100);
-  }, []);
+    if (!shouldConnect || !effectiveClientId) return;
+    return subscribeToIngredients(effectiveClientId, (data) => {
+      setIngredients(data);
+    });
+  }, [user, shouldConnect, effectiveClientId]);
+
+  useEffect(() => {
+    if (!shouldConnect || !effectiveClientId) return;
+    return subscribeToActiveOrders(effectiveClientId, (data) => {
+      setActiveOrders(data);
+    }, 100);
+  }, [user, shouldConnect, effectiveClientId]);
+
+  // Heartbeat to keep tenant "Online"
+  useEffect(() => {
+    if (!shouldConnect || !effectiveClientId || effectiveClientId === "system") return;
+
+    const sendHeartbeat = async () => {
+      try {
+        const auth = getAuth();
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser) return;
+        
+        const token = await firebaseUser.getIdToken();
+        await fetch("/api/usage", {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}` 
+          },
+          body: JSON.stringify({ actionType: "heartbeat" })
+        });
+      } catch (err) {
+        // Silently fail heartbeats
+      }
+    };
+
+    // Initial heartbeat
+    void sendHeartbeat();
+
+    // Every 2 minutes
+    const interval = setInterval(sendHeartbeat, 120000);
+    return () => clearInterval(interval);
+  }, [shouldConnect, effectiveClientId]);
 
   const [sysConfig, setSysConfig] = useState<AdminSystemConfig>(DEFAULT_CONFIG);
+
   useEffect(() => {
-    return subscribeToAdminConfig(setSysConfig);
-  }, []);
+    if (!shouldConnect || !effectiveClientId) return;
+    return subscribeToAdminConfig(effectiveClientId, setSysConfig);
+  }, [user, shouldConnect, effectiveClientId]);
 
   // Global Alerts Engine
   useEffect(() => {
+    if (!shouldConnect) return;
     const activeAlerts: AlertRecord[] = [];
 
     // Inventory
@@ -124,8 +197,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       });
     }
 
-    if (activeAlerts.length > 0) {
-      void syncAlertRecordsSafe(activeAlerts);
+    if (activeAlerts.length > 0 && effectiveClientId) {
+      void syncAlertRecordsSafe(effectiveClientId, activeAlerts);
     }
   }, [ingredients, activeOrders]);
 
@@ -157,7 +230,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           )}
           <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-[0.2em] opacity-90 transition-colors truncate">{sysConfig.shopName || "Coffee POS"}</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] opacity-90 transition-colors truncate">
+              {(sysConfig.shopName === DEFAULT_CONFIG.shopName && tenantName) ? tenantName : sysConfig.shopName}
+            </p>
             <h1 className="text-base lg:text-lg font-semibold truncate leading-tight mt-0.5">{sysConfig.adminName || "System Administrator"}</h1>
           </div>
         </div>
@@ -226,6 +301,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-stone-50 relative">
+      {user?.masqueradeClientId && (
+        <div className="sticky top-0 z-[100] flex items-center justify-between bg-stone-900 px-4 py-2 text-white shadow-xl">
+          <div className="flex items-center gap-3">
+            <div className="flex h-6 w-6 items-center justify-center rounded bg-amber-500 text-stone-900">
+              <ShieldCheck className="h-4 w-4" />
+            </div>
+            <p className="text-[11px] font-bold uppercase tracking-wider">
+              Viewing as <span className="text-amber-400 font-black">
+                {(sysConfig.shopName === DEFAULT_CONFIG.shopName && tenantName) ? tenantName : sysConfig.shopName}
+              </span>
+            </p>
+          </div>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="h-7 border-white/20 bg-white/10 text-[10px] font-bold text-white hover:bg-white hover:text-stone-900"
+            onClick={() => useAuthStore.getState().setMasquerade(null)}
+          >
+            Exit Console
+          </Button>
+        </div>
+      )}
       {/* Clean Aesthetic Minimal Background */}
       <div className="pointer-events-none fixed inset-0 z-0 bg-[#fafaf9] overflow-hidden">
         {/* Soft top gradient sweep */}
@@ -253,7 +350,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               variant="outline"
               className="w-full justify-start gap-3 border-stone-200 shadow-sm"
               onClick={() => {
-                void logoutAdmin();
+                if (user?.email && effectiveClientId) {
+                  void addAuditEntrySafe({
+                    module: "Authentication",
+                    action: "logout",
+                    description: `User ${user.email} signed out`,
+                    performedBy: user.email,
+                    clientId: effectiveClientId
+                  }).finally(() => {
+                    void logoutAdmin();
+                  });
+                } else {
+                  void logoutAdmin();
+                }
               }}
             >
               <LogOut className="h-4 w-4" />
@@ -306,7 +415,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     variant="outline"
                     className="w-full justify-start gap-3 border-stone-200 shadow-sm"
                     onClick={() => {
-                      void logoutAdmin();
+                      if (user?.email && effectiveClientId) {
+                        void addAuditEntrySafe({
+                          module: "Authentication",
+                          action: "logout",
+                          description: `User ${user.email} signed out`,
+                          performedBy: user.email,
+                          clientId: effectiveClientId
+                        }).finally(() => {
+                          void logoutAdmin();
+                        });
+                      } else {
+                        void logoutAdmin();
+                      }
                     }}
                   >
                     <LogOut className="h-4 w-4" />

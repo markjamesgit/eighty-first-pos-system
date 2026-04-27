@@ -17,6 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TablePagination } from "@/components/ui/table-pagination";
 import { adjustStock } from "@/services/firebase/inventory";
 import { listIngredients } from "@/services/firebase/ingredients";
+import { useAuthStore } from "@/store/auth-store";
 import { listProductRecipes } from "@/services/firebase/recipes";
 import type { IngredientItem, ProductRecipe } from "@/lib/types/domain";
 import { Archive, Plus, Minus, Search, SlidersHorizontal, Trash2 } from "lucide-react";
@@ -37,12 +38,20 @@ export function InventoryView() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  const user = useAuthStore(state => state.user);
+  const effectiveClientId = useMemo(
+    () => user?.masqueradeClientId || user?.clientId || "",
+    [user]
+  );
+
   const fetchData = async () => {
+    if (!effectiveClientId) return;
+
     setLoading(true);
     try {
       const [ingData, recData] = await Promise.all([
-        listIngredients(),
-        listProductRecipes()
+        listIngredients(effectiveClientId),
+        listProductRecipes(effectiveClientId)
       ]);
       setIngredients(ingData || []);
       setRecipes(recData || []);
@@ -55,8 +64,14 @@ export function InventoryView() {
   };
 
   useEffect(() => {
-    void fetchData();
-  }, []);
+    const isMasquerading = user?.role === "super_admin" && !!user.masqueradeClientId;
+    const isRegularAdmin = (user?.role === "admin" || user?.role === "client_admin" || user?.role === "cashier") && !!user.clientId;
+    const shouldConnect = isMasquerading || isRegularAdmin;
+
+    if (shouldConnect && effectiveClientId) {
+      void fetchData();
+    }
+  }, [user, effectiveClientId]);
 
   const lowStockCount = useMemo(
     () => ingredients.filter((item) => item.stockQty <= item.lowStockThreshold).length,
@@ -108,7 +123,7 @@ export function InventoryView() {
     }
 
     try {
-      await adjustStock(ingredient, {
+      await adjustStock(effectiveClientId, ingredient, {
         ingredientId: ingredient.id,
         quantityDelta,
         reason: quantityDelta > 0 ? "manual_restock" : "manual_correction",
@@ -124,13 +139,14 @@ export function InventoryView() {
   async function handleDelete(id: string, name: string) {
     if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) return;
     try {
-      await deleteIngredient(id);
+      await deleteIngredient(effectiveClientId, id);
       toast.success("Ingredient removed from warehouse.");
       await fetchData();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Deletion failed.");
     }
   }
+
 
   const getUsageSummary = (ingredientId: string) => {
     const usedIn = recipes.filter(r => r.items.some(i => i.ingredientId === ingredientId));

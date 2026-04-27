@@ -35,3 +35,14 @@ export function toTitleCase(value: string) {
     .map((part) => part[0]?.toUpperCase() + part.slice(1).toLowerCase())
     .join(" ");
 }
+
+export function cleanUndefined<T extends object>(obj: T): T {
+  const result = { ...obj } as Record<string, unknown>;
+  Object.keys(result).forEach((key) => {
+    if (result[key] === undefined) {
+      delete result[key];
+    }
+  });
+  return result as T;
+}
+

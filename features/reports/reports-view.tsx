@@ -66,14 +66,6 @@ export function ReportsView() {
         item.referenceOrderId.toLowerCase().includes(query),
     );
   }, [ingredientUsage, usageSearch]);
-  const filteredSalesAmount = useMemo(
-    () => filteredSales.reduce((sum, order) => sum + order.totalAmount, 0),
-    [filteredSales],
-  );
-  const filteredUsageQuantity = useMemo(
-    () => filteredUsage.reduce((sum, item) => sum + Math.abs(item.quantityChange), 0),
-    [filteredUsage],
-  );
 
   const paginatedSales = useMemo(() => {
     const start = (salesPage - 1) * salesPageSize;

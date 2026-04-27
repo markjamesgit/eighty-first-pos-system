@@ -23,6 +23,7 @@ const INGREDIENTS_COLLECTION = "ingredients";
 const INGREDIENT_STOCK_HISTORY_COLLECTION = "ingredient_stock_history";
 
 export async function adjustStock(
+  clientId: string,
   ingredient: IngredientItem,
   values: StockAdjustmentValues,
   performedBy = "admin",
@@ -47,17 +48,20 @@ export async function adjustStock(
     quantityChange: values.quantityDelta,
     beforeQty: ingredient.stockQty,
     afterQty: nextQty,
+    clientId,
     createdAt: serverTimestamp(),
     performedBy,
   });
 
   await addAuditEntrySafe({
+    clientId,
     module: "Inventory",
     action: values.reason,
     description: `Adjusted global stock for ${ingredient.name} by ${values.quantityDelta}`,
     performedBy,
   });
 }
+
 
 function mapHistory(
   snapshot: Awaited<ReturnType<typeof import("firebase/firestore").getDocs>>["docs"][number],
@@ -101,6 +105,9 @@ export function subscribeToLowStockIngredients(
         })),
       );
     },
+    (error) => {
+      console.error("Firestore [LowStock] Subscription Error:", error);
+    }
   );
 }
 
@@ -116,6 +123,9 @@ export function subscribeToStockHistory(
       orderBy("createdAt", "desc"),
     ),
     (snapshot) => callback(snapshot.docs.map(mapHistory)),
+    (error) => {
+      console.error("Firestore [StockHistory] Subscription Error:", error);
+    }
   );
 }
 

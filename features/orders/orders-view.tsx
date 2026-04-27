@@ -23,12 +23,14 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
+import { useAuthStore } from "@/store/auth-store";
 import type { OrderRecord } from "@/lib/types/domain";
 import { completeOrder, cancelOrder, listOrderHistory, subscribeToActiveOrders } from "@/services/firebase/orders";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { ClipboardCheck, Clock, Search, SlidersHorizontal } from "lucide-react";
 
 export function OrdersView() {
+  const user = useAuthStore(state => state.user);
   const [activeOrders, setActiveOrders] = useState<OrderRecord[]>([]);
   const [historyOrders, setHistoryOrders] = useState<OrderRecord[]>([]);
   const initialHistoryLoaded = useRef(false);
@@ -42,16 +44,21 @@ export function OrdersView() {
   const [selectedOrder, setSelectedOrder] = useState<OrderRecord | null>(null);
 
   useEffect(() => {
-    const unsubscribe = subscribeToActiveOrders(setActiveOrders, 50);
+    const effectiveClientId = (user?.masqueradeClientId || user?.clientId) ?? undefined;
+    if (!effectiveClientId) return () => undefined;
+
+    const unsubscribe = subscribeToActiveOrders(effectiveClientId, setActiveOrders, 50);
     return unsubscribe;
-  }, []);
+  }, [user]);
 
   const loadHistory = useCallback(async () => {
-    if (loadingHistory.current) return;
+    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+    if (!effectiveClientId) return;
+
     loadingHistory.current = true;
     try {
       // Fetch a larger batch for client-side pagination in this modernized version
-      const result = await listOrderHistory(undefined, 100);
+      const result = await listOrderHistory(effectiveClientId, undefined, 100);
       setHistoryOrders(result.orders);
     } finally {
       loadingHistory.current = false;

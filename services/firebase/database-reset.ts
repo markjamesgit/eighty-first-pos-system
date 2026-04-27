@@ -1,5 +1,6 @@
-import { collection, getDocs, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, deleteDoc, writeBatch, query, where, addDoc, serverTimestamp } from "firebase/firestore";
 import { getFirestoreDb } from "./client";
+import { resetUsage } from "@/lib/usage-utils";
 
 const COLLECTIONS_TO_WIPE = [
   "products",
@@ -12,32 +13,58 @@ const COLLECTIONS_TO_WIPE = [
   "maintenance_addons",
   "maintenance_modifiers",
   "audit_trail",
+  "audit_logs",
   "alerts",
   "alert_emails",
   "mail",
   "ingredients",
   "product_recipes",
-  "ingredient_stock_history"
+  "ingredient_stock_history",
+  "transactions"
 ];
 
-export async function wipeAllDatabaseCollections() {
+export async function wipeAllDatabaseCollections(clientId: string) {
   const db = getFirestoreDb();
-  let deletedCount = 0;
+  
+  // Log the maintenance action
+  await addDoc(collection(db, "audit_trail"), {
+    clientId: "system", // Maintenance is a system-level action relative to the tenant
+    module: "Maintenance",
+    action: "database_wipe",
+    description: `Complete database reset performed for tenant: ${clientId}`,
+    performedBy: "Super Admin",
+    createdAt: serverTimestamp()
+  });
 
-  // We sequentially delete to ensure we don't hit concurrency limits on the free tier
+  let totalDeleted = 0;
+
   for (const colName of COLLECTIONS_TO_WIPE) {
     try {
       const colRef = collection(db, colName);
-      const snapshot = await getDocs(colRef);
       
-      const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
-      await Promise.all(deletePromises);
+      // We MUST use the clientId filter to satisfy Firestore security rules for multi-tenant isolation.
+      // This ensures we only fetch and delete documents belonging to this tenant.
+      const snapshot = await getDocs(query(colRef, where("clientId", "==", clientId)));
       
-      deletedCount += deletePromises.length;
+      if (snapshot.empty) continue;
+
+      const docs = snapshot.docs;
+      // Delete in batches of 500 (Firestore limit)
+      for (let i = 0; i < docs.length; i += 500) {
+        const batch = writeBatch(db);
+        const chunk = docs.slice(i, i + 500);
+        chunk.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+      }
+
+      totalDeleted += docs.length;
     } catch (e) {
       console.warn(`Failed to wipe collection ${colName}:`, e);
     }
   }
   
-  return deletedCount;
+  // Reset usage counters in admin dashboard
+  await resetUsage();
+  
+  return totalDeleted;
 }

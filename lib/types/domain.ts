@@ -1,4 +1,4 @@
-export type UserRole = "admin";
+export type UserRole = "super_admin" | "client_admin" | "cashier" | "admin";
 
 export type OrderStatus = "pending" | "completed" | "cancelled";
 
@@ -9,6 +9,8 @@ export interface AppUser {
   email: string;
   displayName: string;
   role: UserRole;
+  clientId?: string | null;
+  masqueradeClientId?: string | null;
   createdAt?: Date;
   lastLoginAt?: Date;
 }
@@ -134,8 +136,10 @@ export interface AuditTrailEntry {
   action: string;
   description: string;
   performedBy: string;
+  clientId: string;
   createdAt?: Date;
 }
+
 
 export type AlertLevel = "good" | "informational" | "warning" | "critical";
 
@@ -176,4 +180,35 @@ export interface ProductRecipe {
   items: ProductRecipeItem[];
   createdAt?: Date;
   updatedAt?: Date;
+}
+
+export type ClientStatus = "active" | "inactive";
+
+export interface Client {
+  id: string;
+  name: string;
+  status: ClientStatus;
+  createdAt?: Date;
+  createdBy?: string;
+}
+
+export interface ClientUsage {
+  clientId: string;
+  totalProducts: number;
+  totalTransactions: number;
+  totalUsers: number;
+  totalImages?: number;
+  lastActiveAt?: Date;
+  createdAt?: Date;
+}
+
+export interface SystemAuditLog {
+  id: string;
+  clientId: string;
+  userId: string;
+  action: string;
+  entity: string;
+  entityId: string;
+  metadata?: Record<string, unknown>;
+  timestamp?: Date;
 }

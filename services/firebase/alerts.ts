@@ -6,12 +6,12 @@ import {
   orderBy,
   query,
   limit,
-  setDoc,
   doc,
   getDoc,
   getDocs,
   serverTimestamp,
   writeBatch,
+  where,
   type Unsubscribe,
 } from "firebase/firestore";
 import { getFirestoreDb } from "./client";
@@ -28,6 +28,7 @@ export type SystemAlert = {
 };
 
 export function subscribeToAlerts(
+  clientId: string,
   callback: (alerts: SystemAlert[]) => void,
   count = 10,
 ): Unsubscribe {
@@ -35,6 +36,7 @@ export function subscribeToAlerts(
   return onSnapshot(
     query(
       collection(firestore, "alerts"),
+      where("clientId", "==", clientId),
       orderBy("createdAt", "desc"),
       limit(count),
     ),
@@ -51,10 +53,13 @@ export function subscribeToAlerts(
         })),
       );
     },
+    (error) => {
+      console.error("Firestore [Alerts] Subscription Error:", error);
+    }
   );
 }
 
-export async function syncAlertRecordsSafe(alerts: AlertRecord[]) {
+export async function syncAlertRecordsSafe(clientId: string, alerts: AlertRecord[]) {
   const firestore = getFirestoreDb();
   const alertsCol = collection(firestore, "alerts");
   const batch = writeBatch(firestore);
@@ -85,6 +90,7 @@ export async function syncAlertRecordsSafe(alerts: AlertRecord[]) {
         alertDoc,
         {
           ...alert,
+          clientId,
           isRead: false,
           updatedAt: serverTimestamp(),
           ...(isNew ? { createdAt: serverTimestamp() } : {}),
@@ -110,10 +116,10 @@ export async function markAlertsAsRead(alertIds: string[]) {
   await batch.commit();
 }
 
-export async function wipeAllAlerts() {
+export async function wipeAllAlerts(clientId: string) {
   const firestore = getFirestoreDb();
   const alertsCol = collection(firestore, "alerts");
-  const snapshot = await getDocs(alertsCol);
+  const snapshot = await getDocs(query(alertsCol, where("clientId", "==", clientId)));
   
   if (snapshot.empty) return;
 

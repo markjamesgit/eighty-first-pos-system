@@ -10,6 +10,7 @@ import {
   query,
   serverTimestamp,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { getFirestoreDb } from "./client";
 
@@ -59,14 +60,19 @@ function mapMaintenanceItem(
   };
 }
 
-export async function listMaintenanceItems(section: MaintenanceSection) {
+export async function listMaintenanceItems(clientId: string, section: MaintenanceSection) {
   const snapshot = await getDocs(
-    query(collection(getFirestoreDb(), getSectionCollection(section)), orderBy("name")),
+    query(
+      collection(getFirestoreDb(), getSectionCollection(section)),
+      where("clientId", "==", clientId),
+      orderBy("name")
+    ),
   );
   return snapshot.docs.map(mapMaintenanceItem);
 }
 
 export async function createMaintenanceItem(
+  clientId: string,
   section: MaintenanceSection,
   input: {
   name: string;
@@ -78,6 +84,7 @@ export async function createMaintenanceItem(
 ) {
   await addDoc(collection(getFirestoreDb(), getSectionCollection(section)), {
     ...input,
+    clientId,
     name: input.name.trim(),
     imageUrl: input.imageUrl?.trim() || "",
     description: input.description?.trim() || "",

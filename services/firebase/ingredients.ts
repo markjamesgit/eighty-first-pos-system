@@ -11,9 +11,11 @@ import {
   onSnapshot,
   serverTimestamp,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import type { IngredientItem } from "@/lib/types/domain";
 import { getFirestoreDb } from "./client";
+import { addAuditEntrySafe } from "./audit-trail";
 
 const INGREDIENTS_COLLECTION = "ingredients";
 
@@ -39,21 +41,31 @@ function mapIngredient(
   };
 }
 
-export async function listIngredients() {
+export async function listIngredients(clientId: string) {
   const snapshot = await getDocs(
-    query(collection(getFirestoreDb(), INGREDIENTS_COLLECTION), orderBy("name")),
+    query(
+      collection(getFirestoreDb(), INGREDIENTS_COLLECTION),
+      where("clientId", "==", clientId),
+      orderBy("name")
+    ),
   );
   return snapshot.docs.map(mapIngredient);
 }
 
-export function subscribeToIngredients(callback: (items: IngredientItem[]) => void) {
-  const q = query(collection(getFirestoreDb(), INGREDIENTS_COLLECTION), orderBy("name"));
+export function subscribeToIngredients(clientId: string, callback: (items: IngredientItem[]) => void) {
+  const q = query(
+    collection(getFirestoreDb(), INGREDIENTS_COLLECTION),
+    where("clientId", "==", clientId),
+    orderBy("name")
+  );
   return onSnapshot(q, (snapshot) => {
     callback(snapshot.docs.map(mapIngredient));
+  }, (error) => {
+    console.error("Firestore [Ingredients] Subscription Error:", error);
   });
 }
 
-export async function createIngredient(input: {
+export async function createIngredient(clientId: string, input: {
   name: string;
   unit: string;
   stockQty: number;
@@ -62,24 +74,49 @@ export async function createIngredient(input: {
 }) {
   await addDoc(collection(getFirestoreDb(), INGREDIENTS_COLLECTION), {
     ...input,
+    clientId,
     name: input.name.trim(),
     unit: input.unit.trim(),
     isActive: input.isActive ?? true,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+
+  await addAuditEntrySafe({
+    clientId,
+    module: "Inventory",
+    action: "create",
+    description: `Added ingredient ${input.name.trim()}`,
+    performedBy: "admin",
+  });
 }
 
-export async function deleteIngredient(id: string) {
+export async function deleteIngredient(clientId: string, id: string) {
   await deleteDoc(doc(getFirestoreDb(), INGREDIENTS_COLLECTION, id));
+  await addAuditEntrySafe({
+    clientId,
+    module: "Inventory",
+    action: "delete",
+    description: `Deleted ingredient ID ${id}`,
+    performedBy: "admin",
+  });
 }
 
-export async function updateIngredientStock(id: string, stockQty: number) {
+
+export async function updateIngredientStock(clientId: string, id: string, stockQty: number) {
   await updateDoc(doc(getFirestoreDb(), INGREDIENTS_COLLECTION, id), {
     stockQty,
     updatedAt: serverTimestamp(),
   });
+  await addAuditEntrySafe({
+    clientId,
+    module: "Inventory",
+    action: "update_stock",
+    description: `Adjusted stock for ingredient ID ${id} to ${stockQty}`,
+    performedBy: "admin",
+  });
 }
+
 export async function updateIngredient(id: string, input: Partial<Omit<IngredientItem, "id" | "createdAt" | "updatedAt">>) {
   await updateDoc(doc(getFirestoreDb(), INGREDIENTS_COLLECTION, id), {
     ...input,

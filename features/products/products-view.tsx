@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, Trash2, Package, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TablePagination } from "@/components/ui/table-pagination";
 import { formatCurrency, cn } from "@/lib/utils";
 import { deleteProduct } from "@/services/firebase/products";
+import { useAuthStore } from "@/store/auth-store";
 import { useProductsStore } from "@/store/products-store";
 import { ProductDialog } from "./product-dialog";
 
@@ -33,9 +34,27 @@ export function ProductsView() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
 
+  const user = useAuthStore(state => state.user);
+  const effectiveClientId = useMemo(
+    () => user?.masqueradeClientId || user?.clientId || "",
+    [user]
+  );
+
+  const handleSaveProduct = useCallback(async () => {
+    if (effectiveClientId) {
+      await fetchProducts(effectiveClientId);
+    }
+  }, [effectiveClientId, fetchProducts]);
+
   useEffect(() => {
-    void fetchProducts();
-  }, [fetchProducts]);
+    const isMasquerading = user?.role === "super_admin" && !!user.masqueradeClientId;
+    const isRegularAdmin = (user?.role === "admin" || user?.role === "client_admin" || user?.role === "cashier") && !!user.clientId;
+    const shouldConnect = isMasquerading || isRegularAdmin;
+
+    if (shouldConnect && effectiveClientId) {
+      void fetchProducts(effectiveClientId);
+    }
+  }, [fetchProducts, user, effectiveClientId]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -82,9 +101,10 @@ export function ProductsView() {
   async function handleDelete(id: string) {
     if (!confirm("Are you sure you want to delete this product?")) return;
     try {
-      await deleteProduct(id);
+      await deleteProduct(effectiveClientId, id);
       toast.success("Product removed from catalog.");
-      await fetchProducts();
+
+      await handleSaveProduct();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Deletion failed.");
     }
@@ -99,7 +119,7 @@ export function ProductsView() {
             Maintain your digital menu and sellable items.
           </p>
         </div>
-        <ProductDialog triggerLabel="Add New Product" onSaved={fetchProducts} />
+        <ProductDialog triggerLabel="Add New Product" onSaved={handleSaveProduct} clientId={effectiveClientId} />
       </div>
 
       <Card className="overflow-hidden rounded-2xl lg:rounded-3xl border-stone-100 bg-white shadow-sm">
@@ -233,7 +253,7 @@ export function ProductsView() {
                       </div>
                     </div>
                     <div className="flex justify-end gap-2">
-                      <ProductDialog product={product} triggerLabel="Edit" onSaved={fetchProducts} />
+                      <ProductDialog product={product} triggerLabel="Edit" onSaved={handleSaveProduct} clientId={effectiveClientId} />
                       <Button
                         variant="ghost"
                         size="icon"
@@ -320,7 +340,7 @@ export function ProductsView() {
                         </TableCell>
                         <TableCell className="pl-4 pr-6 lg:pr-8">
                           <div className="flex justify-start gap-2">
-                            <ProductDialog product={product} triggerLabel="Edit" onSaved={fetchProducts} />
+                            <ProductDialog product={product} triggerLabel="Edit" onSaved={handleSaveProduct} clientId={effectiveClientId} />
                             <Button
                               variant="ghost"
                               size="icon"

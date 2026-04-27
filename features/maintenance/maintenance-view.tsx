@@ -34,6 +34,7 @@ import {
 import { uploadProductImage } from "@/services/firebase/storage";
 import { addAuditEntrySafe } from "@/services/firebase/audit-trail";
 import { formatCurrency, cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/auth-store";
 
 type MaintenanceItem = {
   id?: string;
@@ -112,10 +113,10 @@ export function MaintenanceView() {
     }
   }, [maintenanceSection]);
 
-  const fetchList = useCallback(async () => {
+  const fetchList = useCallback(async (clientId: string) => {
     setLoading(true);
     try {
-      const rows = await listMaintenanceItems(maintenanceSection);
+      const rows = await listMaintenanceItems(clientId, maintenanceSection);
       setItems(rows.map(row => ({
         id: row.id,
         name: row.name,
@@ -131,12 +132,24 @@ export function MaintenanceView() {
     }
   }, [maintenanceSection]);
 
+  const user = useAuthStore(state => state.user);
+  const effectiveClientId = useMemo(
+    () => user?.masqueradeClientId || user?.clientId || "",
+    [user]
+  );
+
   useEffect(() => {
-    void fetchList();
+    const isMasquerading = user?.role === "super_admin" && !!user.masqueradeClientId;
+    const isRegularAdmin = (user?.role === "admin" || user?.role === "client_admin" || user?.role === "cashier") && !!user.clientId;
+    const shouldConnect = isMasquerading || isRegularAdmin;
+
+    if (shouldConnect && effectiveClientId) {
+      void fetchList(effectiveClientId);
+    }
     setEditingId(null);
     setForm({ name: "", imageUrl: "", description: "", price: "", isActive: true });
     setCurrentPage(1);
-  }, [maintenanceSection, fetchList]);
+  }, [maintenanceSection, fetchList, user, effectiveClientId]);
 
   async function handleSave() {
     if (!readyToSave) return;
@@ -152,6 +165,7 @@ export function MaintenanceView() {
       if (editingId) {
         await updateMaintenanceItem(maintenanceSection, editingId, payload);
         await addAuditEntrySafe({
+          clientId: effectiveClientId,
           module: "Maintenance",
           action: `update_${maintenanceSection}`,
           description: `Updated ${maintenanceSection} item ${form.name}`,
@@ -159,8 +173,9 @@ export function MaintenanceView() {
         });
         toast.success("Item updated.");
       } else {
-        await createMaintenanceItem(maintenanceSection, payload);
+        await createMaintenanceItem(effectiveClientId, maintenanceSection, payload);
         await addAuditEntrySafe({
+          clientId: effectiveClientId,
           module: "Maintenance",
           action: `create_${maintenanceSection}`,
           description: `Created ${maintenanceSection} item ${form.name}`,
@@ -169,7 +184,9 @@ export function MaintenanceView() {
         toast.success("Item created.");
       }
 
-      await fetchList();
+      if (effectiveClientId) {
+        await fetchList(effectiveClientId);
+      }
       setEditingId(null);
       setForm({ name: "", imageUrl: "", description: "", price: "", isActive: true });
       setFormOpen(false);
@@ -182,8 +199,17 @@ export function MaintenanceView() {
     if (!item.id || !confirm(`Delete ${item.name}?`)) return;
     try {
       await deleteMaintenanceItem(maintenanceSection, item.id);
+      await addAuditEntrySafe({
+        clientId: effectiveClientId,
+        module: "Maintenance",
+        action: `delete_${maintenanceSection}`,
+        description: `Deleted ${maintenanceSection} item ${item.name}`,
+        performedBy: "admin",
+      });
       toast.success("Item removed.");
-      await fetchList();
+      if (effectiveClientId) {
+        await fetchList(effectiveClientId);
+      }
     } catch {
       toast.error("Deletion failed.");
     }

@@ -15,10 +15,12 @@ import { TablePagination } from "@/components/ui/table-pagination";
 import { formatDateTime } from "@/lib/utils";
 import type { AuditTrailEntry } from "@/lib/types/domain";
 import { listAuditTrail } from "@/services/firebase/audit-trail";
+import { useAuthStore } from "@/store/auth-store";
 import { Search, History, SlidersHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export function AuditTrailView() {
+  const user = useAuthStore(state => state.user);
   const [search, setSearch] = useState("");
   const [entries, setEntries] = useState<AuditTrailEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,12 +31,23 @@ export function AuditTrailView() {
   const [pageSize, setPageSize] = useState(15);
 
   useEffect(() => {
-    void listAuditTrail(1000)
+    const isMasquerading = user?.role === "super_admin" && !!user.masqueradeClientId;
+    const isRegularAdmin = (user?.role === "admin" || user?.role === "client_admin" || user?.role === "cashier") && !!user.clientId;
+    const shouldConnect = isMasquerading || isRegularAdmin;
+
+    if (!shouldConnect) {
+      setLoading(false);
+      return;
+    }
+    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+    if (!effectiveClientId) return;
+
+    void listAuditTrail(effectiveClientId, 1000)
       .then((data) => {
         setEntries(data || []);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [user]);
 
   const moduleOptions = useMemo(() => {
     const modules = entries.map((entry) => entry.module).filter(Boolean);

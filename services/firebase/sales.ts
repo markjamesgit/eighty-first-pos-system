@@ -20,16 +20,17 @@ function salesCollection() {
   return collection(getFirestoreDb(), SALES_COLLECTION);
 }
 
-function buildSummaryId(dateKey: string) {
-  return `daily_${dateKey}`;
+function buildSummaryId(clientId: string, dateKey: string) {
+  return `${clientId}_${dateKey}`;
 }
 
 export async function upsertDailySalesSummary(
+  clientId: string,
   dateKey: string,
   orderTotal: number,
   items: OrderItem[],
 ) {
-  const docRef = doc(getFirestoreDb(), SALES_COLLECTION, buildSummaryId(dateKey));
+  const docRef = doc(getFirestoreDb(), SALES_COLLECTION, buildSummaryId(clientId, dateKey));
   const topProductsMap = new Map<string, { productId: string; name: string; qty: number }>();
 
   items.forEach((item) => {
@@ -43,6 +44,7 @@ export async function upsertDailySalesSummary(
   await setDoc(
     docRef,
     {
+      clientId,
       dateKey,
       totalSales: orderTotal,
       orderCount: 1,
@@ -70,12 +72,16 @@ function mapSummary(
   };
 }
 
-export async function getSalesSummaryByFilter(filter: "today" | "weekly" | "monthly") {
+export async function getSalesSummaryByFilter(clientId: string, filter: "today" | "weekly" | "monthly") {
   const today = new Date();
 
   if (filter === "today") {
     const snapshot = await getDocs(
-      query(salesCollection(), where("dateKey", "==", getDayKey(today)), limit(1)),
+      query(salesCollection(), 
+        where("clientId", "==", clientId),
+        where("dateKey", "==", getDayKey(today)), 
+        limit(1)
+      ),
     );
     return snapshot.docs.map(mapSummary);
   }
@@ -85,7 +91,11 @@ export async function getSalesSummaryByFilter(filter: "today" | "weekly" | "mont
   cutoff.setDate(today.getDate() - (range - 1));
 
   const snapshot = await getDocs(
-    query(salesCollection(), orderBy("dateKey", "desc"), limit(range)),
+    query(salesCollection(), 
+      where("clientId", "==", clientId),
+      orderBy("dateKey", "desc"), 
+      limit(range)
+    ),
   );
 
   return snapshot.docs
@@ -93,13 +103,17 @@ export async function getSalesSummaryByFilter(filter: "today" | "weekly" | "mont
     .filter((item) => new Date(item.dateKey) >= new Date(getDayKey(cutoff)));
 }
 
-export async function getSalesSummaryByDateRange(startDate: Date, endDate: Date) {
+export async function getSalesSummaryByDateRange(clientId: string, startDate: Date, endDate: Date) {
   const normalizedStart = new Date(getDayKey(startDate));
   const normalizedEnd = new Date(getDayKey(endDate));
   normalizedEnd.setHours(23, 59, 59, 999);
 
   const snapshot = await getDocs(
-    query(salesCollection(), orderBy("dateKey", "desc"), limit(366)),
+    query(salesCollection(), 
+      where("clientId", "==", clientId),
+      orderBy("dateKey", "desc"), 
+      limit(366)
+    ),
   );
 
   return snapshot.docs
@@ -110,11 +124,12 @@ export async function getSalesSummaryByDateRange(startDate: Date, endDate: Date)
     });
 }
 
-export async function syncDailySalesSummary(dayKey: string) {
+export async function syncDailySalesSummary(clientId: string, dayKey: string) {
   const db = getFirestoreDb();
   const snapshot = await getDocs(
     query(
       collection(db, "orders_history"),
+      where("clientId", "==", clientId),
       where("dayKey", "==", dayKey),
       where("status", "==", "completed"),
     )
@@ -129,7 +144,7 @@ export async function syncDailySalesSummary(dayKey: string) {
     totalSales += Number(data.totalAmount || 0);
     orderCount += 1;
 
-    (data.items || []).forEach((item: any) => {
+    (data.items || []).forEach((item: OrderItem) => {
       if (!item.productId) return;
       const existing = topProductsMap.get(item.productId);
       if (existing) {
@@ -144,10 +159,11 @@ export async function syncDailySalesSummary(dayKey: string) {
     });
   });
 
-  const docRef = doc(db, SALES_COLLECTION, buildSummaryId(dayKey));
+  const docRef = doc(db, SALES_COLLECTION, buildSummaryId(clientId, dayKey));
   await setDoc(
     docRef,
     {
+      clientId,
       dateKey: dayKey,
       totalSales,
       orderCount,

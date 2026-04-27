@@ -28,19 +28,10 @@ import type {
   Product,
   SalesSummary,
 } from "@/lib/types/domain";
-import { getDayKey, generateOrderId } from "@/lib/utils";
+import { getDayKey, generateOrderId, cleanUndefined } from "@/lib/utils";
 import { addAuditEntrySafe } from "./audit-trail";
 import { getFirestoreDb } from "./client";
-
-function cleanUndefined<T extends object>(obj: T): T {
-  const result = { ...obj };
-  Object.keys(result).forEach((key) => {
-    if ((result as any)[key] === undefined) {
-      delete (result as any)[key];
-    }
-  });
-  return result;
-}
+import { trackUsage } from "@/lib/usage-utils";
 
 const PRODUCTS_COLLECTION = "products";
 const INGREDIENTS_COLLECTION = "ingredients";
@@ -48,15 +39,7 @@ const RECIPES_COLLECTION = "product_recipes";
 const ACTIVE_ORDERS_COLLECTION = "orders_active";
 const ORDER_HISTORY_COLLECTION = "orders_history";
 const SALES_COLLECTION = "sales_summary";
-const STOCK_HISTORY_COLLECTION = "stock_history";
 const INGREDIENT_STOCK_HISTORY_COLLECTION = "ingredient_stock_history";
-
-const ITEM_TYPE_TO_COLLECTION: Record<string, string> = {
-  product: "products",
-  variant: "maintenance_variants",
-  addon: "maintenance_addons",
-  modifier: "maintenance_modifiers",
-};
 
 function mapOrder(snapshot: QueryDocumentSnapshot | DocumentSnapshot): OrderRecord {
   const data = snapshot.data() as Record<string, unknown> | undefined;
@@ -118,13 +101,14 @@ function mergeTopProducts(
 }
 
 export async function createOrder(params: {
+  clientId: string;
   items: CartItem[];
   cashReceived: number;
   totalAmount: number;
   customerName?: string;
 }) {
   const firestore = getFirestoreDb();
-  const { items, cashReceived, totalAmount, customerName } = params;
+  const { clientId, items, cashReceived, totalAmount, customerName } = params;
   const ingredientDeductions: Array<{
     ingredientId: string;
     ingredientName: string;
@@ -146,7 +130,6 @@ export async function createOrder(params: {
   const orderId = generateOrderId();
   const dayKey = getDayKey();
   const change = cashReceived - totalAmount;
-  const salesRef = doc(firestore, SALES_COLLECTION, `daily_${dayKey}`);
 
   await runTransaction(firestore, async (transaction) => {
     // Firestore transactions require all reads to happen before any writes.
@@ -161,9 +144,8 @@ export async function createOrder(params: {
     const uniqueRecipeIds = Array.from(allRecipeIds);
     const recipeRefs = uniqueRecipeIds.map(id => doc(firestore, RECIPES_COLLECTION, id));
     const recipeSnapshots = await Promise.all(recipeRefs.map(ref => transaction.get(ref)));
-    const salesSnapshot = await transaction.get(salesRef);
     
-    const recipeMap = new Map<string, any>();
+    const recipeMap = new Map<string, unknown>();
     recipeSnapshots.forEach(snap => {
       if (snap.exists()) recipeMap.set(snap.id, snap.data());
     });
@@ -174,7 +156,7 @@ export async function createOrder(params: {
     >();
 
     const processRecipe = (recipeId: string, itemQty: number) => {
-      const recipeData = recipeMap.get(recipeId);
+      const recipeData = recipeMap.get(recipeId) as Record<string, unknown> | undefined;
       if (!recipeData) return;
       
       const recipeItems = (recipeData.items || []) as Array<{
@@ -237,11 +219,11 @@ export async function createOrder(params: {
       };
     });
 
-    const existingSales = salesSnapshot.exists() ? salesSnapshot.data() : undefined;
     const orderRef = doc(collection(firestore, ACTIVE_ORDERS_COLLECTION));
     
     const orderData = cleanUndefined({
       orderId,
+      clientId,
       items: items.map((item) => cleanUndefined({
         productId: item.productId,
         name: item.name,
@@ -278,6 +260,7 @@ export async function createOrder(params: {
       if (nextQty <= threshold) {
         const alertRef = doc(collection(firestore, "alerts"));
         transaction.set(alertRef, {
+          clientId,
           module: "Inventory",
           level: nextQty <= 0 ? "critical" : "warning",
           message: `Low stock for ${usage.ingredientName}: ${nextQty} ${usage.unit} remaining.`,
@@ -311,6 +294,7 @@ export async function createOrder(params: {
         beforeQty: entry.beforeQty,
         afterQty: entry.afterQty,
         referenceOrderId: entry.referenceOrderId,
+        clientId,
         type: "sale",
         createdAt: serverTimestamp(),
         performedBy: "admin",
@@ -319,6 +303,7 @@ export async function createOrder(params: {
   );
 
   await addAuditEntrySafe({
+    clientId,
     module: "POS",
     action: "checkout",
     description: `Created order ${orderId} with ${items.length} line items`,
@@ -329,6 +314,7 @@ export async function createOrder(params: {
 }
 
 export function subscribeToActiveOrders(
+  clientId: string,
   callback: (orders: OrderRecord[]) => void,
   orderLimit = 25,
 ): Unsubscribe {
@@ -336,10 +322,14 @@ export function subscribeToActiveOrders(
   return onSnapshot(
     query(
       collection(firestore, ACTIVE_ORDERS_COLLECTION),
+      where("clientId", "==", clientId),
       orderBy("createdAt", "desc"),
       limit(orderLimit),
     ),
     (snapshot) => callback(snapshot.docs.map(mapOrder)),
+    (error) => {
+      console.error("Firestore [Orders] Subscription Error:", error);
+    }
   );
 }
 
@@ -354,8 +344,7 @@ export async function completeOrder(orderId: string) {
 
   const data = snapshot.data();
   const dayKey = data.dayKey || getDayKey();
-  const salesRef = doc(firestore, SALES_COLLECTION, `daily_${dayKey}`);
-  const batch = writeBatch(firestore);
+  const salesRef = doc(firestore, SALES_COLLECTION, `${data.clientId}_${dayKey}`);
   const historyRef = doc(collection(firestore, ORDER_HISTORY_COLLECTION));
 
   // Note: We use a simple batch here, but if we want to be perfectly atomic with the summary update, 
@@ -372,25 +361,29 @@ export async function completeOrder(orderId: string) {
     });
     transaction.delete(activeRef);
 
-    transaction.set(
-      salesRef,
-      {
-        dateKey: dayKey,
-        totalSales: (existingSales?.totalSales ?? 0) + (data.totalAmount ?? 0),
-        orderCount: (existingSales?.orderCount ?? 0) + 1,
-        topProducts: mergeTopProducts(existingSales?.topProducts, data.items || []),
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true },
-    );
+      transaction.set(
+        salesRef,
+        {
+          clientId: data.clientId,
+          dateKey: dayKey,
+          totalSales: (existingSales?.totalSales ?? 0) + (data.totalAmount ?? 0),
+          orderCount: (existingSales?.orderCount ?? 0) + 1,
+          topProducts: mergeTopProducts(existingSales?.topProducts, data.items || []),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
   });
 
   await addAuditEntrySafe({
+    clientId: data.clientId,
     module: "Orders",
     action: "complete",
     description: `Completed order ${orderId}`,
     performedBy: "admin",
   });
+
+  void trackUsage("transaction_created");
 }
 
 export async function cancelOrder(orderId: string) {
@@ -418,6 +411,7 @@ export async function cancelOrder(orderId: string) {
 
   await batch.commit();
   await addAuditEntrySafe({
+    clientId: data.clientId,
     module: "Orders",
     action: "cancel",
     description: `Cancelled order ${orderId}`,
@@ -426,12 +420,14 @@ export async function cancelOrder(orderId: string) {
 }
 
 export async function listOrderHistory(
+  clientId: string,
   cursor?: QueryDocumentSnapshot,
   orderLimit = 10,
 ) {
   const firestore = getFirestoreDb();
   const baseQuery = query(
     collection(firestore, ORDER_HISTORY_COLLECTION),
+    where("clientId", "==", clientId),
     orderBy("createdAt", "desc"),
     limit(orderLimit),
   );
@@ -450,11 +446,12 @@ export async function deleteHistoryOrder(id: string) {
   await deleteDoc(doc(getFirestoreDb(), ORDER_HISTORY_COLLECTION, id));
 }
 
-export async function getCompletedOrdersForDate(dayKey: string) {
+export async function getCompletedOrdersForDate(clientId: string, dayKey: string) {
   const firestore = getFirestoreDb();
   const snapshot = await getDocs(
     query(
       collection(firestore, ORDER_HISTORY_COLLECTION),
+      where("clientId", "==", clientId),
       where("dayKey", "==", dayKey),
       orderBy("createdAt", "desc"),
       limit(50),
@@ -465,13 +462,18 @@ export async function getCompletedOrdersForDate(dayKey: string) {
 }
 
 export async function listOrderHistoryForRange(params: {
+  clientId: string;
   startDate?: Date;
   endDate?: Date;
   limitCount?: number;
 }) {
   const firestore = getFirestoreDb();
-  const { startDate, endDate, limitCount = 300 } = params;
-  const constraints = [orderBy("createdAt", "desc"), limit(limitCount)] as const;
+  const { clientId, startDate, endDate, limitCount = 300 } = params;
+  const constraints = [
+    where("clientId", "==", clientId),
+    orderBy("createdAt", "desc"),
+    limit(limitCount)
+  ] as const;
   const snapshot = await getDocs(query(collection(firestore, ORDER_HISTORY_COLLECTION), ...constraints));
 
   const startTime = startDate ? startDate.getTime() : undefined;
@@ -512,15 +514,17 @@ export async function listRealtimeProductsForPos() {
 }
 
 export async function listIngredientUsageForRange(params: {
+  clientId: string;
   startDate?: Date;
   endDate?: Date;
   limitCount?: number;
 }) {
   const firestore = getFirestoreDb();
-  const { startDate, endDate, limitCount = 500 } = params;
+  const { clientId, startDate, endDate, limitCount = 500 } = params;
   const snapshot = await getDocs(
     query(
       collection(firestore, INGREDIENT_STOCK_HISTORY_COLLECTION),
+      where("clientId", "==", clientId),
       orderBy("createdAt", "desc"),
       limit(limitCount),
     ),

@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { createIngredient, updateIngredient } from "@/services/firebase/ingredients";
 import type { IngredientItem } from "@/lib/types/domain";
+import { useAuthStore } from "@/store/auth-store";
 
 interface IngredientDialogProps {
   onSaved: () => void;
@@ -31,6 +32,8 @@ interface IngredientDialogProps {
 }
 
 export function IngredientDialog({ onSaved, ingredient, triggerLabel }: IngredientDialogProps) {
+  const user = useAuthStore((state) => state.user);
+  const effectiveClientId = user?.masqueradeClientId || user?.clientId;
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -88,7 +91,8 @@ export function IngredientDialog({ onSaved, ingredient, triggerLabel }: Ingredie
         await updateIngredient(ingredient.id, payload);
         toast.success("Ingredient updated.");
       } else {
-        await createIngredient(payload);
+        if (!effectiveClientId) throw new Error("No client ID found");
+        await createIngredient(effectiveClientId, payload);
         toast.success("Ingredient added to warehouse.");
       }
       setOpen(false);

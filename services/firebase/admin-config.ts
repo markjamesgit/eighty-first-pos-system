@@ -10,7 +10,7 @@ export type AdminSystemConfig = {
   logoUrl: string;
 };
 
-const CONFIG_DOC = "admin/config";
+const CONFIG_COLLECTION = "admin_config";
 
 export const DEFAULT_CONFIG: AdminSystemConfig = {
   shopName: "Eighty First POS",
@@ -21,25 +21,27 @@ export const DEFAULT_CONFIG: AdminSystemConfig = {
   logoUrl: "",
 };
 
-export async function getAdminConfig(): Promise<AdminSystemConfig> {
+export async function getAdminConfig(clientId: string): Promise<AdminSystemConfig> {
   const db = getFirestoreDb();
-  const snap = await getDoc(doc(db, CONFIG_DOC));
+  const snap = await getDoc(doc(db, CONFIG_COLLECTION, clientId));
   if (snap.exists()) return snap.data() as AdminSystemConfig;
   return DEFAULT_CONFIG;
 }
 
-export async function saveAdminConfig(config: Partial<AdminSystemConfig>): Promise<void> {
+export async function saveAdminConfig(clientId: string, config: Partial<AdminSystemConfig>): Promise<void> {
   const db = getFirestoreDb();
-  await setDoc(doc(db, CONFIG_DOC), config, { merge: true });
+  await setDoc(doc(db, CONFIG_COLLECTION, clientId), config, { merge: true });
 }
 
-export function subscribeToAdminConfig(callback: (config: AdminSystemConfig) => void) {
+export function subscribeToAdminConfig(clientId: string, callback: (config: AdminSystemConfig) => void) {
   const db = getFirestoreDb();
-  return onSnapshot(doc(db, CONFIG_DOC), (snap) => {
+  return onSnapshot(doc(db, CONFIG_COLLECTION, clientId), (snap) => {
     if (snap.exists()) {
       callback(snap.data() as AdminSystemConfig);
     } else {
       callback(DEFAULT_CONFIG);
     }
+  }, (error) => {
+    console.error("Firestore [AdminConfig] Subscription Error:", error);
   });
 }

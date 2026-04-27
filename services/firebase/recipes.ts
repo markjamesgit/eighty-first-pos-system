@@ -1,8 +1,9 @@
 "use client";
 
-import { collection, doc, getDoc, getDocs, orderBy, query, serverTimestamp, setDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, orderBy, query, serverTimestamp, setDoc, where } from "firebase/firestore";
 import type { ProductRecipe, ProductRecipeItem } from "@/lib/types/domain";
 import { getFirestoreDb } from "./client";
+import { addAuditEntrySafe } from "./audit-trail";
 
 const RECIPES_COLLECTION = "product_recipes";
 
@@ -24,20 +25,32 @@ function mapRecipe(snapshot: Awaited<ReturnType<typeof getDocs>>["docs"][number]
   };
 }
 
-export async function saveProductRecipe(input: {
-  productId: string;
-  productName: string;
-  items: ProductRecipeItem[];
-}) {
+export async function saveProductRecipe(
+  clientId: string,
+  input: {
+    productId: string;
+    productName: string;
+    items: ProductRecipeItem[];
+  }
+) {
   await setDoc(
     doc(getFirestoreDb(), RECIPES_COLLECTION, input.productId),
     {
       ...input,
+      clientId,
       updatedAt: serverTimestamp(),
       createdAt: serverTimestamp(),
     },
     { merge: true },
   );
+
+  await addAuditEntrySafe({
+    clientId,
+    module: "Recipes",
+    action: "save",
+    description: `Saved recipe for ${input.productName}`,
+    performedBy: "admin",
+  });
 }
 
 export async function getProductRecipe(productId: string) {
@@ -57,9 +70,13 @@ export async function getProductRecipe(productId: string) {
   } as ProductRecipe;
 }
 
-export async function listProductRecipes() {
+export async function listProductRecipes(clientId: string) {
   const snapshot = await getDocs(
-    query(collection(getFirestoreDb(), RECIPES_COLLECTION), orderBy("productName")),
+    query(
+      collection(getFirestoreDb(), RECIPES_COLLECTION),
+      where("clientId", "==", clientId),
+      orderBy("productName")
+    ),
   );
   return snapshot.docs.map(mapRecipe);
 }

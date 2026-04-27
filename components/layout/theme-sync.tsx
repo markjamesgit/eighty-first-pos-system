@@ -1,16 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuthStore } from "@/store/auth-store";
 import { subscribeToAdminConfig, type AdminSystemConfig, DEFAULT_CONFIG } from "@/services/firebase/admin-config";
 
 export function ThemeSync() {
+  const user = useAuthStore(state => state.user);
   const [config, setConfig] = useState<AdminSystemConfig>(DEFAULT_CONFIG);
 
   useEffect(() => {
-    return subscribeToAdminConfig((newConfig) => {
+    const isMasquerading = user?.role === "super_admin" && !!user.masqueradeClientId;
+    const isRegularAdmin = (user?.role === "admin" || user?.role === "client_admin" || user?.role === "cashier") && !!user.clientId;
+    const shouldConnect = isMasquerading || isRegularAdmin;
+
+    if (!shouldConnect) return;
+
+    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+    if (!effectiveClientId) return;
+
+    return subscribeToAdminConfig(effectiveClientId, (newConfig) => {
       setConfig({ ...DEFAULT_CONFIG, ...newConfig });
     });
-  }, []);
+  }, [user]);
 
   return (
     <style dangerouslySetInnerHTML={{

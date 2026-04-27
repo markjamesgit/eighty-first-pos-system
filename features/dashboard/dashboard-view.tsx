@@ -21,10 +21,12 @@ import { listIngredients } from "@/services/firebase/ingredients";
 import { listIngredientUsageForRange } from "@/services/firebase/orders";
 import { getSalesSummaryByDateRange, getSalesSummaryByFilter, syncDailySalesSummary } from "@/services/firebase/sales";
 import { listProducts } from "@/services/firebase/products";
+import { useAuthStore } from "@/store/auth-store";
 import { subscribeToAdminConfig, type AdminSystemConfig, DEFAULT_CONFIG } from "@/services/firebase/admin-config";
 import type { Product, SalesSummary } from "@/lib/types/domain";
 
 export function DashboardView() {
+  const user = useAuthStore(state => state.user);
   const [filter, setFilter] = useState<"today" | "weekly" | "monthly" | "custom">("today");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
@@ -60,13 +62,16 @@ export function DashboardView() {
       }
     }
 
+    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+    if (!effectiveClientId) return;
+
     const salesPromise =
       currentFilter === "custom"
-        ? getSalesSummaryByDateRange(startDate, endDate)
-        : getSalesSummaryByFilter(currentFilter);
+        ? getSalesSummaryByDateRange(effectiveClientId, startDate, endDate)
+        : getSalesSummaryByFilter(effectiveClientId, currentFilter);
     void salesPromise.then(setSummary).catch(() => setSummary([]));
 
-    void listIngredientUsageForRange({ startDate, endDate })
+    void listIngredientUsageForRange({ clientId: effectiveClientId, startDate, endDate })
       .then((rows) =>
         setIngredientUsage(
           rows.map((row) => ({
@@ -79,9 +84,12 @@ export function DashboardView() {
   };
 
   const handleSync = async () => {
+    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+    if (!effectiveClientId) return;
+
     setSyncing(true);
     try {
-      await syncDailySalesSummary(getDayKey(new Date()));
+      await syncDailySalesSummary(effectiveClientId, getDayKey(new Date()));
       fetchSalesData(filter, customStartDate, customEndDate);
       toast.success("Dashboard data synchronized with order history.");
     } catch (err) {
@@ -92,16 +100,22 @@ export function DashboardView() {
   };
 
   useEffect(() => {
+    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+    const isMasquerading = user?.role === "super_admin" && !!user.masqueradeClientId;
+    const isRegularAdmin = (user?.role === "admin" || user?.role === "client_admin" || user?.role === "cashier") && !!user.clientId;
+    const shouldConnect = isMasquerading || isRegularAdmin;
+
+    if (!shouldConnect || !effectiveClientId) return;
     setMounted(true);
-    void listProducts().then((items) => {
+    void listProducts(effectiveClientId).then((items) => {
       const map: Record<string, Product> = {};
       items.forEach((item) => {
         map[item.id] = item;
       });
       setProductsMap(map);
     });
-    return subscribeToAdminConfig(setSysConfig);
-  }, []);
+    return subscribeToAdminConfig(effectiveClientId, setSysConfig);
+  }, [user]);
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -128,9 +142,11 @@ export function DashboardView() {
   }
 
   useEffect(() => {
+    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+    if (!effectiveClientId || user?.role === "super_admin") return;
     fetchSalesData(filter, customStartDate, customEndDate);
 
-    void listIngredients()
+    void listIngredients(effectiveClientId)
       .then((rows) =>
         setIngredients(
           rows.map((row) => ({
@@ -142,7 +158,7 @@ export function DashboardView() {
         ),
       )
       .catch(() => setIngredients([]));
-  }, [filter, customStartDate, customEndDate]);
+  }, [filter, customStartDate, customEndDate, user]);
 
   const totals = useMemo(() => {
     return summary.reduce(

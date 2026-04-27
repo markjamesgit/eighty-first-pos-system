@@ -36,16 +36,19 @@ export function AlertsView() {
   const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
+    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+    if (!effectiveClientId) return;
+    
     alertMountTimeRef.current = Date.now();
-    void fetchProducts();
+    void fetchProducts(effectiveClientId);
     
     // Subscribe to system alerts
-    const unsubAlerts = subscribeToAlerts(setRealtimeAlerts, 200);
+    const unsubAlerts = subscribeToAlerts(effectiveClientId, setRealtimeAlerts, 200);
 
     return () => {
       unsubAlerts();
     };
-  }, [fetchProducts]);
+  }, [fetchProducts, user]);
 
   const filteredAlerts = useMemo(() => {
     const needle = search.toLowerCase().trim();

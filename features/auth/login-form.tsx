@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, } from "@/co
 import { Input } from "@/components/ui/input";
 import { loginAdmin } from "@/services/firebase/auth";
 import { getAdminConfig } from "@/services/firebase/admin-config";
+import { addAuditEntrySafe } from "@/services/firebase/audit-trail";
 
 export function LoginForm() {
   const router = useRouter();
@@ -26,18 +27,35 @@ export function LoginForm() {
     setLoading(true);
 
     try {
-      await loginAdmin(email, password);
+      const firebaseUser = await loginAdmin(email, password);
       // Store encoded credentials for local machine PIN bypass
       if (typeof window !== "undefined") {
         localStorage.setItem("pos_local_auth", btoa(`${email}:::${password}`));
       }
+      const tokenResult = await firebaseUser.getIdTokenResult(true);
+      const role = (tokenResult.claims.role as string | undefined) ?? "cashier";
+      const clientId = (tokenResult.claims.clientId as string | undefined) || null;
+
+      // Log login event
+      const auditClientId = role === "super_admin" ? "system" : clientId;
+      if (auditClientId) {
+        void addAuditEntrySafe({
+          module: "Authentication",
+          action: "login",
+          description: `User ${email} signed in successfully`,
+          performedBy: email,
+          clientId: auditClientId
+        });
+      }
+
       toast.success("Welcome back.");
-      router.replace("/dashboard");
-    } catch (error: any) {
-      if (error?.code === "auth/invalid-credential" || error?.code === "auth/wrong-password") {
+      router.replace(role === "super_admin" ? "/super-admin/dashboard" : "/dashboard");
+    } catch (error: unknown) {
+      const authError = error as { code?: string; message?: string };
+      if (authError.code === "auth/invalid-credential" || authError.code === "auth/wrong-password") {
         toast.error("Incorrect email or password.");
       } else {
-        toast.error(error?.message || "Unable to sign in.");
+        toast.error(authError.message || "Unable to sign in.");
       }
     } finally {
       setLoading(false);
@@ -65,21 +83,38 @@ export function LoginForm() {
           const decoded = atob(authStored);
           const [savedEmail, savedPassword] = decoded.split(":::");
           toast.info("PIN Verified. Authenticating bypass...");
-          await loginAdmin(savedEmail, savedPassword);
+          const firebaseUser = await loginAdmin(savedEmail, savedPassword);
+          const tokenResult = await firebaseUser.getIdTokenResult(true);
+          const role = (tokenResult.claims.role as string | undefined) ?? "cashier";
+          const clientId = (tokenResult.claims.clientId as string | undefined) || null;
+
+          // Log override login
+          const auditClientId = role === "super_admin" ? "system" : clientId;
+          if (auditClientId) {
+            void addAuditEntrySafe({
+              module: "Authentication",
+              action: "login_override",
+              description: `User ${savedEmail} signed in via PIN override`,
+              performedBy: savedEmail,
+              clientId: auditClientId
+            });
+          }
+
           toast.success("Override successful.");
-          router.replace("/dashboard");
-        } catch (e) {
+          router.replace(role === "super_admin" ? "/super-admin/dashboard" : "/dashboard");
+        } catch {
           toast.error("Linked credentials expired. Please login normally.");
           setIsRecovering(false);
         }
       } else {
         toast.error("Incorrect recovery PIN.");
       }
-    } catch (e: any) {
-      if (e?.code === "permission-denied") {
+    } catch (error: unknown) {
+      const authError = error as { code?: string; message?: string };
+      if (authError.code === "permission-denied") {
         toast.error("Firestore Rules strictly block unauthorized access. An Admin session is required to fetch PINs.");
       } else {
-        toast.error(e?.message || "Failed to verify PIN. System is offline.");
+        toast.error(authError.message || "Failed to verify PIN. System is offline.");
       }
     } finally {
       setVerifyingPin(false);
@@ -106,7 +141,7 @@ export function LoginForm() {
                   onChange={(e) => {
                     const val = e.target.value;
                     if (val !== "" && !/^\d*$/.test(val)) return;
-                    let arr = recoveryPin.split("");
+                    const arr = recoveryPin.split("");
                     arr[i] = val.slice(-1);
                     const newPin = arr.join("").slice(0, 6);
                     setRecoveryPin(newPin);

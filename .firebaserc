@@ -1,6 +1,7 @@
 {
   "projects": {
-    "eighty-first-coffee-pos": "eighty-first-coffee-pos"
+    "eighty-first-coffee-pos": "eighty-first-coffee-pos",
+    "pos-sass": "pos-saas-2be27"
   },
   "targets": {},
   "etags": {}

@@ -54,10 +54,12 @@ export function ProductDialog({
   product,
   triggerLabel,
   onSaved,
+  clientId,
 }: {
   product?: Product;
   triggerLabel: string;
   onSaved: () => Promise<void> | void;
+  clientId: string;
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -114,10 +116,10 @@ export function ProductDialog({
 
   useEffect(() => {
     void Promise.all([
-      listMaintenanceItems("categories"),
-      listMaintenanceItems("variants"),
-      listMaintenanceItems("addons"),
-      listMaintenanceItems("modifiers"),
+      listMaintenanceItems(clientId, "categories"),
+      listMaintenanceItems(clientId, "variants"),
+      listMaintenanceItems(clientId, "addons"),
+      listMaintenanceItems(clientId, "modifiers"),
     ])
       .then(([categories, variants, addons, modifiers]) => {
         const activeCategories = categories.filter((item) => item.isActive);
@@ -138,8 +140,7 @@ export function ProductDialog({
         setAddonOptions([]);
         setModifierOptions([]);
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product]);
+  }, [product, clientId]);
 
   function parseValues(): ProductFormValues {
     const parsedPrice = Number(values.price || "0");
@@ -218,11 +219,13 @@ export function ProductDialog({
     setLoading(true);
 
     try {
+      if (!clientId) throw new Error("Client ID missing");
+
       if (product) {
-        await updateProduct(product.id, parsed);
+        await updateProduct(clientId, product.id, parsed);
         toast.success("Product updated.");
       } else {
-        await createProduct(parsed);
+        await createProduct(clientId, parsed);
         toast.success("Product added.");
       }
 

@@ -11,6 +11,7 @@ import { createOrder } from "@/services/firebase/orders";
 import { usePosStore, getCartSubtotal } from "@/store/pos-store";
 import { useProductsStore } from "@/store/products-store";
 import { listMaintenanceItems } from "@/services/firebase/maintenance";
+import { useAuthStore } from "@/store/auth-store";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -25,6 +26,8 @@ import { ProductConfigDialog } from "./product-config-dialog";
 import type { Product, CartItem } from "@/lib/types/domain";
 
 export function PosView() {
+  const user = useAuthStore(state => state.user);
+  const effectiveClientId = user?.masqueradeClientId || user?.clientId;
   const products = useProductsStore((state) => state.products);
   const fetchProducts = useProductsStore((state) => state.fetchProducts);
   const {
@@ -50,21 +53,33 @@ export function PosView() {
   const [customerName, setCustomerName] = useState("");
 
   useEffect(() => {
-    void fetchProducts();
-  }, [fetchProducts]);
+    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+    const isMasquerading = user?.role === "super_admin" && !!user.masqueradeClientId;
+    const isRegularAdmin = (user?.role === "admin" || user?.role === "client_admin" || user?.role === "cashier") && !!user.clientId;
+    const shouldConnect = isMasquerading || isRegularAdmin;
+
+    if (!shouldConnect || !effectiveClientId) return;
+    void fetchProducts(effectiveClientId);
+  }, [fetchProducts, user]);
 
   useEffect(() => {
+    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+    const isMasquerading = user?.role === "super_admin" && !!user.masqueradeClientId;
+    const isRegularAdmin = (user?.role === "admin" || user?.role === "client_admin" || user?.role === "cashier") && !!user.clientId;
+    const shouldConnect = isMasquerading || isRegularAdmin;
+
+    if (!shouldConnect || !effectiveClientId) return;
     setMtLoading(true);
     Promise.all([
-      listMaintenanceItems("variants"),
-      listMaintenanceItems("addons"),
-      listMaintenanceItems("modifiers"),
+      listMaintenanceItems(effectiveClientId, "variants"),
+      listMaintenanceItems(effectiveClientId, "addons"),
+      listMaintenanceItems(effectiveClientId, "modifiers"),
     ]).then(([fetchedVariants, fetchedAddons, fetchedModifiers]) => {
       setVariants(fetchedVariants);
       setAddons(fetchedAddons);
       setModifiers(fetchedModifiers);
     }).finally(() => setMtLoading(false));
-  }, []);
+  }, [user]);
 
   const productCategories = useMemo(() => {
     const set = new Set(products.map((p) => p.category).filter(Boolean));
@@ -96,6 +111,7 @@ export function PosView() {
     setLoading(true);
     try {
       const result = await createOrder({
+        clientId: effectiveClientId!,
         items: cart,
         cashReceived,
         totalAmount: subtotal,
@@ -105,7 +121,7 @@ export function PosView() {
       resetCart();
       setCustomerName("");
       setCheckoutOpen(false);
-      await fetchProducts();
+      if (effectiveClientId) await fetchProducts(effectiveClientId);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Checkout failed.");
     } finally {

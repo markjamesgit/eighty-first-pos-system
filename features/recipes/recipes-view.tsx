@@ -5,7 +5,7 @@ import { Plus, Trash, BookOpen, ChefHat, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -20,8 +20,9 @@ import { cn } from "@/lib/utils";
 import { listProducts } from "@/services/firebase/products";
 import { listMaintenanceItems } from "@/services/firebase/maintenance";
 import { listIngredients } from "@/services/firebase/ingredients";
+import { useAuthStore } from "@/store/auth-store";
 import { listProductRecipes, saveProductRecipe } from "@/services/firebase/recipes";
-import type { Product, IngredientItem, ProductRecipe, ProductRecipeItem } from "@/lib/types/domain";
+import type { IngredientItem, ProductRecipe, ProductRecipeItem } from "@/lib/types/domain";
 
 type RecipeTarget = {
   id: string;
@@ -42,16 +43,16 @@ export function RecipesView() {
   const [mobileTab, setMobileTab] = useState<"items" | "recipe">("items");
   const [currentRecipeItems, setCurrentRecipeItems] = useState<(Omit<ProductRecipeItem, "qtyUsed"> & { qtyUsed: string })[]>([]);
 
-  const loadData = async () => {
+  const loadData = async (clientId: string) => {
     try {
       setLoading(true);
       const [prods, vars, adds, mods, ings, recs] = await Promise.all([
-        listProducts(),
-        listMaintenanceItems("variants"),
-        listMaintenanceItems("addons"),
-        listMaintenanceItems("modifiers"),
-        listIngredients(),
-        listProductRecipes(),
+        listProducts(clientId),
+        listMaintenanceItems(clientId, "variants"),
+        listMaintenanceItems(clientId, "addons"),
+        listMaintenanceItems(clientId, "modifiers"),
+        listIngredients(clientId),
+        listProductRecipes(clientId),
       ]);
 
       const tgs: RecipeTarget[] = [
@@ -64,16 +65,25 @@ export function RecipesView() {
       setTargets(tgs);
       setIngredients(ings);
       setRecipes(recs);
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to load recipe data.");
     } finally {
       setLoading(false);
     }
   };
 
+  const user = useAuthStore(state => state.user);
+
   useEffect(() => {
-    void loadData();
-  }, []);
+    const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+    const isMasquerading = user?.role === "super_admin" && !!user.masqueradeClientId;
+    const isRegularAdmin = (user?.role === "admin" || user?.role === "client_admin" || user?.role === "cashier") && !!user.clientId;
+    const shouldConnect = isMasquerading || isRegularAdmin;
+
+    if (shouldConnect && effectiveClientId) {
+      void loadData(effectiveClientId);
+    }
+  }, [user]);
 
   const selectedTarget = useMemo(
     () => targets.find((t) => t.id === selectedTargetId) || null,
@@ -110,7 +120,7 @@ export function RecipesView() {
     ]);
   };
 
-  const handleUpdateIngredient = (index: number, field: string, value: any) => {
+  const handleUpdateIngredient = (index: number, field: string, value: string | number) => {
     setCurrentRecipeItems((prev) => {
       const clone = [...prev];
       if (field === "ingredientId") {
@@ -155,7 +165,10 @@ export function RecipesView() {
 
     setSaving(true);
     try {
-      await saveProductRecipe({
+      const effectiveClientId = user?.masqueradeClientId || user?.clientId;
+      if (!effectiveClientId) throw new Error("No client ID found");
+      
+      await saveProductRecipe(effectiveClientId, {
         productId: selectedTarget.id,
         productName: selectedTarget.name,
         items: currentRecipeItems.map(i => ({
@@ -164,7 +177,7 @@ export function RecipesView() {
         })),
       });
       toast.success("Recipe saved successfully.");
-      void loadData(); // Reload to update recipes mapping
+      void loadData(effectiveClientId); // Reload to update recipes mapping
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to save recipe.");
     } finally {

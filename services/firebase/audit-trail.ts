@@ -1,8 +1,9 @@
 "use client";
 
-import { addDoc, collection, getDocs, limit, orderBy, query, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, getDocs, limit, orderBy, query, serverTimestamp, where } from "firebase/firestore";
 import type { AuditTrailEntry } from "@/lib/types/domain";
 import { getFirestoreDb } from "./client";
+import { cleanUndefined } from "@/lib/utils";
 
 const AUDIT_TRAIL_COLLECTION = "audit_trail";
 
@@ -16,7 +17,9 @@ function mapAuditEntry(
     action: String(data.action ?? ""),
     description: String(data.description ?? ""),
     performedBy: String(data.performedBy ?? "admin"),
+    clientId: String(data.clientId ?? ""),
     createdAt:
+
       data.createdAt && typeof data.createdAt === "object" && "toDate" in data.createdAt
         ? (data.createdAt as { toDate: () => Date }).toDate()
         : undefined,
@@ -24,10 +27,10 @@ function mapAuditEntry(
 }
 
 export async function addAuditEntry(input: Omit<AuditTrailEntry, "id" | "createdAt">) {
-  await addDoc(collection(getFirestoreDb(), AUDIT_TRAIL_COLLECTION), {
+  await addDoc(collection(getFirestoreDb(), AUDIT_TRAIL_COLLECTION), cleanUndefined({
     ...input,
     createdAt: serverTimestamp(),
-  });
+  }));
 }
 
 export async function addAuditEntrySafe(input: Omit<AuditTrailEntry, "id" | "createdAt">) {
@@ -41,10 +44,11 @@ export async function addAuditEntrySafe(input: Omit<AuditTrailEntry, "id" | "cre
   }
 }
 
-export async function listAuditTrail(limitCount = 300) {
+export async function listAuditTrail(clientId: string, limitCount = 300) {
   const snapshot = await getDocs(
     query(
       collection(getFirestoreDb(), AUDIT_TRAIL_COLLECTION),
+      where("clientId", "==", clientId),
       orderBy("createdAt", "desc"),
       limit(limitCount),
     ),
